@@ -14,9 +14,9 @@ export default function layout() {
       options={{
         title : "Home"
       }}/>
-      <Tabs.Screen name="ShoppingList" 
+      <Tabs.Screen name="ProfilePage" 
       options={{
-        title : "Shopping List"
+        title : "ProfilePage"
       }}/>
       <Tabs.Screen name="Items" 
       options={{
