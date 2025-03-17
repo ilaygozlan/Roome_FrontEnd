@@ -1,5 +1,6 @@
 import { StyleSheet, ScrollView, View ,Button} from 'react-native'
 import ShoppingList from '../components/shoppingList'
+import Apartment from '../components/apartment'
 import { useRouter } from "expo-router";
 
 export default function HomeScreen() {
@@ -12,8 +13,7 @@ export default function HomeScreen() {
   return (
     <View>
        <ScrollView>
-        <ShoppingList listName="my shopping list" mode="home"/>
-        <Button onPress={() => navigateToScreen('ShoppingList')} title="See Shopping List"/>
+        <Apartment/>
       </ScrollView>
     </View>
   )
