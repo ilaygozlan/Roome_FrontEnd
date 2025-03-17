@@ -1,8 +1,13 @@
-import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, Image, StyleSheet, TouchableOpacity , ScrollView} from "react-native";
 import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
+import { TextInput } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import React, { useState} from "react";
+import { useRouter } from "expo-router";
 
 export default function Apartment(props) {
+
+  const router = useRouter();
 
   const [allApartments, setAllApartments] = useState([
     {
@@ -79,7 +84,9 @@ export default function Apartment(props) {
     }]);
 /*props.apartments */
     let apartmentsList = allApartments.map(apt => (
-    <View key={apt.ApartmentID} style={styles.card}>
+
+    <View key={apt.ApartmentID} style={styles.card} >
+    <TouchableOpacity onPress={() => router.push({ pathname: "/ApartmentDetails", params: { apartment: JSON.stringify(apt) } })}>
       {/* Apartment Image */}
       <Image source={{ uri: apt.Images }} style={styles.image} />
 
@@ -89,7 +96,7 @@ export default function Apartment(props) {
         <Text style={styles.description}>מתאים ל{apt.Shared_NumberOfRoommates} שותפים</Text>
         <Text style={styles.price}>{apt.Price} ש"ח</Text>
       </View>
-
+      </TouchableOpacity>
     {/* Icons Row */}
         <View style={styles.iconRow}>
         <TouchableOpacity>
@@ -106,9 +113,16 @@ export default function Apartment(props) {
   )); 
   return (
     <>
+    <ScrollView>
+    <View style={styles.searchContainer}>
+        
+        <Ionicons name="search" size={20} color="gray" style={styles.searchIcon} />
+        <TextInput style={styles.searchInput} placeholder="Search..." />
+    </View>
     <View style={styles.container}>
       {apartmentsList}
     </View>
+    </ScrollView>
     </>
   )
 }
@@ -171,4 +185,20 @@ const styles = StyleSheet.create({
       justifyContent: "space-around",
       padding: 5,
     },
+    searchContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        borderWidth: 1,
+        borderColor: "#ccc",
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        backgroundColor: "#fff",
+      },
+      searchIcon: {
+        marginRight: 5,
+      },
+      searchInput: {
+        flex: 1,
+        height: 40,
+      },
   });

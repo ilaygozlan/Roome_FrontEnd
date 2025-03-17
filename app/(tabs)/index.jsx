@@ -1,6 +1,5 @@
-import { StyleSheet, ScrollView, View ,Button} from 'react-native'
-import ShoppingList from '../components/shoppingList'
-import Apartment from '../components/apartment'
+import { StyleSheet, ScrollView, View ,Button} from 'react-native';
+import Apartment from '../components/apartment';
 import { useRouter } from "expo-router";
 
 export default function HomeScreen() {
