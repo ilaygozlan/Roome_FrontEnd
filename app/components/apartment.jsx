@@ -9,6 +9,25 @@ export default function Apartment(props) {
 
   const router = useRouter();
 
+    // Define colors for each apartment type
+    const getBorderColor = (type) => {
+        switch (type) {
+          case 0: return "#F0C27B"; // Rental - Soft Pastel Orange
+          case 1: return "#F4B982"; // Roommates - Warm Peach
+          case 2: return "#E3965A"; // Sublet - Light Apricot
+          default: return "#ddd";
+        }
+      };
+    
+    const getTypeName = (type) => {
+        switch (type) {
+          case 0: return "Rental";
+          case 1: return "Roommates";
+          case 2: return "Sublet";
+          default: return "Unknown";
+        }
+      };
+
   const [allApartments, setAllApartments] = useState([
     {
         "ApartmentID": 1001,
@@ -32,7 +51,8 @@ export default function Apartment(props) {
         "Sublet_CanCancelWithoutPenalty": null,
         "Sublet_IsWholeProperty": null,
         "Images": "https://images2.madlan.co.il/t:nonce:v=2/projects/%D7%9E%D7%AA%D7%97%D7%9D%20%D7%A7%D7%95%D7%A4%D7%AA%20%D7%97%D7%95%D7%9C%D7%99%D7%9D%20-%20%D7%A2%D7%96%D7%A8%D7%99%D7%90%D7%9C%D7%99/48950_br_group_pic_950x650_3-683b75f9-b8f5-427d-8f29-cad7d8865ff4.jpg",
-        "Roommates": null
+        "Roommates": null,
+        "ApartmentType": 0,
     },
     {
         "ApartmentID": 1002,
@@ -56,7 +76,8 @@ export default function Apartment(props) {
         "Sublet_CanCancelWithoutPenalty": null,
         "Sublet_IsWholeProperty": null,
         "Images": "https://img.yad2.co.il/Pic/202407/22/2_6/o/o2_6_1_02750_20240722172729.jpg?w=3840&h=3840&c=9",
-        "Roommates": "UserID: 5 | Name: Danny | Gender: male | Job: מפתח תוכנה | BirthDate: N/A"
+        "Roommates": "UserID: 5 | Name: Danny | Gender: male | Job: מפתח תוכנה | BirthDate: N/A",
+        "ApartmentType": 1,
     },
     {
         "ApartmentID": 1004,
@@ -68,7 +89,7 @@ export default function Apartment(props) {
         "GardenBalcony": 1,
         "ParkingSpace": 1,
         "EntryDate": "2025-03-01",
-        "ExitDate": null,
+        "ExitDate": "2025-03-14",
         "IsActive": 1,
         "PropertyTypeID": 2,
         "UserID": 5,
@@ -77,15 +98,20 @@ export default function Apartment(props) {
         "Shared_NumberOfRoommates": null,
         "Rental_ContractLength": null,
         "Rental_ExtensionPossible": null,
-        "Sublet_CanCancelWithoutPenalty": null,
+        "Sublet_CanCancelWithoutPenalty": 0,
         "Sublet_IsWholeProperty": null,
         "Images": "https://israprop.com/wp-content/uploads/2022/02/42a04fd7-c5d7-4561-981c-b96fb4e461cd.jpg",
-        "Roommates": null
+        "Roommates": null,
+        "ApartmentType": 2,
     }]);
 /*props.apartments */
     let apartmentsList = allApartments.map(apt => (
 
-    <View key={apt.ApartmentID} style={styles.card} >
+    <View key={apt.ApartmentID} style={[styles.card, { borderColor: getBorderColor(apt.ApartmentType) }]} >
+        {/* Label for Apartment Type */}
+        <View style={[styles.typeLabel, { backgroundColor: getBorderColor(apt.ApartmentType) }]}>
+                <Text style={styles.typeText}>{getTypeName(apt.ApartmentType)}</Text>
+              </View>
     <TouchableOpacity onPress={() => router.push({ pathname: "/ApartmentDetails", params: { apartment: JSON.stringify(apt) } })}>
       {/* Apartment Image */}
       <Image source={{ uri: apt.Images }} style={styles.image} />
@@ -142,6 +168,7 @@ const styles = StyleSheet.create({
       overflow: "hidden",
       shadowColor: "#000",
       shadowOpacity: 0.1,
+      borderWidth: 3,
       shadowRadius: 5,
       elevation: 3,
       margin: 10,
@@ -200,5 +227,11 @@ const styles = StyleSheet.create({
       searchInput: {
         flex: 1,
         height: 40,
+      },
+      typeText: {
+        fontSize: 14,
+        fontWeight: "bold",
+        color: "black",
+        textTransform: "uppercase",
       },
   });
