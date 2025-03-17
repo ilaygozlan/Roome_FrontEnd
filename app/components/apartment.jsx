@@ -110,8 +110,8 @@ export default function Apartment(props) {
     <View key={apt.ApartmentID} style={[styles.card, { borderColor: getBorderColor(apt.ApartmentType) }]} >
         {/* Label for Apartment Type */}
         <View style={[styles.typeLabel, { backgroundColor: getBorderColor(apt.ApartmentType) }]}>
-                <Text style={styles.typeText}>{getTypeName(apt.ApartmentType)}</Text>
-              </View>
+            <Text style={styles.typeText}>{getTypeName(apt.ApartmentType)}</Text>
+        </View>
     <TouchableOpacity onPress={() => router.push({ pathname: "/ApartmentDetails", params: { apartment: JSON.stringify(apt) } })}>
       {/* Apartment Image */}
       <Image source={{ uri: apt.Images }} style={styles.image} />
@@ -233,5 +233,15 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         color: "black",
         textTransform: "uppercase",
+      },
+      typeLabel: {
+        position: "absolute",
+        zIndex: 2,
+        top: 5,
+        left: 5,
+        paddingHorizontal: 10, // Adjust width to text size
+        paddingVertical: 5,
+        borderRadius: 5,
+        alignSelf: "flex-start", // Ensures the label wraps around text
       },
   });
