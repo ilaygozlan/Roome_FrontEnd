@@ -4,6 +4,8 @@ import { TextInput } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState} from "react";
 import { useRouter } from "expo-router";
+import LikeButton from "./LikeButton";
+import OpenHouseButton from "./OpenHouseButton";
 
 export default function Apartment(props) {
 
@@ -27,7 +29,10 @@ export default function Apartment(props) {
           default: return "Unknown";
         }
       };
-
+      const openHouses = [
+        { id: 1, date: "March 25, 2025", time: "10:00 AM", location: "Tel Aviv, King George 77" },
+        { id: 2, date: "April 1, 2025", time: "2:00 PM", location: "Dizengoff, Tel Aviv" },
+      ];
   const [allApartments, setAllApartments] = useState([
     {
         "ApartmentID": 1001,
@@ -126,14 +131,12 @@ export default function Apartment(props) {
     {/* Icons Row */}
         <View style={styles.iconRow}>
         <TouchableOpacity>
-            <FontAwesome name="heart-o" size={24} color="gray" />
+            <LikeButton />
         </TouchableOpacity>
         <TouchableOpacity>
             <MaterialCommunityIcons name="share-outline" size={24} color="gray" />
         </TouchableOpacity>
-        <TouchableOpacity>
-            <MaterialCommunityIcons name="calendar-outline" size={24} color="gray" />
-        </TouchableOpacity>
+        <OpenHouseButton openHouses={openHouses} /> 
         </View>
     </View>
   )); 
