@@ -129,25 +129,24 @@ export default function Apartment(props) {
       </View>
       </TouchableOpacity>
     {/* Icons Row */}
-        <View style={styles.iconRow}>
-        <TouchableOpacity>
-            <LikeButton />
-        </TouchableOpacity>
-        <TouchableOpacity>
-            <MaterialCommunityIcons name="share-outline" size={24} color="gray" />
-        </TouchableOpacity>
-        <OpenHouseButton openHouses={openHouses} /> 
-        </View>
+    {!props.hideIcons && (
+  <View style={styles.iconRow}>
+    <TouchableOpacity>
+      <LikeButton />
+    </TouchableOpacity>
+    <TouchableOpacity>
+      <MaterialCommunityIcons name="share-outline" size={24} color="gray" />
+    </TouchableOpacity>
+    <OpenHouseButton openHouses={openHouses} />
+  </View>
+)}
+
     </View>
   )); 
   return (
     <>
     <ScrollView>
-    <View style={styles.searchContainer}>
-        
-        <Ionicons name="search" size={20} color="gray" style={styles.searchIcon} />
-        <TextInput style={styles.searchInput} placeholder="Search..." />
-    </View>
+    
     <View style={styles.container}>
       {apartmentsList}
     </View>
