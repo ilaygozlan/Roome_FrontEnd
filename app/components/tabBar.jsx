@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { useLinkBuilder, useTheme } from '@react-navigation/native';
 import AntDesign from '@expo/vector-icons/AntDesign';
-import { Entypo, Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Entypo, Feather,Ionicons, MaterialIcons } from '@expo/vector-icons';
 
 const TabBar = ({ state, descriptors, navigation }) => {
 
@@ -9,7 +9,7 @@ const TabBar = ({ state, descriptors, navigation }) => {
   const { buildHref } = useLinkBuilder();
   const icons = {
     index: (props)=> <AntDesign name="home" size={24} color={colors.primary} {...props} />,
-    ShoppingList: (props)=> <Feather name="shopping-cart" size={24} color={colors.primary} {...props} />,
+    ProfilePage: (props)=> <Ionicons name="person-outline" size={24} color={colors.primary} {...props} />,
     Items: (props)=> <Ionicons name="fast-food-outline" size={24} color={colors.primary} {...props} />,
     Edit: (props)=> <Entypo name="add-to-list" size={24} color={colors.primary} {...props} />
   }
