@@ -1,12 +1,12 @@
 import { Tabs } from "expo-router";
-import React, { useState } from "react";
+import React from "react";
 import TabBar from "../components/tabBar";
-import {Button} from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler"; 
 import { ShoppingListProvider } from "../contex/shoppingListContex";
 
-export default function layout() {
-
+export default function Layout() {
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <ShoppingListProvider>
    <Tabs tabBar = {props => <TabBar {...props}/>}>
     
@@ -28,5 +28,6 @@ export default function layout() {
       }}/>
   </Tabs>
   </ShoppingListProvider>
+  </GestureHandlerRootView>
   );
 }
