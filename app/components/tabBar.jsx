@@ -10,7 +10,9 @@ const TabBar = ({ state, descriptors, navigation }) => {
   const icons = {
     index: (props)=> <AntDesign name="home" size={24} color={colors.primary} {...props} />,
     ProfilePage: (props)=> <Ionicons name="person-outline" size={24} color={colors.primary} {...props} />,
-    Items: (props)=> <Ionicons name="fast-food-outline" size={24} color={colors.primary} {...props} />,
+    ForYou: (props)=> <Ionicons name="fast-food-outline" size={24} color={colors.primary} {...props} />,
+    maps: (props)=> <Ionicons name="map-outline" size={24} color={colors.primary} {...props} />,
+
     Edit: (props)=> <Entypo name="add-to-list" size={24} color={colors.primary} {...props} />
   }
 
@@ -58,11 +60,10 @@ const TabBar = ({ state, descriptors, navigation }) => {
             onPress={onPress}
             onLongPress={onLongPress}
           >
-            {
-              icons[route.name]({
-                color: isFocused? "#27ae60" : colors.text
-              })
-            }
+          {
+  icons[route.name] ? icons[route.name]({ color: isFocused ? "#27ae60" : colors.text }) : null
+}
+
             <Text style={{ color: isFocused ? "#27ae60" : colors.text , fontSize: 11}}>
               {label}
             </Text>
@@ -79,7 +80,7 @@ const styles = StyleSheet.create({
     bottom : 25,
     flexDirection : 'row',
     justifyContent : "space-between",
-    alignItems: 'center',
+    alignForYou: 'center',
     backgroundColor: 'white',
     marginHorizontal: 20,
     paddingVertical: 15,
@@ -93,7 +94,7 @@ const styles = StyleSheet.create({
   tabbarItem:{
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
+    alignForYou: 'center',
     gap: 4
   }
 })

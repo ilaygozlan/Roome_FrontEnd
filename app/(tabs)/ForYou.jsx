@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { View, Text, Image, StyleSheet, Dimensions } from "react-native";
 import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
-import { RectButton, Swipeable } from "react-native-gesture-handler";
+import { RectButton, ScrollView, Swipeable } from "react-native-gesture-handler";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
-export default function Items() {
+export default function ForYou() {
   const [allApartments, setAllApartments] = useState([
     {
       "ApartmentID": 1001,
@@ -51,6 +51,7 @@ export default function Items() {
   );
 
   return (
+    <ScrollView>
     <View style={styles.container}>
       {allApartments.length > 0 ? (
         allApartments.map((apt, index) => (
@@ -63,18 +64,20 @@ export default function Items() {
           >
             <View style={styles.card}>
               <Image source={{ uri: apt.Images }} style={styles.image} />
-              <View style={styles.details}>
+              <View style={styles.overlay}>
                 <Text style={styles.title}>דירה ברחוב {apt.Location}</Text>
                 <Text style={styles.description}>{apt.Description}</Text>
                 <Text style={styles.price}>{apt.Price} ש"ח</Text>
               </View>
             </View>
           </Swipeable>
+          
         ))
       ) : (
         <Text style={styles.noMoreText}> אין עוד דירות להצגה</Text>
       )}
     </View>
+    </ScrollView>
   );
 }
 
@@ -100,10 +103,10 @@ const styles = StyleSheet.create({
   },
   image: {
     width: "100%",
-    height: 250, // Adjust height to be consistent
+    height: "100%",
+    resizeMode: "cover",
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
-    resizeMode: "cover", // Ensure the image scales properly
   },
   details: {
     padding: 10,
@@ -150,4 +153,20 @@ const styles = StyleSheet.create({
     marginTop: 50, 
     marginBottom: 20,
   },
+  
+    overlay: {
+      position: "absolute",
+      top: "20%", 
+      left: 0,
+      width: "100%",
+      height: "60%", 
+      backgroundColor: "rgba(255, 255, 255, 0.7)", 
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 15,
+      borderRadius: 10, 
+    },
+    
+  
+  
 });
