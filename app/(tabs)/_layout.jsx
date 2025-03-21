@@ -1,32 +1,20 @@
 import { Tabs } from "expo-router";
-import React, { useState } from "react";
+import React from "react";
 import TabBar from "../components/tabBar";
-import {Button} from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler"; 
 import { ShoppingListProvider } from "../contex/shoppingListContex";
 
-export default function layout() {
-
+export default function Layout() {
   return (
-    <ShoppingListProvider>
-   <Tabs tabBar = {props => <TabBar {...props}/>}>
-    
-      <Tabs.Screen name="index" 
-      options={{
-        title : "Home"
-      }}/>
-      <Tabs.Screen name="ShoppingList" 
-      options={{
-        title : "Shopping List"
-      }}/>
-      <Tabs.Screen name="Items" 
-      options={{
-        title : "Items"
-      }}/>
-      <Tabs.Screen name="Edit" 
-      options={{
-        title : "Edit"
-      }}/>
-  </Tabs>
-  </ShoppingListProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ShoppingListProvider>
+        <Tabs tabBar={props => <TabBar {...props} />}>
+          <Tabs.Screen name="index" options={{ title: "Home" }} />
+          <Tabs.Screen name="ShoppingList" options={{ title: "Shopping List" }} />
+          <Tabs.Screen name="Items" options={{ title: "Items" }} />
+          <Tabs.Screen name="Edit" options={{ title: "Edit" }} />
+        </Tabs>
+      </ShoppingListProvider>
+    </GestureHandlerRootView>
   );
 }
