@@ -11,6 +11,7 @@ import {
   FlatList,
 } from "react-native";
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
+import MultiSlider from "@ptomasroos/react-native-multi-slider";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 
 const colors = {
@@ -22,6 +23,7 @@ export default function SearchBar() {
   const [expanded, setExpanded] = useState(false);
   const [selectedType, setSelectedType] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState("");
+  const [priceRange, setPriceRange] = useState([100, 10000]);
 
   const googlePlacesRef = useRef();
 
@@ -144,7 +146,9 @@ export default function SearchBar() {
                   styles.categoryBox,
                   selectedType === cat.id && styles.selectedCategory,
                 ]}
-                onPress={() => setSelectedType(selectedType === cat.id ? null : cat.id)}
+                onPress={() =>
+                  setSelectedType(selectedType === cat.id ? null : cat.id)
+                }
               >
                 <AntDesign
                   name={cat.icon}
@@ -156,6 +160,29 @@ export default function SearchBar() {
               </TouchableOpacity>
             ))}
           </View>
+
+          {/* select apartment price range */}
+          <Text style={[styles.label, { marginTop: 25 }]}>
+            בחר טווח מחירים:
+          </Text>
+
+          <MultiSlider
+            values={priceRange}
+            min={0}
+            max={20000}
+            step={100}
+            onValuesChange={(values) => setPriceRange(values)}
+            selectedStyle={{ backgroundColor: colors.primary }}
+            markerStyle={{ backgroundColor: colors.primary }}
+            containerStyle={{ marginHorizontal: 10 }}
+          />
+
+          <View style={styles.priceDisplay}>
+            <Text style={styles.priceText}>מינימום: {priceRange[0]} ₪</Text>
+            <Text style={styles.priceText}>מקסימום: {priceRange[1]} ₪</Text>
+          </View>
+
+          {/* search btn */}
           <View style={styles.searchButtonContainer}>
             <TouchableOpacity
               style={styles.searchButton}
@@ -163,6 +190,7 @@ export default function SearchBar() {
                 // כאן אתה יכול לבצע ניווט או סינון
                 console.log("מיקום שנבחר:", selectedLocation);
                 console.log("סוג דירה שנבחר:", selectedType);
+                console.log("טווח מחירים:", `${priceRange[0]} - ${priceRange[1]} `);
                 setExpanded(false);
               }}
             >
@@ -269,5 +297,16 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  priceDisplay: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginHorizontal: 10,
+    marginTop: 10,
+  },
+
+  priceText: {
+    fontSize: 14,
+    color: "#555",
   },
 });
