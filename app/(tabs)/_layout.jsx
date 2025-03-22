@@ -7,7 +7,6 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 export default function Layout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-    <ShoppingListProvider>
    <Tabs tabBar = {props => <TabBar {...props}/>}>
     
       <Tabs.Screen name="index" 
@@ -27,7 +26,6 @@ export default function Layout() {
         title : "Edit"
       }}/>
   </Tabs>
-  </ShoppingListProvider>
   </GestureHandlerRootView>
   );
 }
