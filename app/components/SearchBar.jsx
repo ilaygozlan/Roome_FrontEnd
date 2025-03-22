@@ -13,6 +13,7 @@ import {
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import MultiSlider from "@ptomasroos/react-native-multi-slider";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
+import SearchFilters from "./SearchFilters";
 
 const colors = {
   primary: "#E3965A",
@@ -190,7 +191,10 @@ export default function SearchBar() {
                 // כאן אתה יכול לבצע ניווט או סינון
                 console.log("מיקום שנבחר:", selectedLocation);
                 console.log("סוג דירה שנבחר:", selectedType);
-                console.log("טווח מחירים:", `${priceRange[0]} - ${priceRange[1]} `);
+                console.log(
+                  "טווח מחירים:",
+                  `${priceRange[0]} - ${priceRange[1]} `
+                );
                 setExpanded(false);
               }}
             >
@@ -199,6 +203,7 @@ export default function SearchBar() {
           </View>
         </ScrollView>
       )}
+      <SearchFilters onSearch={(filters) => console.log("🔎", filters)} />
     </View>
   );
 }
