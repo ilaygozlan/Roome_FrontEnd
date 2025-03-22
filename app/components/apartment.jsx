@@ -6,6 +6,7 @@ import React, { useState} from "react";
 import { useRouter } from "expo-router";
 import LikeButton from "./LikeButton";
 import OpenHouseButton from "./OpenHouseButton";
+import SearchBar from "./SearchBar";
 
 export default function Apartment(props) {
 
@@ -146,7 +147,7 @@ export default function Apartment(props) {
   return (
     <>
     <ScrollView>
-    
+    <SearchBar/>
     <View style={styles.container}>
       {apartmentsList}
     </View>

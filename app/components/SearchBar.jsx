@@ -53,7 +53,7 @@ export default function SearchBar() {
               ? `${selectedLocation || ""}${
                   selectedLocation && selectedType !== null ? " • " : ""
                 }${selectedType !== null ? categories[selectedType].name : ""}`
-              : "לאן תרצה ללכת?"}
+              : "מה תרצה לחפש?"}
           </Text>
           <Text style={[styles.locationSub, { textAlign: "right" }]}>
             הוספת מיקום, תאריכים
@@ -94,6 +94,7 @@ export default function SearchBar() {
           />*/}
 
           {/* מיקומים נפוצים */}
+          <Text style={[styles.label, { marginTop: 0 }]}>בחר מיקום:</Text>
           <FlatList
             data={locations}
             horizontal
