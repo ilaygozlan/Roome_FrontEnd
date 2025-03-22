@@ -115,7 +115,7 @@ export default function SearchBar() {
                     },
                   ]}
                   onPress={() => {
-                    setSelectedLocation(item);
+                    setSelectedLocation(isSelected ? "" : item);
                   }}
                 >
                   <Text
@@ -144,7 +144,7 @@ export default function SearchBar() {
                   styles.categoryBox,
                   selectedType === cat.id && styles.selectedCategory,
                 ]}
-                onPress={() => setSelectedType(cat.id)}
+                onPress={() => setSelectedType(selectedType === cat.id ? null : cat.id)}
               >
                 <AntDesign
                   name={cat.icon}
@@ -224,6 +224,7 @@ const styles = StyleSheet.create({
     margin: 5,
     borderWidth: 1,
     borderColor: "#ccc",
+    backgroundColor: "#f9f9f9",
   },
   locationOptionText: {
     fontSize: 14,
