@@ -2,7 +2,7 @@ import { Tabs } from "expo-router";
 import React from "react";
 import TabBar from "../components/tabBar";
 import { GestureHandlerRootView } from "react-native-gesture-handler"; 
-import { ShoppingListProvider } from "../contex/shoppingListContex";
+
 
 export default function Layout() {
   return (
