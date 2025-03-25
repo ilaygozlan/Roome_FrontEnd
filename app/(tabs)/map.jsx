@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import MapView from "react-native-maps";
 
+// Sample apartments data with location, price, and other details
 const apartments = [
   {
     id: 1,
@@ -47,22 +48,31 @@ const apartments = [
 ];
 
 export default function MapScreen() {
+  // Access navigation object for navigating between screens
   const navigation = useNavigation();
+  
+  // Create a reference to the MapView component to access its methods
   const mapRef = useRef(null);
+  
+  // State to store the calculated screen positions for each apartment's coordinates
   const [positions, setPositions] = useState({});
 
+  // On component mount, update the bubble positions if the map is ready
   useEffect(() => {
     if (mapRef.current) {
       updateBubblePositions();
     }
   }, []);
 
+  // Function to update the positions of price bubbles based on the map's coordinate-to-point conversion
   const updateBubblePositions = async () => {
     if (mapRef.current) {
       const newPositions = {};
 
+      // Loop through each apartment and calculate its point on the screen
       for (const apt of apartments) {
         try {
+          // Convert coordinate (latitude, longitude) to a point on the screen
           const point = await mapRef.current.pointForCoordinate({
             latitude: apt.latitude,
             longitude: apt.longitude,
@@ -73,10 +83,12 @@ export default function MapScreen() {
         }
       }
 
+      // Update the state with the new positions for each apartment
       setPositions(newPositions);
     }
   };
 
+  // Handle press on the price bubble to navigate to the apartment details screen
   const handlePricePress = (apartment) => {
     navigation.navigate("ApartmentDetails", {
       apartment: JSON.stringify(apartment),
@@ -85,6 +97,7 @@ export default function MapScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Render the MapView with an initial region and attach the update function on region change */}
       <MapView
         ref={mapRef}
         style={styles.map}
@@ -97,7 +110,7 @@ export default function MapScreen() {
         }}
       />
 
-      {/* בועות המחירים */}
+      {/* Render a price bubble for each apartment if its screen position is available */}
       {apartments.map((apt) =>
         positions[apt.id] ? (
           <TouchableOpacity
@@ -105,6 +118,7 @@ export default function MapScreen() {
             style={[
               styles.priceBubble,
               {
+                // Adjust the position to center the bubble on the coordinate point
                 top: positions[apt.id].y - 30,
                 left: positions[apt.id].x - 30,
               },
@@ -127,6 +141,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
+  // Styling for the price bubble overlay
   priceBubble: {
     position: "absolute",
     backgroundColor: "white",
