@@ -10,7 +10,7 @@ import {
   ScrollView,
   FlatList,
 } from "react-native";
-import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
+/*import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";*/
 import MultiSlider from "@ptomasroos/react-native-multi-slider";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import SearchFilters from "./SearchFilters";

@@ -7,7 +7,7 @@ import {
   ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
+/*import DateTimePickerModal from "@react-native-community/datetimepicker";*/
 
 const colors = {
   primary: "#E3965A",
@@ -138,7 +138,7 @@ export default function SearchFiltersRentalApt({ onFilter }) {
       )}
 
       {/* בוחר תאריכים */}
-      <DateTimePickerModal
+      {/*<DateTimePickerModal
         isVisible={isDatePickerVisible}
         mode="date"
         onConfirm={(date) => {
@@ -148,7 +148,7 @@ export default function SearchFiltersRentalApt({ onFilter }) {
         onCancel={() => setDatePickerVisibility(false)}
         locale="he-IL"
         minimumDate={new Date()} // לא מאפשר לבחור תאריך בעבר
-      />
+      />*/}
     </View>
   );
 }
