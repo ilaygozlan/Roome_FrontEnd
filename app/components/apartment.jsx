@@ -13,7 +13,7 @@ import { ActiveApartmentContext } from "../contex/ActiveApartmentContext";
 export default function Apartment(props) {
 
     const { allApartments, setAllApartments } = useContext(ActiveApartmentContext);
-console.log(allApartments);
+
   const router = useRouter();
 
     // Define colors for each apartment type
