@@ -1,7 +1,7 @@
 import React from "react";
-import { View, Text, Image, StyleSheet, TouchableOpacity, FlatList } from "react-native";
+import { View, Text, Image, StyleSheet, TouchableOpacity, FlatList,ScrollView } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-
+import ApartmentReview from "./components/apartmentReview";
 export default function ApartmentDetails() {
   const { apartment } = useLocalSearchParams();
   const apt = JSON.parse(apartment);
@@ -13,6 +13,7 @@ export default function ApartmentDetails() {
   ];
 
   return (
+    <ScrollView>
     <View style={styles.container}>
       {/* Apartment Image */}
       <Image source={{ uri: apt.Images }} style={styles.image} />
@@ -45,7 +46,8 @@ export default function ApartmentDetails() {
       ) : (
         <Text style={styles.noOpenHouses}>No open houses available</Text>
       )}
-    </View>
+      <ApartmentReview apartmentId={apt.ApartmentID}/>
+    </View></ScrollView>
   );
 }
 

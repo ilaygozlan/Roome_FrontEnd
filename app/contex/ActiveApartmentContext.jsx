@@ -7,7 +7,7 @@ export const ActiveApartmentProvider = ({ children }) => {
 
   useEffect(() => {
     
-    fetch("http://localhost:5000/api/Apartment/GetAllActiveApartments")
+    fetch("http://192.168.1.111:5000/api/Apartment/GetAllActiveApartments")
       .then((response) => response.json())
       .then((data) => setAllApartments(data))
       .catch((error) => console.error("Error fetching apartments:", error));
