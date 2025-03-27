@@ -2,11 +2,12 @@ import { Tabs } from "expo-router";
 import React from "react";
 import TabBar from "../components/tabBar";
 import { GestureHandlerRootView } from "react-native-gesture-handler"; 
-
+import { ActiveApartmentProvider  } from "../contex/ActiveApartmentContext";
 
 export default function Layout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <ActiveApartmentProvider> 
    <Tabs tabBar = {props => <TabBar {...props}/>}>
     
       <Tabs.Screen name="index" 
@@ -31,6 +32,7 @@ export default function Layout() {
       }}/>
       
   </Tabs>
+  </ActiveApartmentProvider> 
   </GestureHandlerRootView>
   );
 }
