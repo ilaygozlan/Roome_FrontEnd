@@ -11,7 +11,7 @@ import {
   UIManager,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
+/*import DateTimePickerModal from "@react-native-community/datetimepicker";*/
 
 if (Platform.OS === "android") {
   UIManager.setLayoutAnimationEnabledExperimental &&
@@ -232,7 +232,7 @@ export default function SearchFilters({ onSearch }) {
         </ScrollView>
       )}
 
-      <DateTimePickerModal
+     {/* <DateTimePickerModal
         isVisible={isDatePickerVisible}
         mode="date"
         onConfirm={handleDateConfirm}
@@ -240,7 +240,7 @@ export default function SearchFilters({ onSearch }) {
         locale="he-IL"
         style={{ zIndex: 9999 }}
         minimumDate={new Date()}
-      />
+      />*/}
     </View>
   );
 }
