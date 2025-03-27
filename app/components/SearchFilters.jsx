@@ -164,6 +164,7 @@ export default function SearchFilters({ onSearch }) {
           {/* roommate filters */}
           <FlatList
             data={roommateFilters}
+            scrollEnabled={false}
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item, index }) => (
               <TouchableOpacity
