@@ -17,14 +17,19 @@ export default function Layout() {
       options={{
         title : "ProfilePage"
       }}/>
-      <Tabs.Screen name="Items" 
+      <Tabs.Screen name="ForYou" 
       options={{
-        title : "Items"
+        title : "ForYou"
       }}/>
       <Tabs.Screen name="Edit" 
       options={{
         title : "Edit"
       }}/>
+       <Tabs.Screen name="maps" 
+      options={{
+        title : "maps"
+      }}/>
+      
   </Tabs>
   </GestureHandlerRootView>
   );
