@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, Image, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert } from "react-native";
+import React, { useState, useContext, useEffect } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
+import { ActiveApartmentContext } from "../contex/ActiveApartmentContext";
+import ApartmentGallery from "../components/ApartmentGallery";
 
 export default function Edit() {
   const { apartment } = useLocalSearchParams();
@@ -10,16 +12,8 @@ export default function Edit() {
   const userId = 999;
 
   // Parse apartment from params or use default
-  const apt = apartment
-    ? JSON.parse(apartment)
-    : {
-        ApartmentId: 1015,
-        UserId: userId,
-        Location: "תל אביב, דיזנגוף 100",
-        Price: 6500,
-        Description: "דירת סאבלט מרוהטת קומפלט במיקום מרכזי, כוללת מרפסת שמש וחניה פרטית",
-        Images: "https://images2.madlan.co.il/path/to/image.jpg",
-      };
+  const apt = allApartments;
+     const { allApartments, setAllApartments } = useContext(ActiveApartmentContext);
 
   const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState("");
@@ -132,7 +126,7 @@ export default function Edit() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Image source={{ uri: apt.Images }} style={styles.image} />
+      <ApartmentGallery images={apt.Images} />
       <Text style={styles.title}>{apt.Location}</Text>
       <Text style={styles.price}>{apt.Price} ש"ח</Text>
       <Text style={styles.description}>{apt.Description}</Text>
