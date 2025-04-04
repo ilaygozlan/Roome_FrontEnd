@@ -60,7 +60,7 @@ export default function SearchBar() {
               : "מה תרצה לחפש?"}
           </Text>
           <Text style={[styles.locationSub, { textAlign: "right" }]}>
-            הוספת מיקום, תאריכים
+            הוספת מיקום, תאריכים, טווח מחירים
           </Text>
         </View>
       </TouchableOpacity>

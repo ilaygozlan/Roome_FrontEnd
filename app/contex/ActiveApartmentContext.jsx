@@ -7,7 +7,7 @@ export const ActiveApartmentProvider = ({ children }) => {
 
   useEffect(() => {
     console.log("fetch");
-    fetch("http://localhost:5000/api/Apartment/GetAllActiveApartments")
+    fetch(`http://localhost:5000/api/Apartment/GetAllActiveApartments/${11}`)
       .then((response) => response.json())
       .then((data) => setAllApartments(data))
       .catch((error) => console.error("Error fetching apartments:", error));
