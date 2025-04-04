@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, ScrollView, Image, StyleSheet, Dimensions } from 'react-native';
+import { View, ScrollView, Image, StyleSheet, Dimensions, Text } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -15,7 +15,14 @@ export default function ApartmentGallery({ images }) {
     setCurrentIndex(index);
   };
 
-  if (imageArray.length === 0) return null;
+  // If no images, return a placeholder box
+  if (imageArray.length === 0) {
+    return (
+      <View style={styles.placeholder}>
+        <Text style={styles.placeholderText}>No images available</Text>
+      </View>
+    );
+  }
 
   return (
     <View>
@@ -58,6 +65,18 @@ const styles = StyleSheet.create({
     width: width,
     height: 200,
     resizeMode: 'cover',
+  },
+  placeholder: {
+    width: width,
+    height: 150,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderText: {
+    color: '#777',
+    fontSize: 16,
+    fontStyle: 'italic',
   },
   dotsContainer: {
     flexDirection: 'row',

@@ -202,27 +202,29 @@ export default function SearchBar() {
               <Text style={styles.searchButtonText}>חיפוש</Text>
             </TouchableOpacity>
           </View>
+          <SearchFilters onSearch={(filters) => console.log("🔎", filters)} />
         </ScrollView>
       )}
-      <SearchFilters onSearch={(filters) => console.log("🔎", filters)} />
-            <SearchFiltersRentalApt/>
+      
+            
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#fff",
+    backgroundColor: "#f2f2f2",
     padding: 15,
     elevation: 2,
   },
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f2f2f2",
+    backgroundColor: "#fefefe",
     borderRadius: 30,
     paddingVertical: 12,
     paddingHorizontal: 15,
+    zIndex:2
   },
   icon: {
     marginRight: 10,
@@ -237,8 +239,13 @@ const styles = StyleSheet.create({
     color: "gray",
   },
   expandSection: {
-    marginTop: 20,
+    marginTop: -35,
+    paddingTop: 50,
     maxHeight: 500,
+    padding: 10,
+    backgroundColor: "#fefefe",
+    zIndex: 1,
+    borderRadius : 15,
   },
   label: {
     fontSize: 16,

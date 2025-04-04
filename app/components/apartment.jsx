@@ -89,10 +89,10 @@ const styles = StyleSheet.create({
     container: {
       flex: 1,
       justifyContent: "center",
-      alignItems: "center",
       backgroundColor: "#F0F0F0",
     },
     card: {
+      alignSelf: "center",
       fontFamily: "RubikRegular",
       width: 350,
       backgroundColor: "white",
