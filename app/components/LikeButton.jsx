@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { TouchableOpacity, Alert ,StyleSheet, View, Text} from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
+import API from "../../config"
 
 export default function LikeButton(props) {
   const [liked, setLiked] = useState(props.isLikedByUser);
@@ -8,7 +9,7 @@ export default function LikeButton(props) {
 
   const likeApartment = async () => {
     try {
-      const response = await fetch(`http://84.229.68.88/api/User/LikeApartment/${11}/${props.apartmentId}`, {
+      const response = await fetch(API + `User/LikeApartment/${11}/${props.apartmentId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
@@ -23,7 +24,7 @@ export default function LikeButton(props) {
 
   const unlikeApartment = async () => {
     try {
-      const response = await fetch(`http://84.229.68.88/api/User/RemoveLikeApartment/${11}/${props.apartmentId}`, {
+      const response = await fetch(API + `User/RemoveLikeApartment/${11}/${props.apartmentId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
       });

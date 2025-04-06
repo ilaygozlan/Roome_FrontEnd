@@ -1,11 +1,10 @@
-<<<<<<< Updated upstream
-=======
 import React, { useState, useContext, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
 import { ActiveApartmentContext } from "../contex/ActiveApartmentContext";
 import ApartmentGallery from "../components/ApartmentGallery";
+import API from "../../config"
 
 export default function Edit() {
   const { apartment } = useLocalSearchParams();
@@ -33,7 +32,7 @@ export default function Edit() {
   // Fetch reviews from server and check if current user has already submitted one
   const fetchReviews = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/Review/GetReviewsForApartment/${apt.ApartmentID}`);
+      const response = await fetch(API +`Review/GetReviewsForApartment/${apt.ApartmentID}`);
       const data = await response.json();
 
       const mappedReviews = data.map((r) => ({
@@ -61,7 +60,7 @@ export default function Edit() {
   const addReview = async () => {
     if (newReview && newRating) {
       try {
-        const response = await fetch("http://localhost:5000/api/Review/AddNewReview", {
+        const response = await fetch(API +"Review/AddNewReview", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -105,7 +104,7 @@ export default function Edit() {
         text: "Delete",
         onPress: async () => {
           try {
-            const response = await fetch(`http://localhost:5000/api/Review/DeleteReview/${reviewId}`, {
+            const response = await fetch(API + `Review/DeleteReview/${reviewId}`, {
               method: "DELETE",
               headers: {
                 Accept: "text/plain",
@@ -228,4 +227,4 @@ const styles = StyleSheet.create({
   submitButton: { backgroundColor: "#fb923c", padding: 12, borderRadius: 10, alignItems: "center" },
   submitText: { color: "white", fontWeight: "bold" },
 });
->>>>>>> Stashed changes
+
