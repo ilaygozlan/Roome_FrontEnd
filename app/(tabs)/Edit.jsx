@@ -1,97 +1,156 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, Image, StyleSheet, TouchableOpacity, TextInput, ScrollView } from "react-native";
+import React, { useState, useContext, useEffect } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
+import { ActiveApartmentContext } from "../contex/ActiveApartmentContext";
+import ApartmentGallery from "../components/ApartmentGallery";
+import API from "../../config"
 
 export default function Edit() {
-  // Retrieve the apartment parameter from the local search parameters
   const { apartment } = useLocalSearchParams();
 
-  // If an apartment is passed as a parameter, parse it; otherwise, use a default apartment object
-  const apt = apartment
-    ? JSON.parse(apartment)
-    : {
-        Location: "גן ורד, גורדון",
-        Price: 5500,
-        Description: "דירה מקסימה במרכז העיר עם נוף לים",
-        Images:
-          "https://images2.madlan.co.il/t:nonce:v=2/projects/%D7%9E%D7%AA%D7%97%D7%9D%20%D7%A7%D7%95%D7%A4%D7%AA%20%D7%97%D7%95%D7%9C%D7%99%D7%9D%20-%20%D7%A2%D7%96%D7%A8%D7%99%D7%90%D7%9C%D7%99/48950_br_group_pic_950x650_3-683b75f9-b8f5-427d-8f29-cad7d8865ff4.jpg",
-      };
+  // Temporary userId (in real use, this would come from login/session)
+  const userId = 999;
 
-  // Initial reviews state with some default reviews
-  const [reviews, setReviews] = useState([
-    { id: "1", user: "IDAN", comment: "דירה מקסימה, נהניתי מאוד", rating: 4 },
-    { id: "2", user: "VARDA", comment: "מיקום מרכזי, נקייה ומוארת", rating: 4 },
-    { id: "3", user: "Ozi", comment: "קצת רועשת, לא הייתי ממליצה", rating: 2 },
-  ]);
+  // Parse apartment from params or use default
 
-  // States for storing the new review text and rating, as well as the computed average rating
+     const { allApartments, setAllApartments } = useContext(ActiveApartmentContext);
+     const apt = allApartments;
+  console.log(apt);
+  const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState("");
   const [newRating, setNewRating] = useState(0);
   const [averageRating, setAverageRating] = useState(0);
+  const [hasReviewed, setHasReviewed] = useState(false);
 
-  // Calculate the average rating whenever the reviews array changes
+  // Calculate average rating
   useEffect(() => {
     const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
-    setAverageRating((totalRating / reviews.length).toFixed(1));
+    setAverageRating(reviews.length ? (totalRating / reviews.length).toFixed(1) : "0");
   }, [reviews]);
 
-  // Function to add a new review if both review text and rating are provided
-  const addReview = () => {
-    if (newReview && newRating) {
-      setReviews((prev) => [
-        ...prev,
-        { id: Date.now().toString(), user: "You", comment: newReview, rating: newRating },
-      ]);
-      setNewReview("");
-      setNewRating(0);
+  // Fetch reviews from server and check if current user has already submitted one
+  const fetchReviews = async () => {
+    try {
+      const response = await fetch(API +`Review/GetReviewsForApartment/${apt.ApartmentID}`);
+      const data = await response.json();
+
+      const mappedReviews = data.map((r) => ({
+        id: r.reviewId,
+        user: r.userId === userId ? "You" : `User ${r.userId}`,
+        comment: r.reviewText,
+        rating: r.rate,
+        userId: r.userId
+      }));
+
+      setReviews(mappedReviews);
+
+      const found = mappedReviews.find((r) => r.userId === userId);
+      setHasReviewed(!!found);
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
     }
   };
 
-  // Function to delete a review; only allows deletion if the review was created by "You"
-  const deleteReview = (id, user) => {
-    if (user === "You") {
-      setReviews((prev) => prev.filter((review) => review.id !== id));
+  useEffect(() => {
+    fetchReviews();
+  }, []);
+
+  // Add a new review
+  const addReview = async () => {
+    if (newReview && newRating) {
+      try {
+        const response = await fetch(API +"Review/AddNewReview", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "text/plain",
+          },
+          body: JSON.stringify({
+            reviewId: 0,
+            apartmentId: apt.ApartmentId,
+            rate: newRating,
+            reviewText: newReview,
+            userId: userId,
+          }),
+        });
+
+        if (response.ok) {
+          const responseText = await response.text();
+          console.log("Review added:", responseText);
+
+          // Refresh list from server
+          await fetchReviews();
+          setNewReview("");
+          setNewRating(0);
+          setHasReviewed(true);
+        } else {
+          console.error("Server returned an error:", response.status);
+        }
+      } catch (error) {
+        console.error("Error sending review:", error);
+      }
     }
+  };
+
+  // Delete review and refresh list
+  const deleteReview = async (reviewId) => {
+    Alert.alert("מחיקת ביקורת", "אתה בטוח שאתה רוצה למחוק את הביקורת?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Delete",
+        onPress: async () => {
+          try {
+            const response = await fetch(API + `Review/DeleteReview/${reviewId}`, {
+              method: "DELETE",
+              headers: {
+                Accept: "text/plain",
+              },
+            });
+
+            if (response.ok) {
+              console.log("Review deleted");
+              await fetchReviews(); // Refresh after deletion
+              setHasReviewed(false);
+            } else {
+              console.error("Failed to delete review:", response.status);
+            }
+          } catch (error) {
+            console.error("Error deleting review:", error);
+          }
+        },
+      },
+    ]);
   };
 
   return (
-    // ScrollView to allow scrolling when content overflows the screen height
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Display the apartment image */}
-      <Image source={{ uri: apt.Images }} style={styles.image} />
-
-      {/* Display apartment details: location, price, and description */}
+      <ApartmentGallery images={apt.Images} />
       <Text style={styles.title}>{apt.Location}</Text>
       <Text style={styles.price}>{apt.Price} ש"ח</Text>
       <Text style={styles.description}>{apt.Description}</Text>
-      
-      {/* Rating summary section showing the average rating */}
+
       <View style={styles.ratingSummary}>
-      <Text style={styles.averageRating}>דירוג כולל: {averageRating}/5</Text>
-      <AntDesign name="star" size={20} color="#fb923c" />
+        <Text style={styles.averageRating}>דירוג כולל: {averageRating}/5</Text>
+        <AntDesign name="star" size={20} color="#fb923c" />
       </View>
-      
-      {/* Section title for user reviews */}
+
       <Text style={styles.sectionTitle}>ביקורות משתמשים</Text>
-      {/* Map through the reviews array to display each review */}
+
       {reviews.map((item) => (
         <View key={item.id} style={styles.reviewCard}>
           <View style={styles.reviewHeader}>
-            {/* Display reviewer's name */}
             <Text style={styles.reviewUser}>{item.user}</Text>
-            {/* If the review was made by "You", allow deletion */}
-            {item.user === "You" && (
-              <TouchableOpacity onPress={() => deleteReview(item.id, item.user)}>
+            {item.userId === userId && (
+              <TouchableOpacity onPress={() => deleteReview(item.id)}>
                 <AntDesign name="delete" size={20} color="#fb923c" />
               </TouchableOpacity>
             )}
           </View>
-
-          {/* Display the review comment */}
           <Text style={styles.reviewComment}>{item.comment}</Text>
-
-          {/* Display the star rating for the review */}
           <View style={{ flexDirection: "row" }}>
             {Array(5)
               .fill()
@@ -107,41 +166,44 @@ export default function Edit() {
         </View>
       ))}
 
-      {/* Section for adding a new review */}
-      <View style={styles.addReviewSection}>
-        <Text style={styles.addReviewTitle}>הוסף ביקורת חדשה:</Text>
-        {/* Input field for entering the review text */}
-        <TextInput
-          style={styles.input}
-          placeholder="כתוב ביקורת כאן..."
-          value={newReview}
-          onChangeText={setNewReview}
-        />
-        {/* Display star icons for selecting a rating */}
-        <View style={styles.ratingStars}>
-          {Array(5)
-            .fill()
-            .map((_, index) => (
-              <TouchableOpacity key={index} onPress={() => setNewRating(index + 1)}>
-                <AntDesign
-                  name={index < newRating ? "star" : "staro"}
-                  size={30}
-                  color="#fb923c"
-                />
-              </TouchableOpacity>
-            ))}
+      {/* Show form only if user hasn't reviewed yet */}
+      {!hasReviewed ? (
+        <View style={styles.addReviewSection}>
+          <Text style={styles.addReviewTitle}>הוסף ביקורת חדשה:</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="כתוב ביקורת כאן..."
+            value={newReview}
+            onChangeText={setNewReview}
+          />
+          <View style={styles.ratingStars}>
+            {Array(5)
+              .fill()
+              .map((_, index) => (
+                <TouchableOpacity key={index} onPress={() => setNewRating(index + 1)}>
+                  <AntDesign
+                    name={index < newRating ? "star" : "staro"}
+                    size={30}
+                    color="#fb923c"
+                  />
+                </TouchableOpacity>
+              ))}
+          </View>
+          <TouchableOpacity style={styles.submitButton} onPress={addReview}>
+            <Text style={styles.submitText}>הוספת ביקורת</Text>
+          </TouchableOpacity>
         </View>
-        {/* Button to submit the new review */}
-        <TouchableOpacity style={styles.submitButton} onPress={addReview}>
-          <Text style={styles.submitText}>הוספת ביקורת</Text>
-        </TouchableOpacity>
-      </View>
+      ) : (
+        <Text style={{ textAlign: "center", marginVertical: 10, fontWeight: "bold", color: "#fb923c" }}>
+          כבר הוספת ביקורת לדירה זו 📝
+        </Text>
+      )}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  averageRating:{fontSize: 17, fontWeight: "bold", textAlign: "right", marginTop: 12},
+  averageRating: { fontSize: 17, fontWeight: "bold", textAlign: "right", marginTop: 12 },
   container: { flexGrow: 1, padding: 15, paddingBottom: 120, backgroundColor: "#fff" },
   image: { width: "100%", height: 250, borderRadius: 12 },
   title: { fontSize: 22, fontWeight: "bold", textAlign: "right", marginTop: 12 },
@@ -165,3 +227,4 @@ const styles = StyleSheet.create({
   submitButton: { backgroundColor: "#fb923c", padding: 12, borderRadius: 10, alignItems: "center" },
   submitText: { color: "white", fontWeight: "bold" },
 });
+
