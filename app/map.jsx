@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect, useContext } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import MapView from "react-native-maps";
-import { ActiveApartmentContext } from "../contex/ActiveApartmentContext";
+import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
 
 export default function MapScreen() {
   const navigation = useNavigation();
