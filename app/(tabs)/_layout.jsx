@@ -11,7 +11,7 @@ export default function Layout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Tabs >
         <Tabs.Screen
-          name="index"
+          name="home"
           options={{
             title: "Home",
             headerShown: false,
