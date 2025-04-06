@@ -61,10 +61,10 @@ const TabBar = ({ state, descriptors, navigation }) => {
             onLongPress={onLongPress}
           >
           {
-  icons[route.name] ? icons[route.name]({ color: isFocused ? "#27ae60" : colors.text }) : null
+  icons[route.name] ? icons[route.name]({ color: isFocused ? "#2F74FF" : colors.text }) : null
 }
 
-            <Text style={{ color: isFocused ? "#27ae60" : colors.text , fontSize: 11}}>
+            <Text style={{ color: isFocused ? "#2F74FF" : colors.text , fontSize: 11}}>
               {label}
             </Text>
           </TouchableOpacity>
