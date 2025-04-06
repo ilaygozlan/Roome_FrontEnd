@@ -156,7 +156,7 @@ export default function SearchFiltersRentalApt({ onFilter }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f4f4f4",
+    backgroundColor: "#fff",
     padding: 15,
   },
   toggleButton: {
