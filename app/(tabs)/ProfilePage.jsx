@@ -1,21 +1,17 @@
-import { View, ScrollView } from "react-native";
 import React from "react";
+import { View, ScrollView } from "react-native";
+import { UserInfoProvider } from "../contex/userInfoContext"; // ודא שהנתיב נכון
 import UserProfile from "../components/UserProfile";
-import UploadApartmentForm from "../components/UploadNewApartment";
 
 const ProfilePage = () => {
   return (
-    <>
-    <View>
-        <UploadApartmentForm/>
-        </View>
-    <View>
-      <ScrollView>
-        <UserProfile />
-      </ScrollView>
-    </View>
-
-    </>
+    <UserInfoProvider>
+      <View>
+        <ScrollView>
+          <UserProfile />
+        </ScrollView>
+      </View>
+    </UserInfoProvider>
   );
 };
 

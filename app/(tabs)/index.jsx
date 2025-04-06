@@ -6,9 +6,6 @@ import { useRouter } from "expo-router";
 export default function HomeScreen() {
   const router = useRouter();
 
-  const navigateToScreen = (screenName) => {
-    router.push(screenName);
-  };
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
