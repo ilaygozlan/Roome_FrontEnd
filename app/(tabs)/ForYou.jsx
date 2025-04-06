@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useContext } from "react";
 import {
   View,
   Text,
@@ -6,74 +6,49 @@ import {
   StyleSheet,
   Dimensions,
   Animated,
-  PanResponder
+  PanResponder,
 } from "react-native";
 import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
+import { ActiveApartmentContext } from "../contex/ActiveApartmentContext";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 const CARD_WIDTH = SCREEN_WIDTH * 0.9;
 const CARD_HEIGHT = 500;
-const NAVBAR_HEIGHT = 80; // Adjust to match your navbar's height
-const EXTRA_OFFSET = 25; // Raise the card 25 pixels higher
-
-// Swipe threshold: if swiped more than 25% of screen width, count as full swipe
+const NAVBAR_HEIGHT = 80;
+const EXTRA_OFFSET = 25;
 const SWIPE_THRESHOLD = 0.25 * SCREEN_WIDTH;
-// Duration for the swipe-off animation in ms
 const SWIPE_OUT_DURATION = 250;
 
-export default function ForYou() {
-  // List of apartment cards
-  const [allApartments, setAllApartments] = useState([
-    {
-      ApartmentID: 1001,
-      Price: 6623,
-      Location: "ewr",
-      Description: "דירת גן יפיפייה עם נוף",
-      Images:
-        "https://images2.madlan.co.il/t:nonce:v=2/projects/%D7%9E%D7%AA%D7%97%D7%9D%20%D7%A7%D7%95%D7%A4%D7%AA%20%D7%97%D7%95%D7%9C%D7%99%D7%9D%20-%20%D7%A2%D7%96%D7%A8%D7%99%D7%90%D7%9C%D7%99/48950_br_group_pic_950x650_3-683b75f9-b8f5-427d-8f29-cad7d8865ff4.jpg"
-    },
-    {
-      ApartmentID: 1002,
-      Price: 9200,
-      Location: "Tel Aviv, King George 77",
-      Description: "דירה מהממת במרכז תל אביב",
-      Images:
-        "https://img.yad2.co.il/Pic/202407/22/2_6/o/o2_6_1_02750_20240722172729.jpg?w=3840&h=3840&c=9"
-    }
-  ]);
+const SERVER_URL = "http://192.168.1.111:5000"; // 🟡 Replace with your backend IP
+const userId = 2; // 🟢 Replace with real userId from context/auth
 
-  // Array to store liked apartments (when swiped right)
+export default function ForYou() {
+  const { allApartments } = useContext(ActiveApartmentContext);
   const [likedApartments, setLikedApartments] = useState([]);
-  // Current index for the top card
+  const [seenApartmentIds, setSeenApartmentIds] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Animated value to track the top card's position
-  const position = useRef(new Animated.ValueXY()).current;
+  const position = useRef(new Animated.ValueXY()).current; //card position
 
-  // Interpolate opacity for the "like" icon when swiping right
   const likeOpacity = position.x.interpolate({
     inputRange: [0, SCREEN_WIDTH * 0.3],
     outputRange: [0, 1],
-    extrapolate: "clamp"
+    extrapolate: "clamp",
   });
 
-  // Interpolate opacity for the "dislike" icon when swiping left
   const dislikeOpacity = position.x.interpolate({
     inputRange: [-SCREEN_WIDTH * 0.3, 0],
     outputRange: [1, 0],
-    extrapolate: "clamp"
+    extrapolate: "clamp",
   });
 
-  // PanResponder to handle swipe gestures
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
-      // Update card's position as the user swipes
       onPanResponderMove: (event, gesture) => {
         position.setValue({ x: gesture.dx, y: gesture.dy });
       },
-      // When the user releases, determine if swipe is sufficient
       onPanResponderRelease: (event, gesture) => {
         if (gesture.dx > SWIPE_THRESHOLD) {
           forceSwipe("right");
@@ -82,69 +57,95 @@ export default function ForYou() {
         } else {
           resetPosition();
         }
-      }
+      },
     })
   ).current;
 
-  // Animate the card off-screen when swiped enough
   const forceSwipe = (direction) => {
     const x = direction === "right" ? SCREEN_WIDTH : -SCREEN_WIDTH;
     Animated.timing(position, {
       toValue: { x, y: 0 },
       duration: SWIPE_OUT_DURATION,
-      useNativeDriver: false
+      useNativeDriver: false,
     }).start(() => onSwipeComplete(direction));
   };
 
-  // Update state after swipe animation completes
-  const onSwipeComplete = (direction) => {
-    const apartment = allApartments[currentIndex];
+  // Filter apartments that haven't been seen yet
+  const filteredApartments = allApartments.filter(
+    (apt) => !seenApartmentIds.includes(apt.ApartmentID)
+  );
+
+  const onSwipeComplete = async (direction) => {
+    const apartment = filteredApartments[currentIndex]; // ← חשוב שיהיה לפני השינויים
+
+    setSeenApartmentIds((prev) => [...prev, apartment.ApartmentID]);
+
     if (direction === "right") {
       setLikedApartments((prev) => [...prev, apartment]);
-      console.log("Liked apartment:", apartment);
+
+      try {
+        const response = await fetch(
+          `${SERVER_URL}/api/User/LikeApartment/${userId}/${apartment.ApartmentID}`,
+          { method: "POST" }
+        );
+
+        if (response.status === 409) {
+          console.log("⚠️ Apartment already liked, skipping...");
+        } else if (!response.ok) {
+          throw new Error("Failed to like apartment");
+        } else {
+          console.log("✅ Liked:", apartment.ApartmentID);
+        }
+      } catch (error) {
+        console.error("Error liking apartment:", error);
+      }
+
     } else {
-      console.log("Disliked apartment:", apartment);
+      try {
+        const response = await fetch(
+          `${SERVER_URL}/api/User/RemoveLikeApartment/${userId}/${apartment.ApartmentID}`,
+          { method: "DELETE" }
+        );
+        if (!response.ok) throw new Error("Failed to unlike apartment");
+        console.log("🗑️ Disliked (unliked):", apartment.ApartmentID);
+      } catch (error) {
+        console.error("Error unliking apartment:", error);
+      }
     }
-    // Reset the animated position for the next card
+
     position.setValue({ x: 0, y: 0 });
-    // Move to the next card
     setCurrentIndex((prev) => prev + 1);
   };
 
-  // Reset card to original position if swipe is not sufficient
   const resetPosition = () => {
     Animated.spring(position, {
       toValue: { x: 0, y: 0 },
-      useNativeDriver: false
+      useNativeDriver: false,
     }).start();
   };
 
-  // Calculate animated style for the card (includes rotation effect)
   const getCardStyle = () => {
     const rotate = position.x.interpolate({
       inputRange: [-SCREEN_WIDTH * 1.5, 0, SCREEN_WIDTH * 1.5],
-      outputRange: ["-120deg", "0deg", "120deg"]
+      outputRange: ["-120deg", "0deg", "120deg"],
     });
     return {
       transform: [
         { translateX: position.x },
         { translateY: position.y },
-        { rotate }
-      ]
+        { rotate },
+      ],
     };
   };
 
-  // Render the stack of cards
   const renderCards = () => {
-    if (currentIndex >= allApartments.length) {
+    if (currentIndex >= filteredApartments.length) {
       return <Text style={styles.noMoreText}>אין עוד דירות להצגה</Text>;
     }
 
-    return allApartments.map((apt, index) => {
-      if (index < currentIndex) {
-        return null;
-      }
-      // Top (active) card with swipe gesture and animated icons
+    return filteredApartments.map((apt, index) => {
+      if (index < currentIndex) return null;
+
       if (index === currentIndex) {
         return (
           <Animated.View
@@ -152,11 +153,9 @@ export default function ForYou() {
             style={[styles.card, getCardStyle(), { zIndex: 99 }]}
             {...panResponder.panHandlers}
           >
-            {/* Like Icon (Heart) for right swipe */}
             <Animated.View style={[styles.likeIconContainer, { opacity: likeOpacity }]}>
               <FontAwesome name="heart" size={50} color="orange" />
             </Animated.View>
-            {/* Dislike Icon (Close) for left swipe */}
             <Animated.View style={[styles.dislikeIconContainer, { opacity: dislikeOpacity }]}>
               <MaterialCommunityIcons name="close" size={50} color="red" />
             </Animated.View>
@@ -169,13 +168,13 @@ export default function ForYou() {
           </Animated.View>
         );
       }
-      // Render cards behind the top card with a slight vertical offset
+
       return (
         <View
           key={apt.ApartmentID}
           style={[
             styles.card,
-            { top: styles.card.top + 10 * (index - currentIndex), zIndex: 1 }
+            { top: styles.card.top + 10 * (index - currentIndex), zIndex: 1 },
           ]}
         >
           <Image source={{ uri: apt.Images }} style={styles.image} />
@@ -195,9 +194,8 @@ export default function ForYou() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F5F5"
+    backgroundColor: "#F5F5F5",
   },
-  // Position the card absolutely in the center, raised by EXTRA_OFFSET
   card: {
     position: "absolute",
     top: (SCREEN_HEIGHT - CARD_HEIGHT) / 2 - NAVBAR_HEIGHT / 2 - EXTRA_OFFSET,
@@ -210,12 +208,12 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 5,
-    elevation: 3
+    elevation: 3,
   },
   image: {
     width: "100%",
     height: "100%",
-    resizeMode: "cover"
+    resizeMode: "cover",
   },
   overlay: {
     position: "absolute",
@@ -227,43 +225,41 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 15,
-    borderRadius: 10
+    borderRadius: 10,
   },
   title: {
     fontSize: 18,
     fontWeight: "bold",
-    textAlign: "center"
+    textAlign: "center",
   },
   description: {
     fontSize: 14,
     color: "gray",
-    textAlign: "center"
+    textAlign: "center",
   },
   price: {
     fontSize: 16,
     fontWeight: "bold",
     marginTop: 5,
-    textAlign: "center"
+    textAlign: "center",
   },
   noMoreText: {
     fontSize: 20,
     color: "gray",
     textAlign: "center",
     marginTop: 50,
-    marginBottom: 20
+    marginBottom: 20,
   },
-  // Container for the Like (heart) icon, positioned inside the card
   likeIconContainer: {
     position: "absolute",
     top: 30,
     right: 30,
-    zIndex: 100
+    zIndex: 100,
   },
-  // Container for the Dislike (close) icon, positioned inside the card
   dislikeIconContainer: {
     position: "absolute",
     top: 30,
     left: 30,
-    zIndex: 100
-  }
+    zIndex: 100,
+  },
 });
