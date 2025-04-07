@@ -1,4 +1,3 @@
-// app/Map.jsx
 import React, { useEffect, useState, useContext } from "react";
 import { View, Text, ActivityIndicator, StyleSheet, Dimensions } from "react-native";
 import MapView, { Marker } from "react-native-maps";
