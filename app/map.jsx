@@ -1,169 +1,78 @@
-import React, { useRef, useState, useEffect, useContext } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import MapView from "react-native-maps";
-import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
+// app/Map.jsx
+import React, { useEffect, useState, useContext } from "react";
+import { View, Text, ActivityIndicator, StyleSheet, Dimensions } from "react-native";
+import MapView, { Marker } from "react-native-maps";
+import { ApartmentContext } from "./contex/ActiveApartmentContext";
+import * as Location from "expo-location";
 
-export default function MapScreen() {
-  const navigation = useNavigation();
-  const mapRef = useRef(null);
-  const [positions, setPositions] = useState({});
+export default function Map() {
+  const { apartments } = useContext(ApartmentContext);
+  const [region, setRegion] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Get apartments from context
-  const { allApartments, setAllApartments } = useContext(ActiveApartmentContext);
-  const apartments = allApartments;
-
-  // Fetch coordinates from address using OpenStreetMap API (Nominatim)
-  const fetchCoordinates = async (address) => {
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`,
-        {
-          headers: {
-            "User-Agent": "RoomeApp/1.0 (ofri900@email.com)", // Required by Nominatim
-          },
-        }
-      );
-      const data = await response.json();
-      if (data.length > 0) {
-        return {
-          latitude: parseFloat(data[0].lat),
-          longitude: parseFloat(data[0].lon),
-        };
-      }
-      return null;
-    } catch (error) {
-      console.error("Geocoding failed:", error);
-      return null;
-    }
-  };
-
-  // On initial load: add coordinates to apartments that don't have them
   useEffect(() => {
-    const loadCoordinates = async () => {
-      const updatedApartments = await Promise.all(
-        allApartments.map(async (apt) => {
-          if (!apt.latitude || !apt.longitude) {
-            const coords = await fetchCoordinates(apt.Location); // Location is address
-            return coords ? { ...apt, ...coords } : apt;
-          }
-          return apt;
-        })
-      );
-
-      setAllApartments(updatedApartments);
-    };
-
-    if (allApartments.length > 0) {
-      loadCoordinates();
-    }
-  }, [allApartments]);
-
-  // Update positions (pixel coordinates) for bubbles on map
-  const updateBubblePositions = async () => {
-    if (mapRef.current) {
-      const newPositions = {};
-
-      for (const apt of apartments) {
-        if (!apt.latitude || !apt.longitude) continue;
-
-        try {
-          const point = await mapRef.current.pointForCoordinate({
-            latitude: apt.latitude,
-            longitude: apt.longitude,
-          });
-          newPositions[apt.ApartmentID] = point;
-        } catch (error) {
-          console.log("Error:", error);
-        }
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        console.warn("Permission to access location was denied");
+        return;
       }
 
-      setPositions(newPositions);
-    }
-  };
+      let location = await Location.getCurrentPositionAsync({});
+      setRegion({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+      });
 
-  // Recalculate bubble positions when apartments change
-  useEffect(() => {
-    if (mapRef.current) {
-      updateBubblePositions();
-    }
-  }, [apartments]);
+      setLoading(false);
+    })();
+  }, []);
 
-  // Navigate to apartment detail screen
-  const handlePricePress = (apartment) => {
-    navigation.navigate("ApartmentDetails", {
-      apartment: JSON.stringify(apartment),
+  const renderMarkers = () => {
+    return apartments.map((apt, index) => {
+      const lat = apt.latitude;
+      const lng = apt.longitude;
+
+      if (!lat || !lng) return null;
+
+      return (
+        <Marker
+          key={index}
+          coordinate={{ latitude: lat, longitude: lng }}
+          title={apt.title}
+          description={apt.description || "Apartment"}
+        />
+      );
     });
   };
 
-  return (
-    // ScrollView used to isolate this screen, with nested scroll handling
-    <ScrollView
-      style={{ flex: 1 }}
-      contentContainerStyle={{ flexGrow: 1 }}
-      keyboardShouldPersistTaps="handled"
-      nestedScrollEnabled={true}
-    >
-      <View style={styles.container}>
-        <MapView
-          ref={mapRef}
-          style={styles.map}
-          onRegionChangeComplete={updateBubblePositions}
-          initialRegion={{
-            latitude: 31.5,
-            longitude: 34.8,
-            latitudeDelta: 3,
-            longitudeDelta: 3,
-          }}
-        />
-
-        {/* Price bubbles for each apartment */}
-        {apartments.map((apt) =>
-          positions[apt.ApartmentID] ? (
-            <TouchableOpacity
-              key={apt.ApartmentID}
-              style={[
-                styles.priceBubble,
-                {
-                  top: positions[apt.ApartmentID].y - 30,
-                  left: positions[apt.ApartmentID].x - 30,
-                },
-              ]}
-              onPress={() => handlePricePress(apt)}
-            >
-              <Text style={styles.priceText}>₪{apt.Price}</Text>
-            </TouchableOpacity>
-          ) : null
-        )}
+  if (loading || !region) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#000" />
+        <Text>Loading map...</Text>
       </View>
-    </ScrollView>
+    );
+  }
+
+  return (
+    <MapView style={styles.map} region={region}>
+      {renderMarkers()}
+    </MapView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   map: {
-    width: "100%",
-    height: "100%",
+    flex: 1,
+    width: Dimensions.get("window").width,
+    height: Dimensions.get("window").height,
   },
-  priceBubble: {
-    position: "absolute",
-    backgroundColor: "white",
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 15,
-    borderColor: "#000",
-    borderWidth: 1,
-    shadowColor: "#000",
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 5,
-  },
-  priceText: {
-    fontWeight: "bold",
-    color: "black",
-    fontSize: 14,
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

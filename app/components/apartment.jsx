@@ -110,7 +110,7 @@ export default function Apartment(props) {
               color="gray"
             />
           </TouchableOpacity>
-          <OpenHouseButton openHouses={openHouses} />
+          <OpenHouseButton apartmentId={apt.ApartmentID} userId={11}/>
         </View>
       )}
     </View>
