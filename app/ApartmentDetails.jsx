@@ -334,7 +334,7 @@ export default function ApartmentDetails() {
         {userInfo && (
           <TouchableOpacity
             onPress={() =>
-              navigation.navigate("UserProfile", { userId: apt.UserID })
+              navigation.navigate("UserProfile", { user: userInfo })
             }
             style={styles.uploaderContainer}
           >
@@ -416,6 +416,7 @@ const styles = StyleSheet.create({
     marginLeft: 0,
     width: 200,
     alignItems: "center",
+    marginTop: 15,
   },
   roommateHeader: {
     fontSize: 16,

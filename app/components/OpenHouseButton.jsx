@@ -12,7 +12,7 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import API from "../../config";
 
-export default function OpenHouseButton({ apartmentId, userId }) {
+export default function OpenHouseButton({ apartmentId, userId, location }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [openHouses, setOpenHouses] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -32,6 +32,7 @@ export default function OpenHouseButton({ apartmentId, userId }) {
       if (!res.ok) throw new Error("Failed to fetch open houses");
       const data = await res.json();
       setOpenHouses(data);
+      console.log(data)
     } catch (err) {
       console.error("Error fetching open houses:", err.message);
       setOpenHouses([]);
@@ -116,6 +117,7 @@ export default function OpenHouseButton({ apartmentId, userId }) {
                         {new Date(item.date).toLocaleDateString("he-IL")} -{" "}
                         {item.startTime} - {item.endTime}
                       </Text>
+                      <Text style={styles.openHouseLocation}>{location}</Text>
                       <Text style={styles.openHouseLocation}>
                         נרשמו: {item.totalRegistrations} /{" "}
                         {item.amountOfPeoples}
