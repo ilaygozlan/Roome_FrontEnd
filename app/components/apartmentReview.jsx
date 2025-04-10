@@ -9,6 +9,7 @@ import {
   Alert,
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
+import API from "../../config";
 
 export default function ApartmentReview({ apartmentId }) {
   const userId = 999; // temp user
@@ -36,7 +37,7 @@ export default function ApartmentReview({ apartmentId }) {
   const fetchReviews = async () => {
     try {
       const response = await fetch(
-        `http://192.168.1.111:5000/api/Review/GetReviewsForApartment/${apartmentId}`
+        API + `Review/GetReviewsForApartment/${apartmentId}`
       );
       const contentType = response.headers.get("content-type");
 

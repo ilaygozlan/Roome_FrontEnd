@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from "react";
-import API from "../../config"
+import API from "../../config";
 
 export const ActiveApartmentContext = createContext();
 
