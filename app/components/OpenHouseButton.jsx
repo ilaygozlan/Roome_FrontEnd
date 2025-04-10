@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Modal, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, Alert } from "react-native";
+import {
+  View,
+  Text,
+  Modal,
+  TouchableOpacity,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import API from "../../config";
 
@@ -17,7 +26,9 @@ export default function OpenHouseButton({ apartmentId, userId }) {
   const fetchOpenHouses = async () => {
     setLoading(true);
     try {
-      const res = await fetch(API + `OpenHouse/GetOpenHousesByApartment/${apartmentId}/${userId}`);
+      const res = await fetch(
+        API + `OpenHouse/GetOpenHousesByApartment/${apartmentId}/${userId}`
+      );
       if (!res.ok) throw new Error("Failed to fetch open houses");
       const data = await res.json();
       setOpenHouses(data);
@@ -56,10 +67,13 @@ export default function OpenHouseButton({ apartmentId, userId }) {
   };
   const cancelRegistration = async (openHouseId) => {
     try {
-      const res = await fetch(API + `OpenHouse/DeleteRegistration/${openHouseId}/${userId}`, {
-        method: "DELETE",
-      });
-  
+      const res = await fetch(
+        API + `OpenHouse/DeleteRegistration/${openHouseId}/${userId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
       if (res.ok) {
         Alert.alert("ההרשמה בוטלה", "ביטלת את ההרשמה לסיור.");
         fetchOpenHouses();
@@ -71,11 +85,15 @@ export default function OpenHouseButton({ apartmentId, userId }) {
       Alert.alert("שגיאת תקשורת", "לא ניתן להתחבר לשרת.");
     }
   };
-  
+
   return (
     <View>
       <TouchableOpacity onPress={() => setModalVisible(true)}>
-        <MaterialCommunityIcons name="calendar-outline" size={24} color="gray" />
+        <MaterialCommunityIcons
+          name="calendar-outline"
+          size={24}
+          color="gray"
+        />
       </TouchableOpacity>
 
       <Modal visible={modalVisible} transparent animationType="fade">
@@ -91,24 +109,24 @@ export default function OpenHouseButton({ apartmentId, userId }) {
                 keyExtractor={(item) => item.openHouseId.toString()}
                 renderItem={({ item }) => {
                   const isFull = item.confirmedPeoples >= item.amountOfPeoples;
-                
+
                   return (
                     <View style={styles.openHouseItem}>
                       <Text style={styles.openHouseText}>
-                        {new Date(item.date).toLocaleDateString("he-IL")} - {item.startTime} - {item.endTime}
+                        {new Date(item.date).toLocaleDateString("he-IL")} -{" "}
+                        {item.startTime} - {item.endTime}
                       </Text>
                       <Text style={styles.openHouseLocation}>
-                        מאושרים: {item.confirmedPeoples} / {item.amountOfPeoples}
+                        נרשמו: {item.totalRegistrations} /{" "}
+                        {item.amountOfPeoples}
                       </Text>
-                
+
                       {/* רישום או סטטוס */}
                       {item.isRegistered ? (
                         <>
-                          {item.userConfirmed ? (
-                            <Text style={styles.statusConfirmed}>✔ רשום (מאושר)</Text>
-                          ) : (
-                            <Text style={styles.statusPending}>⏳ רשום (בהמתנה)</Text>
-                          )}
+                          <Text style={styles.statusConfirmed}>
+                            ✔ רשום לסיור
+                          </Text>
                           <TouchableOpacity
                             style={styles.cancelButton}
                             onPress={() => cancelRegistration(item.openHouseId)}
@@ -134,7 +152,10 @@ export default function OpenHouseButton({ apartmentId, userId }) {
               <Text style={styles.noOpenHouses}>אין סיורים זמינים</Text>
             )}
 
-            <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setModalVisible(false)}
+            >
               <Text style={styles.closeButtonText}>סגור</Text>
             </TouchableOpacity>
           </View>
@@ -213,12 +234,6 @@ const styles = StyleSheet.create({
     marginTop: 5,
     textAlign: "center",
   },
-  statusPending: {
-    color: "#2F74FF",
-    fontWeight: "bold",
-    marginTop: 5,
-    textAlign: "center",
-  },
   cancelButton: {
     backgroundColor: "#aaa",
     padding: 8,
@@ -236,5 +251,4 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 5,
   },
-  
 });
