@@ -131,7 +131,9 @@ export default function ForYou() {
       }
     }
 
-    setInteractedApartmentIds((prev) => [...prev, apartment.ApartmentID]);
+    setInteractedApartmentIds((prev) =>
+      prev.includes(apartment.ApartmentID) ? prev : [...prev, apartment.ApartmentID]
+    );    
     position.setValue({ x: 0, y: 0 });
     setCurrentIndex((prev) => prev + 1);
   };
