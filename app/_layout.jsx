@@ -4,6 +4,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase";
 import { ActivityIndicator, View } from "react-native";
 import { ActiveApartmentProvider } from "./contex/ActiveApartmentContext";
+import * as Linking from 'expo-linking';
 
 export default function RootLayout() {
   const [user, setUser] = useState(null);
@@ -26,19 +27,20 @@ export default function RootLayout() {
       </View>
     );
   }
-
-  return (
+  const AuthStack = () => (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Login" />
+      <Stack.Screen name="SignUp" />
+    </Stack>
+  );
+  
+  const AppStack = ({loginUser}) => (
     <ActiveApartmentProvider>
       <Stack screenOptions={{ headerShown: false }}>
-        {!user ? (
-          <>
-            <Stack.Screen name="Login" />
-            <Stack.Screen name="SignUp" />
-          </>
-        ) : (
-          <Stack.Screen name="(tabs)" />
-        )}
+        <Stack.Screen name="(tabs)"  user={loginUser}/>
       </Stack>
     </ActiveApartmentProvider>
   );
+  
+  return user ? <AppStack loginUser ={user}/> : <AuthStack />;
 }

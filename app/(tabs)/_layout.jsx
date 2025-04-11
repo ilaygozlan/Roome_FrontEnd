@@ -22,6 +22,7 @@ export default function Layout() {
       <Tabs>
         <Tabs.Screen
           name="index"
+          user ={user}
           options={{
             title: "Home",
             headerShown: false,
