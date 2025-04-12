@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { View, TextInput, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, TextInput, Text, StyleSheet, TouchableOpacity, Platform, KeyboardAvoidingView, ScrollView } from "react-native";
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 import { auth } from "./firebase";
-import { useRouter } from "expo-router";
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
-import { makeRedirectUri } from 'expo-auth-session';
+import { useRouter } from "expo-router";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -29,9 +28,7 @@ export default function SignUpScreen() {
       if (result?.type === 'success') {
         const { id_token } = result.params;
         const credential = GoogleAuthProvider.credential(id_token);
-        const userCredential = await signInWithCredential(auth, credential);
-        console.log("Google Sign-In successful:", userCredential.user.email);
-        router.replace("/(tabs)");
+        await signInWithCredential(auth, credential);
       }
     } catch (err) {
       console.log("Google Sign-In error:", err);
@@ -41,7 +38,7 @@ export default function SignUpScreen() {
 
   const handleSignUp = async () => {
     if (!email || !password || !confirmPassword) {
-      setError("Please fill in all fields");
+      setError("Please fill in all required fields");
       return;
     }
 
@@ -56,9 +53,9 @@ export default function SignUpScreen() {
     }
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      console.log("SignUp successful:", userCredential.user.email);
-      router.replace("/(tabs)");
+      await createUserWithEmailAndPassword(auth, email, password);
+      // After successful signup, navigate to profile info page
+      router.push("/ProfileInfo");
     } catch (err) {
       console.log("SignUp error:", err.code);
       switch (err.code) {
@@ -74,9 +71,6 @@ export default function SignUpScreen() {
         case "auth/weak-password":
           setError("Password is too weak");
           break;
-        case "auth/invalid-credential":
-          setError("Invalid email or password");
-          break;
         default:
           setError("Failed to create account. Please try again.");
       }
@@ -84,65 +78,77 @@ export default function SignUpScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Create Account</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Confirm Password"
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-        secureTextEntry
-      />
-      <TouchableOpacity style={styles.button} onPress={handleSignUp}>
-        <Text style={styles.buttonText}>Sign Up</Text>
-      </TouchableOpacity>
-
-      <View style={styles.dividerContainer}>
-        <View style={styles.divider} />
-        <Text style={styles.dividerText}>OR</Text>
-        <View style={styles.divider} />
-      </View>
-
-      <TouchableOpacity 
-        style={styles.googleButton} 
-        onPress={handleGoogleSignIn}
-        disabled={!request}
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+    >
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.googleButtonText}>Sign up with Google</Text>
-      </TouchableOpacity>
+        <Text style={styles.title}>Create Account</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Confirm Password"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          secureTextEntry
+        />
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      <View style={styles.loginContainer}>
-        <Text style={styles.loginText}>Already have an account? </Text>
-        <TouchableOpacity onPress={() => router.push("/Login")}>
-          <Text style={styles.loginLink}>Login</Text>
+        <TouchableOpacity style={styles.button} onPress={handleSignUp}>
+          <Text style={styles.buttonText}>Sign Up</Text>
         </TouchableOpacity>
-      </View>
-    </View>
+
+        <View style={styles.dividerContainer}>
+          <View style={styles.divider} />
+          <Text style={styles.dividerText}>OR</Text>
+          <View style={styles.divider} />
+        </View>
+
+        <TouchableOpacity 
+          style={styles.googleButton} 
+          onPress={handleGoogleSignIn}
+          disabled={!request}
+        >
+          <Text style={styles.googleButtonText}>Sign up with Google</Text>
+        </TouchableOpacity>
+
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+        <View style={styles.loginContainer}>
+          <Text style={styles.loginText}>Already have an account? </Text>
+          <TouchableOpacity onPress={() => router.push("/Login")}>
+            <Text style={styles.loginLink}>Login</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#fff",
+  },
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: "center",
     padding: 20,
-    backgroundColor: "#fff",
   },
   title: {
     fontSize: 28,
