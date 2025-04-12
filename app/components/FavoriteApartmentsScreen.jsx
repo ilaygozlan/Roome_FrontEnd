@@ -1,104 +1,121 @@
-import React, { useState } from "react";
+import React, { useContext } from "react";
 import { View, ScrollView, StyleSheet, TouchableOpacity, Text } from "react-native";
-import ApartmentCard from "./apartment"; 
+import { useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Constants from "expo-constants";
+import ApartmentGallery from "./ApartmentGallery";
+import { ActiveApartmentContext } from "../contex/ActiveApartmentContext";
 
-const initialFavorites = [
-  {
-    id: 1,
-    image: "https://images2.madlan.co.il/t:nonce:v=2/projects/48950_br_group_pic.jpg",
-    location: "King George 77, תל אביב",
-    price: 6623,
-    description: "דירת 3 חדרים עם נוף",
-  },
-  {
-    id: 2,
-    image: "https://img.yad2.co.il/Pic/202407/22/2_6/o2_6_1_02750.jpg",
-    location: "Dizengoff, תל אביב",
-    price: 9200,
-    description: "דירת גן מהממת עם חנייה",
-  },
-  {
-    id: 3,
-    image: "https://israprop.com/wp-content/uploads/2022/02/42a04fd7.jpg",
-    location: "רחוב הירקון, תל אביב",
-    price: 5000,
-    description: "דירה מושקעת ליד הים",
-  },
-];
+export default function FavoriteApartmentsScreen({ onClose }) {
+  const { allApartments } = useContext(ActiveApartmentContext);
+  const router = useRouter();
+  const favoriteApartments = allApartments.filter(
+    (apt) => apt.IsLikedByUser === 1 || apt.IsLikedByUser === true
+  );
 
-const FavoriteApartmentsScreen = ({ onClose }) => {
-  const [favorites, setFavorites] = useState(initialFavorites);
+  const getBorderColor = (type) => {
+    switch (type) {
+      case 0:
+        return "#F0C27B";
+      case 1:
+        return "#F4B982";
+      case 2:
+        return "#E3965A";
+      default:
+        return "#ddd";
+    }
+  };
 
-  const handleUnlike = (id) => {
-    setFavorites((prev) => prev.filter((apt) => apt.id !== id));
+  const getTypeName = (type) => {
+    switch (type) {
+      case 0:
+        return "Rental";
+      case 1:
+        return "Roommates";
+      case 2:
+        return "Sublet";
+      default:
+        return "Unknown";
+    }
   };
 
   return (
-    <View style={styles.overlay}>
-     <View style={styles.header}>
-            <TouchableOpacity onPress={onClose} style={styles.backButton}>
-              <Text style={styles.backText}>←</Text>
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>הדירות שאהבתי</Text>
-          </View>
-
+    <SafeAreaView style={styles.safeContainer} edges={["top"]}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={onClose} style={styles.backButton}>
+          <Text style={styles.backText}>←</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>הדירות שאהבתי</Text>
+      </View>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {favorites.map((apt) => (
-          <View key={apt.id} style={styles.card}>
-            <ApartmentCard
-              apartment={apt}
-              isFavorite
-              onUnlike={() => handleUnlike(apt.id)}
-            />
+        {favoriteApartments.map((apt) => (
+          <View
+            key={apt.ApartmentID}
+            style={[styles.card, { borderColor: getBorderColor(apt.ApartmentType) }]}
+          >
+            <View style={[styles.typeLabel, { backgroundColor: getBorderColor(apt.ApartmentType) }]}>
+              <Text style={styles.typeText}>{getTypeName(apt.ApartmentType)}</Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => {
+                onClose();
+                setTimeout(() => {
+                  router.push({
+                    pathname: "/ApartmentDetails",
+                    params: { apartment: JSON.stringify(apt) },
+                  });
+                }, 300);
+              }}
+            >
+              <ApartmentGallery images={apt.Images} />
+              <View style={styles.details}>
+                <Text style={styles.title}>דירה ברחוב {apt.Location}</Text>
+                <Text style={styles.description}>{apt.Description}</Text>
+                <Text style={styles.price}>{apt.Price} ש"ח</Text>
+              </View>
+            </TouchableOpacity>
           </View>
         ))}
-
-        {favorites.length === 0 && (
+        {favoriteApartments.length === 0 && (
           <Text style={styles.emptyText}>אין דירות שמורות כרגע 💔</Text>
         )}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "white",
-    zIndex: 10,
-  },
+  safeContainer: { flex: 1, backgroundColor: "white" },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between", 
-    padding: 15,
+    paddingHorizontal: 15,
+    paddingVertical: 15,
+    paddingTop: Constants.statusBarHeight + 15,
     backgroundColor: "#2661A1",
   },
-  backButton: {
-    padding: 5,
-  },
-  backText: {
-    color: "white",
-    fontSize: 18,
-  },
-  headerTitle: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  scrollContainer: {
-    padding: 10,
-    paddingBottom: 100,
-  },
+  backButton: { padding: 5, marginRight: 10 },
+  backText: { color: "white", fontSize: 18 },
+  headerTitle: { color: "white", fontSize: 18, fontWeight: "bold" },
+  scrollContainer: { padding: 10, paddingBottom: 100 },
   card: {
-    marginBottom: 15,
+    alignSelf: "center",
+    width: 350,
+    backgroundColor: "white",
+    borderRadius: 10,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    borderWidth: 3,
+    shadowRadius: 5,
+    elevation: 3,
+    margin: 10,
   },
-  emptyText: {
-    textAlign: "center",
-    marginTop: 40,
-    fontSize: 16,
-    color: "#777",
-  },
+  details: { padding: 10 },
+  title: { fontSize: 16, fontWeight: "bold", textAlign: "right" },
+  description: { fontSize: 14, color: "gray", textAlign: "right" },
+  price: { fontSize: 16, fontWeight: "bold", marginTop: 5, textAlign: "right" },
+  typeText: { fontSize: 14, fontWeight: "bold", color: "black", textTransform: "uppercase" },
+  typeLabel: { position: "absolute", zIndex: 2, top: 5, left: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 5 },
+  emptyText: { textAlign: "center", marginTop: 40, fontSize: 16, color: "#777" },
 });
-
-export default FavoriteApartmentsScreen;
