@@ -11,9 +11,6 @@ export default function HomeScreen() {
   const router = useRouter();
   const [user, loading] = useAuthState(auth);
 
-  const navigateToScreen = (screenName) => {
-    router.push(screenName);
-  };
 
   console.log(user);
   return (
