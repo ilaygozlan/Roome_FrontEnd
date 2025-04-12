@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase";
 import { ActivityIndicator, View } from "react-native";
@@ -10,10 +10,12 @@ export default function RootLayout() {
   const [user, setUser] = useState(null);
   const [checking, setChecking] = useState(true);
   const [userId, setUserId] = useState(null);
-  const [isNewUser, setIsNewUser] = useState(null); // null = עדיין לא נבדק
+  const [isNewUser, setIsNewUser] = useState(null);
+  const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
+      console.log("Auth state changed:", u);
       if (u) {
         const result = await checkIfUserExists(u.email);
         setUserId(result?.userId);
@@ -21,6 +23,8 @@ export default function RootLayout() {
         setUser(u);
       } else {
         setUser(null);
+        setUserId(null);
+        setIsNewUser(null);
       }
       setChecking(false);
     });
@@ -50,7 +54,7 @@ export default function RootLayout() {
     }
   };
 
-  if (checking || isNewUser === null) {
+  if (checking) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" />
@@ -64,7 +68,7 @@ export default function RootLayout() {
       <Stack.Screen name="SignUp" />
     </Stack>
   );
-
+  
   const AppStack = ({ isNewUser, userId }) => (
     <ActiveApartmentProvider>
       <Stack screenOptions={{ headerShown: false }}>
@@ -76,6 +80,6 @@ export default function RootLayout() {
       </Stack>
     </ActiveApartmentProvider>
   );
-
+  
   return user ? <AppStack isNewUser={isNewUser} userId={userId} /> : <AuthStack />;
 }

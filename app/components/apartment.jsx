@@ -50,20 +50,6 @@ export default function Apartment(props) {
         return "Unknown";
     }
   };
-  const openHouses = [
-    {
-      id: 1,
-      date: "March 25, 2025",
-      time: "10:00 AM",
-      location: "Tel Aviv, King George 77",
-    },
-    {
-      id: 2,
-      date: "April 1, 2025",
-      time: "2:00 PM",
-      location: "Dizengoff, Tel Aviv",
-    },
-  ];
 
   let apartmentsList = allApartments.map((apt) => (
     <View

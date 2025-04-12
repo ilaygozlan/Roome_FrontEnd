@@ -5,6 +5,7 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import { Entypo,Ionicons } from '@expo/vector-icons';
 import { auth } from "../firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
+import { ActiveApartmentProvider } from "../contex/ActiveApartmentContext";
 
 export default function Layout() {
   const [user, loading] = useAuthState(auth);
@@ -19,10 +20,10 @@ export default function Layout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <ActiveApartmentProvider>
       <Tabs>
         <Tabs.Screen
           name="index"
-          user ={user}
           options={{
             title: "Home",
             headerShown: false,
@@ -66,6 +67,7 @@ export default function Layout() {
           }}
         />
       </Tabs>
+      </ActiveApartmentProvider>
     </GestureHandlerRootView>
   );
 }

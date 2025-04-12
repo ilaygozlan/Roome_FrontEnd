@@ -5,6 +5,7 @@ import { auth } from "./firebase";
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import { useRouter } from "expo-router";
+import API from "../config";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -21,6 +22,28 @@ export default function LoginScreen() {
     expoClientId: "182842175967-l3ihifvtioodbbkv4pgv99358ed2ih4u.apps.googleusercontent.com"
   });
 
+  const checkIfUserExists = async (email) => {
+    try {
+      const res = await fetch(`${API}User/CheckIfExists?email=${encodeURIComponent(email)}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+
+      if (!res.ok) throw new Error(`Server responded with status ${res.status}`);
+
+      const data = await res.json();
+      return {
+        userId: data.userId,
+        isNewUser: !data.exists 
+      };
+    } catch (err) {
+      console.error("Error checking if user exists:", err);
+      return null;
+    }
+  };
+
   const handleGoogleSignIn = async () => {
     try {
       const result = await promptAsync();
@@ -28,6 +51,15 @@ export default function LoginScreen() {
         const { id_token } = result.params;
         const credential = GoogleAuthProvider.credential(id_token);
         await signInWithCredential(auth, credential);
+        const user = auth.currentUser;
+        if (user) {
+          const result = await checkIfUserExists(user.email);
+          if (result?.isNewUser) {
+            router.replace("/ProfileInfo");
+          } else {
+            router.replace("/(tabs)");
+          }
+        }
       }
     } catch (err) {
       console.log("Google Sign-In error:", err);
@@ -42,6 +74,15 @@ export default function LoginScreen() {
     }
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      const user = auth.currentUser;
+      if (user) {
+        const result = await checkIfUserExists(user.email);
+        if (result?.isNewUser) {
+          router.replace("/ProfileInfo");
+        } else {
+          router.replace("/(tabs)");
+        }
+      }
     } catch (err) {
       console.log("Login error:", err.code);
       switch (err.code) {

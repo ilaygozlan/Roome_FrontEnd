@@ -11,8 +11,6 @@ export default function HomeScreen() {
   const router = useRouter();
   const [user, loading] = useAuthState(auth);
 
-
-  console.log(user);
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <UserProgressTrack
