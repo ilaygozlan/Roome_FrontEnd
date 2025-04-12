@@ -12,8 +12,6 @@ const UserProfile = () => {
   const [showFavorites, setShowFavorites] = useState(false);
   const [showMyPublished, setShowMyPublished] = useState(false);
   const [updatedProfile, setUpdatedProfile] = useState(userProfile || {});
-  
-  // state לרשימת החברים
   const [friends, setFriends] = useState([]);
   const [friendsLoading, setFriendsLoading] = useState(true);
   const [friendsError, setFriendsError] = useState(null);
@@ -69,23 +67,91 @@ const UserProfile = () => {
     );
   }
 
-  const handleSave = () => {
-    setUserProfile(updatedProfile);
-    setModalVisible(false);
+  const handleSave = async () => {
+    const updatedUser = {
+      ...updatedProfile,
+      id: 11, // עד שנדע את ה-ID האמיתי מההתחברות
+    };
+  
+    try {
+      const response = await fetch(API + "User/UpdateUserDetails", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedUser),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to update user profile");
+      }
+  
+      const result = await response.json();
+      console.log("✔️ Profile updated. Rows affected:", result);
+  
+      setUserProfile(updatedProfile); // לעדכן גם ב-context
+      setModalVisible(false);
+    } catch (err) {
+      console.error("❌ Error updating profile:", err.message);
+      alert("אירעה שגיאה בעדכון הפרופיל. נסה שוב.");
+    }
+  };
+  
+  const renderFriends = () => {
+    return friends.map((friend) => (
+      <View key={friend.id} style={styles.friendCard}>
+        <TouchableOpacity style={styles.friendCardContent} onPress={() => {}}>
+          <Image
+            source={
+              friend.profilePicture
+                ? { uri: friend.profilePicture }
+                : { uri: "https://www.w3schools.com/howto/img_avatar.png" }
+            }
+            style={styles.friendCardImage}
+          />
+          <Text style={styles.friendCardName}>{friend.fullName}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.removeIcon}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          onPress={() => {
+            fetch(API + "User/RemoveFriend/" + userProfile.id + "/" + friend.id, {
+              method: "DELETE"
+            })
+              .then(response => response.text())
+              .then(resultText => {
+                if (resultText === "These users are not friends") {
+                  console.error(resultText);
+                } else {
+                  setFriends(prev => prev.filter(f => f.id !== friend.id));
+                }
+              })
+              .catch(err => console.error("Error removing friend:", err));
+          }}
+        >
+          <FontAwesome5 name="user-minus" size={18} color="#fff" />
+        </TouchableOpacity>
+      </View>
+    ));
   };
 
   return (
     <View style={{ flex: 1 }}>
-      {showFavorites && (
-        <View style={StyleSheet.absoluteFillObject}>
-          <FavoriteApartmentsScreen onClose={() => setShowFavorites(false)} />
-        </View>
-      )}
-      {showMyPublished && (
-        <View style={StyleSheet.absoluteFillObject}>
-          <MyPublishedApartmentsScreen onClose={() => setShowMyPublished(false)} />
-        </View>
-      )}
+      <Modal
+        visible={showFavorites}
+        animationType="slide"
+        onRequestClose={() => setShowFavorites(false)}
+      >
+        <FavoriteApartmentsScreen onClose={() => setShowFavorites(false)} />
+      </Modal>
+      <Modal
+  visible={showMyPublished}
+  animationType="slide"
+  onRequestClose={() => setShowMyPublished(false)}
+>
+  <MyPublishedApartmentsScreen onClose={() => setShowMyPublished(false)} />
+</Modal>
+
       <ScrollView style={styles.container}>
         <View style={styles.headerBackground} />
         <View style={styles.profileContainer}>
@@ -127,7 +193,6 @@ const UserProfile = () => {
             <InfoCard full icon={<FontAwesome5 name="briefcase" size={18} color="#2661A1" />} value={userProfile.jobStatus} />
           </View>
         </View>
-
         <View style={styles.buttonsContainer}>
           <TouchableOpacity style={styles.smallButton} onPress={() => setShowFavorites(true)}>
             <MaterialIcons name="favorite" size={20} color="white" />
@@ -138,72 +203,99 @@ const UserProfile = () => {
             <Text style={styles.buttonText}>דירות שפרסמתי</Text>
           </TouchableOpacity>
         </View>
-
         <View style={styles.friendsSection}>
           <Text style={styles.sectionTitle}>החברים שלי</Text>
           {friendsLoading ? (
             <ActivityIndicator size="small" color="#2661A1" />
           ) : friendsError ? (
             <Text style={{ color: "red" }}>שגיאה בטעינת החברים</Text>
-          ) : (
+          ) : friends.length > 3 ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {friends.map((friend) => (
-                <TouchableOpacity
-                  key={friend.id}
-                  style={styles.friendItem}
-                  onPress={() => {
-                    // כאן יש להוסיף ניווט לפרופיל של החבר, לדוגמה:
-                    // navigation.navigate("UserProfile", { id: friend.id });
-                  }}
-                >
-                  <Image
-                    source={
-                      friend.profilePicture
-                        ? { uri: friend.profilePicture }
-                        : { uri: "https://www.w3schools.com/howto/img_avatar.png" }
-                    }
-                    style={styles.friendImage}
-                  />
-                  <Text style={styles.friendName}>{friend.fullName}</Text>
-                </TouchableOpacity>
-              ))}
+              <View style={styles.friendsGrid}>{renderFriends()}</View>
             </ScrollView>
+          ) : (
+            <View style={styles.friendsGrid}>{renderFriends()}</View>
           )}
         </View>
-
         <Modal
-          animationType="slide"
-          transparent
-          visible={modalVisible}
-          onRequestClose={() => setModalVisible(false)}
-        >
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>ערוך פרופיל</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="שם מלא"
-                value={updatedProfile.fullName}
-                onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, fullName: text })}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Email"
-                value={updatedProfile.email}
-                onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, email: text })}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="מספר טלפון"
-                value={updatedProfile.phoneNumber}
-                onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, phoneNumber: text })}
-              />
-              <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-                <Text style={styles.buttonText}>שמור</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
+  animationType="slide"
+  transparent
+  visible={modalVisible}
+  onRequestClose={() => setModalVisible(false)}
+>
+  <View style={styles.modalContainer}>
+    <View style={styles.modalContent}>
+      <Text style={styles.modalTitle}>ערוך פרופיל</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="שם מלא"
+        value={updatedProfile.fullName}
+        onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, fullName: text })}
+      />
+
+      <TextInput
+        style={[styles.input, { backgroundColor: "#f2f2f2", color: "#888" }]}
+        value={updatedProfile.email}
+        editable={false}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="מספר טלפון"
+        value={updatedProfile.phoneNumber}
+        onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, phoneNumber: text })}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="מגדר (M / F)"
+        value={updatedProfile.gender}
+        onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, gender: text })}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="תאריך לידה (YYYY-MM-DD)"
+        value={updatedProfile.birthDate?.toString()?.substring(0, 10)}
+        onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, birthDate: text })}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="קישור לתמונת פרופיל"
+        value={updatedProfile.profilePicture}
+        onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, profilePicture: text })}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="יש לי חיית מחמד? (true / false)"
+        value={updatedProfile.ownPet?.toString()}
+        onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, ownPet: text === "true" })}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="מעשן? (true / false)"
+        value={updatedProfile.smoke?.toString()}
+        onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, smoke: text === "true" })}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="סטטוס תעסוקה"
+        value={updatedProfile.jobStatus}
+        onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, jobStatus: text })}
+      />
+
+      <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+        <Text style={styles.buttonText}>שמור</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
       </ScrollView>
     </View>
   );
@@ -236,6 +328,7 @@ const styles = StyleSheet.create({
     position: "relative"
   },
   profileImage: { width: 120, height: 120, borderRadius: 60, borderWidth: 4, borderColor: "white", marginTop: -80 },
+  editIcon: { position: "absolute", top: 20, right: 20, backgroundColor: "#2661A1", padding: 5, borderRadius: 20 },
   nameContainer: { marginTop: 10 },
   profileName: {
     fontSize: 24,
@@ -292,28 +385,33 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 6
   },
+  buttonText: { color: "#fff", fontSize: 14, fontWeight: "600", marginTop: 8, textAlign: "center" },
   friendsSection: { paddingHorizontal: 20, marginBottom: 30 },
   sectionTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 15, textAlign: "right", color: "#222" },
-  friendItem: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
-    marginBottom: 15,
+  friendsGrid: { flexDirection: "row", alignItems: "center", justifyContent: "flex-end" },
+  friendCard: {
+    width: 100,
+    margin: 5,
     backgroundColor: "#fff",
-    padding: 10,
-    borderRadius: 12,
+    borderRadius: 10,
+    alignItems: "center",
+    paddingVertical: 10,
+    position: "relative",
+    overflow: "visible",
     shadowColor: "#000",
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 3
   },
-  friendImage: { width: 50, height: 50, borderRadius: 25, marginLeft: 10 },
-  friendName: { fontSize: 16, fontWeight: "500", color: "#444" },
+  friendCardContent: { alignItems: "center" },
+  friendCardImage: { width: 70, height: 70, borderRadius: 35 },
+  friendCardName: { marginTop: 8, fontSize: 14, fontWeight: "500", color: "#444", textAlign: "center" },
+  removeIcon: { position: "absolute", top: -10, right: -10, backgroundColor: "#2661A1", borderRadius: 15, padding: 4, zIndex: 2 },
   modalContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.4)" },
   modalContent: { backgroundColor: "white", padding: 25, borderRadius: 20, width: "85%", elevation: 15, alignItems: "center" },
   modalTitle: { fontSize: 22, fontWeight: "bold", textAlign: "center", marginBottom: 20 },
   input: { borderBottomWidth: 1, borderColor: "#ccc", width: "100%", marginBottom: 20, paddingVertical: 8, fontSize: 16, textAlign: "right" },
   saveButton: { backgroundColor: "#2661A1", padding: 12, borderRadius: 8, alignItems: "center", marginTop: 10, width: "100%" },
-  buttonText: { color: "#fff", fontSize: 14, fontWeight: "600", marginTop: 8, textAlign: "center" },
   loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" }
 });
 
