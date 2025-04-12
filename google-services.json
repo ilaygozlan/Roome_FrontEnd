@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "182842175967",
+    "project_id": "roome-b1dad",
+    "storage_bucket": "roome-b1dad.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:182842175967:android:475d3b691e83c386df146a",
+        "android_client_info": {
+          "package_name": "com.galaxies.firebase"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "182842175967-g5kvaoabd42rpo0jj9ji1ike2brh9bi7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.galaxies.firebase",
+            "certificate_hash": "35ffc476e710fd8fc576ed6c40b0e8ef719f5c7c"
+          }
+        },
+        {
+          "client_id": "182842175967-l3ihifvtioodbbkv4pgv99358ed2ih4u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCGucSUapSIUa_ykXy0K8tl6XR-ITXRj3o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "182842175967-l3ihifvtioodbbkv4pgv99358ed2ih4u.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "182842175967-kjknjtsl3bkm3futdlbkg2jhtgrain0i.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.galaxies.firebase"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

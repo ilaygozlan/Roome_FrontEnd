@@ -3,15 +3,26 @@ import React from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { Entypo,Ionicons } from '@expo/vector-icons';
-
+import { auth } from "../firebase";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 export default function Layout() {
-  //tabBar = {props => <TabBar {...props}/>}
+  const [user, loading] = useAuthState(auth);
+
+  if (loading) {
+    return null;
+  }
+
+  if (!user) {
+    return null;
+  }
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <Tabs >
+      <Tabs>
         <Tabs.Screen
           name="index"
+          user ={user}
           options={{
             title: "Home",
             headerShown: false,
@@ -54,7 +65,6 @@ export default function Layout() {
             ),
           }}
         />
-       
       </Tabs>
     </GestureHandlerRootView>
   );
