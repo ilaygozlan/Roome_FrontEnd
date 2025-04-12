@@ -1,16 +1,25 @@
 import { useState } from "react";
-import { View, TextInput, Text, StyleSheet, TouchableOpacity, Platform, KeyboardAvoidingView, ScrollView, Image } from "react-native";
+import { View, TextInput, Text, StyleSheet, TouchableOpacity, Platform, KeyboardAvoidingView, ScrollView, Image, ActivityIndicator } from "react-native";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
+import { auth } from './firebase';
+import { useRouter } from 'expo-router';
+import API from '../config';
 
 export default function ProfileInfo() {
+  const [fullName, setFullName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [gender, setGender] = useState("male");
+  const [gender, setGender] = useState("M");
   const [birthdate, setBirthdate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState(null);
+  const [jobStatus, setJobStatus] = useState("");
+  const [ownPet, setOwnPet] = useState(false);
+  const [smoke, setSmoke] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleDateChange = (event, selectedDate) => {
     setShowDatePicker(false);
@@ -42,21 +51,61 @@ export default function ProfileInfo() {
     }
   };
 
-  const handleSave = () => {
-    // Basic phone number validation
+  const handleSave = async () => {
+    // Validate all required fields
+    if (!fullName || !phoneNumber || !jobStatus) {
+      setError("Please fill in all required fields");
+      return;
+    }
+
+    // Phone number validation
     const phoneRegex = /^[0-9]{10}$/;
     if (!phoneRegex.test(phoneNumber)) {
       setError("Please enter a valid 10-digit phone number");
       return;
     }
 
-    // Here you would typically save the profile information to your backend
-    console.log("Saving profile info:", {
-      phoneNumber,
-      gender,
-      birthdate,
-      profilePhoto
-    });
+    setLoading(true);
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error("No authenticated user found");
+      }
+
+      const userData = {
+        jobStatus,
+        id: 0, // This will be set by the backend
+        email: user.email,
+        fullName,
+        phoneNumber,
+        gender,
+        birthDate: birthdate.toISOString(),
+        profilePicture: profilePhoto || "",
+        ownPet,
+        smoke,
+        isActive: true
+      };
+
+      const response = await fetch(`${API}User/AddNewUser`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create user profile');
+      }
+
+      // Navigate to the main app after successful save
+      router.replace('/(tabs)');
+    } catch (err) {
+      console.error('Error saving profile:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -82,10 +131,24 @@ export default function ProfileInfo() {
 
         <TextInput
           style={styles.input}
+          placeholder="Full Name"
+          value={fullName}
+          onChangeText={setFullName}
+        />
+
+        <TextInput
+          style={styles.input}
           placeholder="Phone Number"
           value={phoneNumber}
           onChangeText={setPhoneNumber}
           keyboardType="phone-pad"
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Job Status"
+          value={jobStatus}
+          onChangeText={setJobStatus}
         />
 
         <View style={styles.pickerContainer}>
@@ -95,9 +158,9 @@ export default function ProfileInfo() {
             onValueChange={(itemValue) => setGender(itemValue)}
             style={styles.picker}
           >
-            <Picker.Item label="Male" value="male" />
-            <Picker.Item label="Female" value="female" />
-            <Picker.Item label="Other" value="other" />
+            <Picker.Item label="Male" value="M" />
+            <Picker.Item label="Female" value="F" />
+            <Picker.Item label="Other" value="O" />
           </Picker>
         </View>
 
@@ -120,8 +183,36 @@ export default function ProfileInfo() {
           />
         )}
 
-        <TouchableOpacity style={styles.button} onPress={handleSave}>
-          <Text style={styles.buttonText}>Save Profile</Text>
+        <View style={styles.toggleContainer}>
+          <TouchableOpacity 
+            style={[styles.toggleButton, ownPet && styles.toggleButtonActive]} 
+            onPress={() => setOwnPet(!ownPet)}
+          >
+            <Text style={[styles.toggleText, ownPet && styles.toggleTextActive]}>
+              Own Pet
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.toggleButton, smoke && styles.toggleButtonActive]} 
+            onPress={() => setSmoke(!smoke)}
+          >
+            <Text style={[styles.toggleText, smoke && styles.toggleTextActive]}>
+              Smoke
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity 
+          style={styles.button} 
+          onPress={handleSave}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Save Profile</Text>
+          )}
         </TouchableOpacity>
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -201,6 +292,30 @@ const styles = StyleSheet.create({
   dateButtonText: {
     fontSize: 16,
     color: "#333",
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+  },
+  toggleButton: {
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    width: '45%',
+    alignItems: 'center',
+  },
+  toggleButtonActive: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  toggleText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  toggleTextActive: {
+    color: '#fff',
   },
   button: {
     backgroundColor: "#007AFF",

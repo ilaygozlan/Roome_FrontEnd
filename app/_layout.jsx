@@ -70,15 +70,15 @@ export default function RootLayout() {
   );
   
   const AppStack = ({ isNewUser, userId }) => (
-    <ActiveApartmentProvider>
-      <Stack screenOptions={{ headerShown: false }}>
-        {isNewUser ? (
-          <Stack.Screen name="ProfileInfo" initialParams={{ userId }} />
-        ) : (
-          <Stack.Screen name="(tabs)" initialParams={{ userId }} />
-        )}
-      </Stack>
-    </ActiveApartmentProvider>
+      <ActiveApartmentProvider>
+        <Stack screenOptions={{ headerShown: false }}>
+          {isNewUser ? (
+            <Stack.Screen name="ProfileInfo" initialParams={{ userId }} />
+          ) : (
+            <Stack.Screen name="(tabs)" initialParams={{ userId }} />
+          )}
+        </Stack>
+      </ActiveApartmentProvider>
   );
   
   return user ? <AppStack isNewUser={isNewUser} userId={userId} /> : <AuthStack />;
