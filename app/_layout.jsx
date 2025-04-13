@@ -4,6 +4,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase";
 import { ActivityIndicator, View } from "react-native";
 import { ActiveApartmentProvider } from "./contex/ActiveApartmentContext";
+import {UserInfoProvider} from "./contex/userInfoContext";
 import API from "../config";
 
 export default function RootLayout() {
@@ -71,6 +72,7 @@ export default function RootLayout() {
   
   const AppStack = ({ isNewUser, userId }) => (
       <ActiveApartmentProvider>
+        <UserInfoProvider>
         <Stack screenOptions={{ headerShown: false }}>
           {isNewUser ? (
             <Stack.Screen name="ProfileInfo" initialParams={{ userId }} />
@@ -78,6 +80,7 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" initialParams={{ userId }} />
           )}
         </Stack>
+        </UserInfoProvider>
       </ActiveApartmentProvider>
   );
   

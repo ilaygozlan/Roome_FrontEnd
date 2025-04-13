@@ -1,34 +1,46 @@
 import React, { createContext, useState, useEffect } from "react";
 import API from "../../config";
+import { auth } from "../firebase";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 export const userInfoContext = createContext();
 
 export const UserInfoProvider = ({ children }) => {
-  const [userProfile, setUserProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loginUserId, setLoginUserId] = useState(null);
   const [error, setError] = useState(null);
+  const [user, loading] = useAuthState(auth);
 
-  useEffect(() => {
-    fetch(API + "User/GetUserById/11")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to fetch user profile");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        setUserProfile(data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching user profile:", error);
-        setError(error);
-        setLoading(false);
-      });
-  }, []);
+  useEffect(()=>{
+    const getUserId = async (email) => {
+      try {
+        const res = await fetch(`${API}User/CheckIfExists?email=${encodeURIComponent(email)}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+  
+        if (!res.ok) throw new Error(`Server responded with status ${res.status}`);
+  
+        const data = await res.json();
+        setLoginUserId(data.userId);
+        return;
+  
+      } catch (err) {
+        console.error("Error checking if user exists:", err);
+        return null;
+      }
+    };
+
+    if (user){
+      getUserId(user.email);
+    }
+  },[user])
+
+  console.log(loginUserId);
 
   return (
-    <userInfoContext.Provider value={{ userProfile, setUserProfile, loading, error }}>
+    <userInfoContext.Provider value={{ loginUserId }}>
       {children}
     </userInfoContext.Provider>
   );

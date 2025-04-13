@@ -18,6 +18,7 @@
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
         }
+          "NSAllowsArbitraryLoads": true
       }
     },
     "android": {
@@ -68,5 +69,4 @@
     },
     "owner": "ilay123"
   }
-}
-}
+}}
