@@ -10,10 +10,11 @@ export default function RootLayout() {
   const [user, setUser] = useState(null);
   const [checking, setChecking] = useState(true);
   const [userId, setUserId] = useState(null);
-  const [isNewUser, setIsNewUser] = useState(null); // null = עדיין לא נבדק
+  const [isNewUser, setIsNewUser] = useState(false); // null = עדיין לא נבדק
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
+      console.log(u);
       if (u) {
         const result = await checkIfUserExists(u.email);
         setUserId(result?.userId);

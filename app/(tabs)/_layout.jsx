@@ -32,12 +32,15 @@ export default function Layout() {
             ),
           }}
         />
-        <Tabs.Screen
+       <Tabs.Screen
           name="ProfilePage"
           options={{
             title: "Profile",
+            href: {
+              pathname: "/ProfilePage",
+              params: { userId: 11 },
+            },
             headerShown: false,
-            unmountOnBlur: false,
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="person-outline" size={size} color={color} />
             ),
