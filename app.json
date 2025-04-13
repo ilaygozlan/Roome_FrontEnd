@@ -14,7 +14,7 @@
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "NSAppTransportSecurity": {
-          "NSAllowsArbitraryLoads": true
+          "NSAllowsArbitraryLoads": true,
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
         }
@@ -68,4 +68,5 @@
     },
     "owner": "ilay123"
   }
+}
 }
