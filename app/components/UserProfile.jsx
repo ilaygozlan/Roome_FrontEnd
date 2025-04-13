@@ -1,4 +1,4 @@
-// UserProfile.jsx
+
 import React, { useState, useEffect } from "react";
 import {
   Text, TouchableOpacity, View, StyleSheet, Modal,
@@ -9,11 +9,16 @@ import FavoriteApartmentsScreen from "./FavoriteApartmentsScreen";
 import MyPublishedApartmentsScreen from "./MyPublishedApartmentsScreen";
 import API from "../../config";
 import { useRouter } from "expo-router";
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Switch } from 'react-native';
+
 
 const UserProfile = ({ userId }) => {
   const loggedInUserId = 11;
   const isMyProfile = userId === loggedInUserId;
   const router = useRouter();
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
 
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -81,23 +86,43 @@ const UserProfile = ({ userId }) => {
   
 
   const handleSave = async () => {
-    const updatedUser = { ...updatedProfile, id: loggedInUserId };
+    const updatedUser = {
+      id: userProfile.id, // ← באות קטנה! זה קריטי
+      email: updatedProfile.email,
+      fullName: updatedProfile.fullName,
+      phoneNumber: updatedProfile.phoneNumber,
+      gender: updatedProfile.gender === "ז" ? "M" :
+              updatedProfile.gender === "נ" ? "F" :
+              updatedProfile.gender,
+      birthDate: updatedProfile.birthDate
+        ? new Date(updatedProfile.birthDate).toISOString()
+        : null,
+      profilePicture: updatedProfile.profilePicture,
+      ownPet: updatedProfile.ownPet,
+      smoke: updatedProfile.smoke,
+      jobStatus: updatedProfile.jobStatus,
+      isActive: true,
+      token: updatedProfile.token || null
+    };
+  
+    console.log("🚀 updatedUser:", updatedUser);
+  
     try {
       const res = await fetch(API + "User/UpdateUserDetails", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedUser),
       });
-
+  
       if (!res.ok) throw new Error("Failed to update profile");
-
+  
       console.log("✔️ profile updated");
       setModalVisible(false);
     } catch (err) {
       console.error("❌", err);
     }
   };
-
+  
   if (loading) return <ActivityIndicator size="large" color="#2661A1" style={{ flex: 1 }} />;
   if (error || !userProfile) return <Text style={{ color: "red", textAlign: "center", marginTop: 40 }}>שגיאה: {error?.message}</Text>;
 
@@ -200,35 +225,117 @@ const UserProfile = ({ userId }) => {
           )}
         </View>
 
-        {isMyProfile && (
-          <Modal
-            visible={modalVisible}
-            transparent
-            animationType="slide"
-            onRequestClose={() => setModalVisible(false)}
-          >
-            <View style={styles.modalContainer}>
-              <View style={styles.modalContent}>
-                <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.closeButton}>
-                  <Feather name="x" size={24} color="#333" />
-                </TouchableOpacity>
-                <Text style={styles.modalTitle}>ערוך פרופיל</Text>
-                <TextInput style={styles.input} placeholder="שם מלא" value={updatedProfile.fullName} onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, fullName: text })} />
-                <TextInput style={[styles.input, { backgroundColor: "#f2f2f2", color: "#888" }]} value={updatedProfile.email} editable={false} />
-                <TextInput style={styles.input} placeholder="מספר טלפון" value={updatedProfile.phoneNumber} onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, phoneNumber: text })} />
-                <TextInput style={styles.input} placeholder="מגדר (M / F)" value={updatedProfile.gender} onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, gender: text })} />
-                <TextInput style={styles.input} placeholder="תאריך לידה (YYYY-MM-DD)" value={updatedProfile.birthDate?.toString()?.substring(0, 10)} onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, birthDate: text })} />
-                <TextInput style={styles.input} placeholder="קישור לתמונת פרופיל" value={updatedProfile.profilePicture} onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, profilePicture: text })} />
-                <TextInput style={styles.input} placeholder="יש לי חיית מחמד? (true / false)" value={updatedProfile.ownPet?.toString()} onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, ownPet: text === "true" })} />
-                <TextInput style={styles.input} placeholder="מעשן? (true / false)" value={updatedProfile.smoke?.toString()} onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, smoke: text === "true" })} />
-                <TextInput style={styles.input} placeholder="סטטוס תעסוקה" value={updatedProfile.jobStatus} onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, jobStatus: text })} />
-                <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-                  <Text style={styles.buttonText}>שמור</Text>
-                </TouchableOpacity>
-              </View>
+
+    {isMyProfile && (
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.closeButton}>
+              <Feather name="x" size={24} color="#333" />
+            </TouchableOpacity>
+
+            <Text style={styles.modalTitle}>ערוך פרופיל</Text>
+
+            <TextInput
+              style={styles.input}
+              placeholder="שם מלא"
+              value={updatedProfile.fullName}
+              onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, fullName: text })}
+            />
+
+            <TextInput
+              style={[styles.input, { backgroundColor: "#f2f2f2", color: "#888" }]}
+              value={updatedProfile.email}
+              editable={false}
+            />
+
+            <TextInput
+              style={styles.input}
+              placeholder="מספר טלפון"
+              value={updatedProfile.phoneNumber}
+              onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, phoneNumber: text })}
+            />
+
+            <Text style={styles.label}>מגדר</Text>
+            <View style={styles.genderContainer}>
+              <TouchableOpacity
+                style={[styles.genderOption, updatedProfile.gender === "M" && styles.genderSelected]}
+                onPress={() => setUpdatedProfile({ ...updatedProfile, gender: "M" })}
+              >
+                <Text style={styles.genderText}>זכר</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.genderOption, updatedProfile.gender === "F" && styles.genderSelected]}
+                onPress={() => setUpdatedProfile({ ...updatedProfile, gender: "F" })}
+              >
+                <Text style={styles.genderText}>נקבה</Text>
+              </TouchableOpacity>
             </View>
-          </Modal>
-        )}
+
+            <Text style={styles.label}>תאריך לידה</Text>
+            <TouchableOpacity
+              onPress={() => setShowDatePicker(true)}
+              style={styles.input}
+            >
+              <Text>{updatedProfile.birthDate ? updatedProfile.birthDate.substring(0, 10) : "בחר תאריך"}</Text>
+            </TouchableOpacity>
+            {showDatePicker && (
+              <DateTimePicker
+                value={updatedProfile.birthDate ? new Date(updatedProfile.birthDate) : new Date()}
+                mode="date"
+                display="default"
+                onChange={(event, selectedDate) => {
+                  setShowDatePicker(false);
+                  if (selectedDate) {
+                    setUpdatedProfile({ ...updatedProfile, birthDate: selectedDate.toISOString() });
+                  }
+                }}
+              />
+            )}
+
+            <TextInput
+              style={styles.input}
+              placeholder="קישור לתמונת פרופיל"
+              value={updatedProfile.profilePicture}
+              onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, profilePicture: text })}
+            />
+
+            <View style={styles.switchRow}>
+              <Text style={styles.label}>יש לי חיית מחמד</Text>
+              <Switch
+                value={updatedProfile.ownPet === true}
+                onValueChange={(val) => setUpdatedProfile({ ...updatedProfile, ownPet: val })}
+              />
+            </View>
+
+            <View style={styles.switchRow}>
+              <Text style={styles.label}>מעשן/ת</Text>
+              <Switch
+                value={updatedProfile.smoke === true}
+                onValueChange={(val) => setUpdatedProfile({ ...updatedProfile, smoke: val })}
+              />
+            </View>
+
+            <TextInput
+              style={styles.input}
+              placeholder="סטטוס תעסוקה"
+              value={updatedProfile.jobStatus}
+              onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, jobStatus: text })}
+            />
+
+            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+              <Text style={styles.buttonText}>שמור</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    )}
+
       </ScrollView>
     </View>
   );

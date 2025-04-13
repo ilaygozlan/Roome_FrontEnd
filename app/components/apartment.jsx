@@ -1,14 +1,11 @@
 import {
   View,
   Text,
-  Image,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
 } from "react-native";
 import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
-import { TextInput } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import React, { useState, useEffect, useContext } from "react";
 import { useRouter } from "expo-router";
 import LikeButton from "./LikeButton";
