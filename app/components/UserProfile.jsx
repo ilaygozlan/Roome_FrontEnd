@@ -85,7 +85,7 @@ const UserProfile = ({ userId }) => {
 
   const handleSave = async () => {
     const updatedUser = {
-      id: userProfile.id, // ← באות קטנה! זה קריטי
+      id: loginUserId, 
       email: updatedProfile.email,
       fullName: updatedProfile.fullName,
       phoneNumber: updatedProfile.phoneNumber,
@@ -100,7 +100,7 @@ const UserProfile = ({ userId }) => {
       smoke: updatedProfile.smoke,
       jobStatus: updatedProfile.jobStatus,
       isActive: true,
-      token: updatedProfile.token || null
+      token: updatedProfile.token || ""
     };
   
     console.log("🚀 updatedUser:", updatedUser);
