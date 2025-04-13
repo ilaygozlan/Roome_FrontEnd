@@ -13,7 +13,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import API from "../../config";
 import pushNatification from './pushNatification'
 
-export default function OpenHouseButton({ apartmentId, userId, location }) {
+export default function OpenHouseButton({ apartmentId, userId, location ,userOwnerId}) {
   const [modalVisible, setModalVisible] = useState(false);
   const [openHouses, setOpenHouses] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -65,27 +65,14 @@ export default function OpenHouseButton({ apartmentId, userId, location }) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            to: ownerIdResponse, 
+            to: userOwnerId, 
             title: "🎉 Someone registered!",
             body: "A new user registered for your open house.",
           }),
         });
         
-        // 2. Get the ownerId for the open house
-        // Make a GET request to retrieve the owner’s ID (property owner) for the open house.
-        const ownerIdResponse = await fetch(API + `OpenHouse/GetOwnerId/${openHouseId}`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
-        if (!ownerIdResponse.ok) {
-          console.error("Unable to retrieve the owner ID for the open house");
-          return;
-        }
-        // Assume the server returns JSON containing the owner ID (e.g., 123)
-        const ownerId = await ownerIdResponse.json();
-        
         // 3. Retrieve the push token for the property owner using the ownerId
-        const tokenResponse = await fetch(API + `User/GetPushToken/${ownerId}`, {
+        const tokenResponse = await fetch(API + `User/GetPushToken/${userOwnerId}`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
         });
