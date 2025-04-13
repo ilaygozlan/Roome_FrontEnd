@@ -1,5 +1,5 @@
-
-import React, { useState, useEffect } from "react";
+// UserProfile.jsx
+import React, { useState, useEffect ,useContext} from "react";
 import {
   Text, TouchableOpacity, View, StyleSheet, Modal,
   TextInput, Image, ScrollView, ActivityIndicator
@@ -9,13 +9,11 @@ import FavoriteApartmentsScreen from "./FavoriteApartmentsScreen";
 import MyPublishedApartmentsScreen from "./MyPublishedApartmentsScreen";
 import API from "../../config";
 import { useRouter } from "expo-router";
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { Switch } from 'react-native';
-
+import { userInfoContext } from "../contex/userInfoContext";
 
 const UserProfile = ({ userId }) => {
-  const loggedInUserId = 11;
-  const isMyProfile = userId === loggedInUserId;
+  const {loginUserId} = useContext(userInfoContext);
+  const isMyProfile = userId === loginUserId;
   const router = useRouter();
   const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -53,7 +51,7 @@ const UserProfile = ({ userId }) => {
         .then(res => res.json())
         .then(data => {
           setFriends(data);
-          setIsFriend(data.some(f => f.id === loggedInUserId));
+          setIsFriend(data.some(f => f.id === loginUserId));
         })
         .catch(err => console.error("שגיאה בטעינת חברים", err));
     }
@@ -61,7 +59,7 @@ const UserProfile = ({ userId }) => {
 
   const handleFriendToggle = () => {
     if (isFriend) {
-      fetch(`${API}User/RemoveFriend/${loggedInUserId}/${userId}`, {
+      fetch(`${API}User/RemoveFriend/${loginUserId}/${userId}`, {
         method: "DELETE",
       })
         .then(() => setIsFriend(false))
@@ -71,7 +69,7 @@ const UserProfile = ({ userId }) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userID1: loggedInUserId,
+          userID1: loginUserId,
           userID2: userId,
         }),
       })
@@ -153,7 +151,7 @@ const UserProfile = ({ userId }) => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.backButton}
-                onPress={() => router.push({ pathname: "/ProfilePage", params: { userId: loggedInUserId } })}
+                onPress={() => router.push({ pathname: "/ProfilePage", params: { userId: loginUserId } })}
               >
                 <Feather name="arrow-left" size={24} color="#fff" />
               </TouchableOpacity>

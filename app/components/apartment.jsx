@@ -13,12 +13,13 @@ import OpenHouseButton from "./OpenHouseButton";
 import SearchBar from "./SearchBar";
 import ApartmentGallery from "./ApartmentGallery";
 import { ActiveApartmentContext } from "../contex/ActiveApartmentContext";
+import { userInfoContext } from "../contex/userInfoContext";
 
 export default function Apartment(props) {
   const { allApartments, setAllApartments } = useContext(
     ActiveApartmentContext
   );
-
+  const { loginUserId } = useContext(userInfoContext);
   const router = useRouter();
 
   // Define colors for each apartment type
@@ -93,7 +94,7 @@ export default function Apartment(props) {
               color="gray"
             />
           </TouchableOpacity>
-          <OpenHouseButton apartmentId={apt.ApartmentID} userId={11} location={apt.Location}/>
+          <OpenHouseButton apartmentId={apt.ApartmentID} userId={loginUserId} location={apt.Location} userOwnerId={apt.userID} />
         </View>
       )}
     </View>
