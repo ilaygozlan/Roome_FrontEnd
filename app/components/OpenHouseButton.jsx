@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import API from "../../config";
+import pushNatification from './pushNatification'
 
 export default function OpenHouseButton({ apartmentId, userId }) {
   const [modalVisible, setModalVisible] = useState(false);
@@ -42,6 +43,7 @@ export default function OpenHouseButton({ apartmentId, userId }) {
 
   const registerForOpenHouse = async (openHouseId) => {
     try {
+      // 1. Register the user for the open house
       const res = await fetch(API + `OpenHouse/RegisterForOpenHouse`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -51,20 +53,64 @@ export default function OpenHouseButton({ apartmentId, userId }) {
           confirmed: false,
         }),
       });
-
+  
       if (res.ok) {
-        Alert.alert("ההרשמה הצליחה", "נרשמת לסיור בהצלחה!");
-        fetchOpenHouses(); // רענון הנתונים
+        Alert.alert("Registration Successful", "You have registered for the open house successfully!");
+        await fetch('https://exp.host/--/api/v2/push/send', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Accept-encoding': 'gzip, deflate',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            to: ownerIdResponse, 
+            title: "🎉 Someone registered!",
+            body: "A new user registered for your open house.",
+          }),
+        });
+        
+        // 2. Get the ownerId for the open house
+        // Make a GET request to retrieve the owner’s ID (property owner) for the open house.
+        const ownerIdResponse = await fetch(API + `OpenHouse/GetOwnerId/${openHouseId}`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
+        if (!ownerIdResponse.ok) {
+          console.error("Unable to retrieve the owner ID for the open house");
+          return;
+        }
+        // Assume the server returns JSON containing the owner ID (e.g., 123)
+        const ownerId = await ownerIdResponse.json();
+        
+        // 3. Retrieve the push token for the property owner using the ownerId
+        const tokenResponse = await fetch(API + `User/GetPushToken/${ownerId}`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
+        if (tokenResponse.ok) {
+          // Assuming the server returns the token as plain text
+          const ownerPushToken = await tokenResponse.text();
+          // 4. Send the push notification to the property owner
+          pushNatification.sendPushNotification(ownerPushToken);
+        } else {
+          console.error("Unable to get the push token for the property owner");
+        }
+        
+        // 5. Reload the open houses data
+        fetchOpenHouses();
       } else if (res.status === 409) {
-        Alert.alert("כבר נרשמת", "ההרשמה כבר קיימת או שיש בעיה.");
+        Alert.alert("Already Registered", "You are already registered or there is an issue.");
       } else {
-        Alert.alert("שגיאה", "לא הצלחנו לרשום אותך לסיור.");
+        Alert.alert("Error", "Failed to register for the open house.");
       }
     } catch (error) {
       console.error("Registration error:", error);
-      Alert.alert("שגיאת תקשורת", "לא ניתן להתחבר לשרת.");
+      Alert.alert("Network Error", "Could not connect to the server.");
     }
   };
+  
+
   const cancelRegistration = async (openHouseId) => {
     try {
       const res = await fetch(
@@ -85,6 +131,7 @@ export default function OpenHouseButton({ apartmentId, userId }) {
       Alert.alert("שגיאת תקשורת", "לא ניתן להתחבר לשרת.");
     }
   };
+  
 
   return (
     <View>
