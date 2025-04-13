@@ -15,13 +15,13 @@ import ApartmentReview from "./components/apartmentReview";
 import { FontAwesome5, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import API from "../config";
-
+import { useRouter } from "expo-router";
 const { width } = Dimensions.get("window");
 
 export default function ApartmentDetails() {
   const { apartment } = useLocalSearchParams();
   const apt = JSON.parse(apartment);
-
+  const router = useRouter();
   const [activeSlide, setActiveSlide] = useState(0);
   const scrollX = useRef(new Animated.Value(0)).current;
   const carouselRef = useRef(null);
@@ -333,9 +333,8 @@ export default function ApartmentDetails() {
         )}
         {userInfo && (
           <TouchableOpacity
-            onPress={() =>
-              navigation.navigate("UserProfile", { user: userInfo })
-            }
+          onPress={() => router.push({ pathname: "/ProfilePage", params: { userId: userInfo.id  } })}
+
             style={styles.uploaderContainer}
           >
             <Image
