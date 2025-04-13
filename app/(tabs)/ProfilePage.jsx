@@ -1,16 +1,17 @@
 // app/tabs/ProfilePage.jsx
-import React from "react";
+import React, { useContext } from "react";
 import { View, ScrollView } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import { UserInfoProvider } from "../contex/userInfoContext";
 import UserProfile from "../components/UserProfile";
+import { userInfoContext } from "../contex/userInfoContext";
+import { UserInfoProvider } from "../contex/userInfoContext";
 
 const ProfilePage = () => {
-  const { userId } = useLocalSearchParams(); 
-  const loggedInUserId = 11;
+  const { userId } = useLocalSearchParams();
+  const { loginUserId } = useContext(userInfoContext);
 
-  const parsedId = parseInt(userId); 
-  const finalId = isNaN(parsedId) ? loggedInUserId : parsedId;
+  const parsedId = parseInt(userId);
+  const finalId = isNaN(parsedId) ? loginUserId : parsedId;
 
   return (
     <UserInfoProvider>
