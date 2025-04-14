@@ -151,7 +151,7 @@ const UserProfile = ({ userId }) => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.backButton}
-                onPress={() => router.push({ pathname: "/ProfilePage", params: { userId: loginUserId } })}
+                onPress={() => router.push({ pathname: "/ProfilePage", params: { userId: userId } })}
               >
                 <Feather name="arrow-left" size={24} color="#fff" />
               </TouchableOpacity>
