@@ -6,7 +6,6 @@ import {
 } from "react-native";
 import { FontAwesome5, MaterialIcons, Feather } from "@expo/vector-icons";
 import FavoriteApartmentsScreen from "./FavoriteApartmentsScreen";
-import MyPublishedApartmentsScreen from "./MyPublishedApartmentsScreen";
 import API from "../../config";
 import { useRouter } from "expo-router";
 import { userInfoContext } from "../contex/userInfoContext";
@@ -24,7 +23,6 @@ const UserProfile = ({ userId }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [updatedProfile, setUpdatedProfile] = useState({});
   const [showFavorites, setShowFavorites] = useState(false);
-  const [showMyPublished, setShowMyPublished] = useState(false);
   const [friends, setFriends] = useState([]);
   const [isFriend, setIsFriend] = useState(false);
 
@@ -129,9 +127,6 @@ const UserProfile = ({ userId }) => {
       <Modal visible={showFavorites} animationType="slide" onRequestClose={() => setShowFavorites(false)}>
         <FavoriteApartmentsScreen onClose={() => setShowFavorites(false)} />
       </Modal>
-      <Modal visible={showMyPublished} animationType="slide" onRequestClose={() => setShowMyPublished(false)}>
-        <MyPublishedApartmentsScreen onClose={() => setShowMyPublished(false)} />
-      </Modal>
 
       <ScrollView style={styles.container}>
         <View style={styles.headerBackground} />
@@ -151,7 +146,7 @@ const UserProfile = ({ userId }) => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.backButton}
-                onPress={() => router.push({ pathname: "/ProfilePage", params: { userId: userId } })}
+                onPress={() => router.push({ pathname: "/ProfilePage", params: { userId: loginUserId } })}
               >
                 <Feather name="arrow-left" size={24} color="#fff" />
               </TouchableOpacity>
@@ -172,13 +167,22 @@ const UserProfile = ({ userId }) => {
         </View>
 
         <View style={styles.buttonsContainer}>
-          <TouchableOpacity style={styles.smallButton} onPress={() => setShowFavorites(true)}>
-            <MaterialIcons name="favorite" size={20} color="white" />
-            <Text style={styles.buttonText}>
-              {isMyProfile ? "דירות שאהבתי" : `דירות ש${userProfile.fullName} אהב/ה`}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.smallButton} onPress={() => setShowMyPublished(true)}>
+        {isMyProfile && (
+              <TouchableOpacity style={styles.smallButton} onPress={() => setShowFavorites(true)}>
+                <MaterialIcons name="favorite" size={20} color="white" />
+                <Text style={styles.buttonText}>דירות שאהבתי</Text>
+              </TouchableOpacity>
+            )}
+
+              <TouchableOpacity
+                style={styles.smallButton}
+                onPress={() => {
+                  router.push({
+                    pathname: "/MyPublishedApartmentsScreen",
+                    params: { userId: userId }
+                  });
+                }}
+              >
             <MaterialIcons name="apartment" size={20} color="white" />
             <Text style={styles.buttonText}>
               {isMyProfile ? "דירות שפרסמתי" : `דירות ש${userProfile.fullName} פרסם/ה`}
@@ -223,116 +227,6 @@ const UserProfile = ({ userId }) => {
           )}
         </View>
 
-
-    {isMyProfile && (
-      <Modal
-        visible={modalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.closeButton}>
-              <Feather name="x" size={24} color="#333" />
-            </TouchableOpacity>
-
-            <Text style={styles.modalTitle}>ערוך פרופיל</Text>
-
-            <TextInput
-              style={styles.input}
-              placeholder="שם מלא"
-              value={updatedProfile.fullName}
-              onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, fullName: text })}
-            />
-
-            <TextInput
-              style={[styles.input, { backgroundColor: "#f2f2f2", color: "#888" }]}
-              value={updatedProfile.email}
-              editable={false}
-            />
-
-            <TextInput
-              style={styles.input}
-              placeholder="מספר טלפון"
-              value={updatedProfile.phoneNumber}
-              onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, phoneNumber: text })}
-            />
-
-            <Text style={styles.label}>מגדר</Text>
-            <View style={styles.genderContainer}>
-              <TouchableOpacity
-                style={[styles.genderOption, updatedProfile.gender === "M" && styles.genderSelected]}
-                onPress={() => setUpdatedProfile({ ...updatedProfile, gender: "M" })}
-              >
-                <Text style={styles.genderText}>זכר</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.genderOption, updatedProfile.gender === "F" && styles.genderSelected]}
-                onPress={() => setUpdatedProfile({ ...updatedProfile, gender: "F" })}
-              >
-                <Text style={styles.genderText}>נקבה</Text>
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.label}>תאריך לידה</Text>
-            <TouchableOpacity
-              onPress={() => setShowDatePicker(true)}
-              style={styles.input}
-            >
-              <Text>{updatedProfile.birthDate ? updatedProfile.birthDate.substring(0, 10) : "בחר תאריך"}</Text>
-            </TouchableOpacity>
-            {showDatePicker && (
-              <DateTimePicker
-                value={updatedProfile.birthDate ? new Date(updatedProfile.birthDate) : new Date()}
-                mode="date"
-                display="default"
-                onChange={(event, selectedDate) => {
-                  setShowDatePicker(false);
-                  if (selectedDate) {
-                    setUpdatedProfile({ ...updatedProfile, birthDate: selectedDate.toISOString() });
-                  }
-                }}
-              />
-            )}
-
-            <TextInput
-              style={styles.input}
-              placeholder="קישור לתמונת פרופיל"
-              value={updatedProfile.profilePicture}
-              onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, profilePicture: text })}
-            />
-
-            <View style={styles.switchRow}>
-              <Text style={styles.label}>יש לי חיית מחמד</Text>
-              <Switch
-                value={updatedProfile.ownPet === true}
-                onValueChange={(val) => setUpdatedProfile({ ...updatedProfile, ownPet: val })}
-              />
-            </View>
-
-            <View style={styles.switchRow}>
-              <Text style={styles.label}>מעשן/ת</Text>
-              <Switch
-                value={updatedProfile.smoke === true}
-                onValueChange={(val) => setUpdatedProfile({ ...updatedProfile, smoke: val })}
-              />
-            </View>
-
-            <TextInput
-              style={styles.input}
-              placeholder="סטטוס תעסוקה"
-              value={updatedProfile.jobStatus}
-              onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, jobStatus: text })}
-            />
-
-            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-              <Text style={styles.buttonText}>שמור</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-    )}
 
       </ScrollView>
     </View>
