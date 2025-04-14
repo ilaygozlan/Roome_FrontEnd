@@ -17,6 +17,7 @@ export default function RootLayout() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
       console.log("Auth state changed:", u);
+      console.log("checking changed:", checking);
       if (u) {
         const result = await checkIfUserExists(u.email);
         setUserId(result?.userId);
