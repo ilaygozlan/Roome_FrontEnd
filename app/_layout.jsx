@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { Stack, useRouter } from "expo-router";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase";
 import { ActivityIndicator, View } from "react-native";
 import { ActiveApartmentProvider } from "./contex/ActiveApartmentContext";
-import {UserInfoProvider} from "./contex/userInfoContext";
+import { UserInfoProvider } from "./contex/userInfoContext";
 import API from "../config";
 
 export default function RootLayout() {
@@ -55,7 +55,7 @@ export default function RootLayout() {
     }
   };
 
-  if (checking) {
+  if (checking ) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" />
@@ -71,8 +71,8 @@ export default function RootLayout() {
   );
   
   const AppStack = ({ isNewUser, userId }) => (
-      <ActiveApartmentProvider>
-        <UserInfoProvider>
+    <ActiveApartmentProvider>
+      <UserInfoProvider>
         <Stack screenOptions={{ headerShown: false }}>
           {isNewUser ? (
             <Stack.Screen name="ProfileInfo" initialParams={{ userId }} />
@@ -80,8 +80,8 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" initialParams={{ userId }} />
           )}
         </Stack>
-        </UserInfoProvider>
-      </ActiveApartmentProvider>
+      </UserInfoProvider>
+    </ActiveApartmentProvider>
   );
   
   return user ? <AppStack isNewUser={isNewUser} userId={userId} /> : <AuthStack />;
