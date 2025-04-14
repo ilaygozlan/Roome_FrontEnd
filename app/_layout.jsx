@@ -84,5 +84,5 @@ export default function RootLayout() {
     </ActiveApartmentProvider>
   );
   
-  return user ? <AppStack isNewUser={isNewUser} userId={userId} /> : <AuthStack />;
+  return <AuthStack />;
 }

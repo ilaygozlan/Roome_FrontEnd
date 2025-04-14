@@ -57,35 +57,29 @@ export default function OpenHouseButton({ apartmentId, userId, location ,userOwn
   
       if (res.ok) {
         Alert.alert("Registration Successful", "You have registered for the open house successfully!");
-        await fetch('https://exp.host/--/api/v2/push/send', {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Accept-encoding': 'gzip, deflate',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            to: userOwnerId, 
-            title: "🎉 Someone registered!",
-            body: "A new user registered for your open house.",
-          }),
-        });
-        
-        // 3. Retrieve the push token for the property owner using the ownerId
+  
+        console.log(" נרשמת בהצלחה לסיור, מנסה לשלוח התראה לבעל הדירה");
+  
+        // 2. Retrieve the push token for the property owner using the ownerId
         const tokenResponse = await fetch(API + `User/GetPushToken/${userOwnerId}`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
         });
+  
         if (tokenResponse.ok) {
-          // Assuming the server returns the token as plain text
-          const ownerPushToken = await tokenResponse.text();
-          // 4. Send the push notification to the property owner
-          pushNatification.sendPushNotification(ownerPushToken);
+          const result = await tokenResponse.json();
+          const ownerPushToken = result.pushToken; // ← אם זה JSON, ולא טקסט
+  
+          console.log("📬 טוקן של בעל הדירה:", ownerPushToken);
+  
+          // 3. Send the push notification to the property owner
+          await pushNatification.sendPushNotification(ownerPushToken);
+  
+          console.log(" שלחתי את ההתראה לבעל הדירה");
         } else {
-          console.error("Unable to get the push token for the property owner");
+          console.error(" לא הצלחתי להביא טוקן של בעל הדירה");
         }
-        
-        // 5. Reload the open houses data
+  
         fetchOpenHouses();
       } else if (res.status === 409) {
         Alert.alert("Already Registered", "You are already registered or there is an issue.");
@@ -97,6 +91,7 @@ export default function OpenHouseButton({ apartmentId, userId, location ,userOwn
       Alert.alert("Network Error", "Could not connect to the server.");
     }
   };
+  
   
 
   const cancelRegistration = async (openHouseId) => {
