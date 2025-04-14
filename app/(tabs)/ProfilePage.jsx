@@ -17,7 +17,7 @@ const ProfilePage = () => {
     <UserInfoProvider>
       <View style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-          <UserProfile userId={finalId} />
+          <UserProfile userId={userId} />
         </ScrollView>
       </View>
     </UserInfoProvider>
