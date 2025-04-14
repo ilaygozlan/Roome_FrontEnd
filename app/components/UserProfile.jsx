@@ -13,7 +13,7 @@ import { userInfoContext } from "../contex/userInfoContext";
 
 const UserProfile = ({ userId }) => {
   const {loginUserId} = useContext(userInfoContext);
-  const isMyProfile = userId === loginUserId;
+  const isMyProfile = userId == loginUserId;
   const router = useRouter();
 
   const [userProfile, setUserProfile] = useState(null);
