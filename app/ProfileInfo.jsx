@@ -24,8 +24,14 @@ export default function ProfileInfo() {
   const handleDateChange = (event, selectedDate) => {
     setShowDatePicker(false);
     if (selectedDate) {
-      setBirthdate(selectedDate);
-    }
+      const formattedDate =
+      `${selectedDate.getDate().toString().padStart(2, '0')}-` +
+      `${(selectedDate.getMonth() + 1).toString().padStart(2, '0')}-` +
+      `${selectedDate.getFullYear()}`;
+  
+    alert(formattedDate);
+    setBirthdate(formattedDate);
+   }
   };
 
   const formatDate = (date) => {
@@ -73,19 +79,19 @@ export default function ProfileInfo() {
       }
 
       const userData = {
-        jobStatus,
-        id: 0, // This will be set by the backend
-        email: user.email,
-        fullName,
-        phoneNumber,
-        gender,
-        birthDate: birthdate.toISOString(),
-        profilePicture: profilePhoto || "",
-        ownPet,
-        smoke,
-        isActive: true
-      };
-
+        "jobStatus": jobStatus,
+        "id": 0,
+        "email": user.email,
+        "fullName": fullName,
+        "phoneNumber": phoneNumber,
+        "gender": gender,
+        "birthDate": birthdate,
+        "profilePicture": "string",
+        "ownPet": ownPet,
+        "smoke": smoke,
+        "isActive": true,
+        "token": ""
+      }
       const response = await fetch(`${API}User/AddNewUser`, {
         method: 'POST',
         headers: {

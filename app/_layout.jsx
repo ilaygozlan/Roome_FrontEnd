@@ -35,19 +35,23 @@ export default function RootLayout() {
 
   const checkIfUserExists = async (email) => {
     try {
-      const res = await fetch(`${API}User/CheckIfExists?email=${encodeURIComponent(email)}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json"
+      const res = await fetch(
+        `${API}User/CheckIfExists?email=${encodeURIComponent(email)}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
-      });
+      );
 
-      if (!res.ok) throw new Error(`Server responded with status ${res.status}`);
+      if (!res.ok)
+        throw new Error(`Server responded with status ${res.status}`);
 
       const data = await res.json();
       return {
         userId: data.userId,
-        isNewUser: !data.exists 
+        isNewUser: !data.exists,
       };
     } catch (err) {
       console.error("Error checking if user exists:", err);
@@ -55,7 +59,7 @@ export default function RootLayout() {
     }
   };
 
-  if (checking ) {
+  if (checking) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" />
@@ -69,10 +73,10 @@ export default function RootLayout() {
       <Stack.Screen name="SignUp" />
     </Stack>
   );
-  
+
   const AppStack = ({ isNewUser, userId }) => (
-    <ActiveApartmentProvider>
-      <UserInfoProvider>
+    <UserInfoProvider>
+      <ActiveApartmentProvider>
         <Stack screenOptions={{ headerShown: false }}>
           {isNewUser ? (
             <Stack.Screen name="ProfileInfo" initialParams={{ userId }} />
@@ -80,9 +84,13 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" initialParams={{ userId }} />
           )}
         </Stack>
-      </UserInfoProvider>
-    </ActiveApartmentProvider>
+      </ActiveApartmentProvider>
+    </UserInfoProvider>
   );
-  
-  return <AuthStack />;
+
+  return user ? (
+    <AppStack isNewUser={isNewUser} userId={userId} />
+  ) : (
+    <AuthStack />
+  );
 }
