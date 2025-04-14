@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   ScrollView,
@@ -11,28 +11,31 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Constants from "expo-constants";
-import { useRouter } from "expo-router";
-import API from "../../config";
-import { userInfoContext } from "../contex/userInfoContext";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import API from "../config";
+import { userInfoContext } from "./contex/userInfoContext";
+
 
 const { width } = Dimensions.get("window");
 
-const MyPublishedApartmentsScreen = ({ onClose }) => {
-  const { userProfile } = useContext(userInfoContext);
+const MyPublishedApartmentsScreen = () => {
+  const { userId } = useLocalSearchParams();
+  const { loginUserId } = useContext(userInfoContext);
+  const isMyProfile = userId == loginUserId;
+  const [userFullName, setUserFullName] = useState("");
+
   const [apartments, setApartments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [scrollIndices, setScrollIndices] = useState({}); // To track current image index per apartment
+  const [scrollIndices, setScrollIndices] = useState({});
   const router = useRouter();
 
   useEffect(() => {
-    if (userProfile && userProfile.id) {
-      fetch(API + "User/GetUserOwnedApartments/" + userProfile.id)
+    if (userId) {
+      fetch(API + "User/GetUserOwnedApartments/" + userId)
         .then((response) => {
           if (!response.ok) {
             return response.text().then((text) => {
-              if (text.includes("No owned apartments found")) {
-                return [];
-              }
+              if (text.includes("No owned apartments found")) return [];
               throw new Error(text);
             });
           }
@@ -47,7 +50,16 @@ const MyPublishedApartmentsScreen = ({ onClose }) => {
           setLoading(false);
         });
     }
-  }, [userProfile]);
+  }, [userId]);
+
+  useEffect(() => {
+    if (userId) {
+      fetch(API + "User/GetUserById/" + userId)
+        .then((res) => res.json())
+        .then((data) => setUserFullName(data.fullName))
+        .catch((err) => console.error("Error fetching user full name:", err));
+    }
+  }, [userId]);
 
   const getBorderColor = (type) => {
     switch (type) {
@@ -98,11 +110,17 @@ const MyPublishedApartmentsScreen = ({ onClose }) => {
   return (
     <SafeAreaView style={styles.safeContainer} edges={["top"]}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={onClose} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => router.push({ pathname: "/ProfilePage", params: { userId } })}
+          style={styles.backButton}
+        >
           <Text style={styles.backText}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>דירות שפרסמתי</Text>
+        <Text style={styles.headerTitle}>
+          {isMyProfile ? "דירות שפרסמתי" : `דירות ש${userFullName} פרסם/ה`}
+        </Text>
       </View>
+
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {apartments.length > 0 ? (
           apartments.map((apt) => {
@@ -122,67 +140,68 @@ const MyPublishedApartmentsScreen = ({ onClose }) => {
                 >
                   <Text style={styles.typeText}>{getTypeName(apt.ApartmentType)}</Text>
                 </View>
-                <ScrollView
-                    horizontal
-                    pagingEnabled
-                    showsHorizontalScrollIndicator={false}
-                    onScroll={(e) => handleScroll(e, apt.ApartmentID)}
-                    scrollEventThrottle={16}
-                    style={styles.galleryScroll}
-                  >
-                    {images.map((imgUrl, index) => (
-                      <View key={index} style={styles.fullImageWrapper}>
-                        <Image source={{ uri: imgUrl }} style={styles.fullImage} />
-                      </View>
-                    ))}
-                  </ScrollView>
 
-                  {images.length > 1 && (
-                    <View style={styles.dotsWrapper}>
-                      <View style={styles.dotsContainer}>
-                        {images.map((_, index) => (
-                          <View
-                            key={index}
-                            style={[
-                              styles.dot,
-                              index === currentIndex && styles.activeDot,
-                            ]}
-                          />
-                        ))}
-                      </View>
+                <ScrollView
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  onScroll={(e) => handleScroll(e, apt.ApartmentID)}
+                  scrollEventThrottle={16}
+                  style={styles.galleryScroll}
+                >
+                  {images.map((imgUrl, index) => (
+                    <View key={index} style={styles.fullImageWrapper}>
+                      <Image source={{ uri: imgUrl }} style={styles.fullImage} />
                     </View>
-                  )}
+                  ))}
+                </ScrollView>
+
+                {images.length > 1 && (
+                  <View style={styles.dotsWrapper}>
+                    <View style={styles.dotsContainer}>
+                      {images.map((_, index) => (
+                        <View
+                          key={index}
+                          style={[
+                            styles.dot,
+                            index === currentIndex && styles.activeDot,
+                          ]}
+                        />
+                      ))}
+                    </View>
+                  </View>
+                )}
+
                 <TouchableOpacity
                   onPress={() => {
-                    onClose();
-                    setTimeout(() => {
-                      router.push({
-                        pathname: "/ApartmentDetails",
-                        params: { apartment: JSON.stringify(apt) },
-                      });
-                    }, 300);
+                    router.push({
+                      pathname: "/ApartmentDetails",
+                      params: { apartment: JSON.stringify(apt) },
+                    });
                   }}
                 >
-
                   <View style={styles.details}>
                     <Text style={styles.title}>דירה ברחוב {apt.Location}</Text>
                     <Text style={styles.description}>{apt.Description}</Text>
                     <Text style={styles.price}>{apt.Price} ש"ח</Text>
                   </View>
                 </TouchableOpacity>
-                
               </View>
             );
           })
         ) : (
           <View style={styles.noApartmentsContainer}>
-            <Text style={styles.emptyText}>עוד לא פרסמת דירות</Text>
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={() => router.push("/NewApartment")}
-            >
-              <Text style={styles.uploadButtonText}>העלה דירה חדשה</Text>
-            </TouchableOpacity>
+            <Text style={styles.emptyText}>
+              {isMyProfile ? "עוד לא פרסמת דירות" : `${userFullName} לא פרסם/ה דירות`}
+            </Text>
+            {isMyProfile && (
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={() => router.push("/NewApartment")}
+              >
+                <Text style={styles.uploadButtonText}>העלה דירה חדשה</Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
       </ScrollView>
@@ -217,35 +236,11 @@ const styles = StyleSheet.create({
     elevation: 3,
     marginBottom: 20,
   },
-  galleryScroll: {
-    width: width,
-    height: 200,
-  },
-  fullImageWrapper: {
-    width: width,
-    height: 200,
-  },
-  fullImage: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
-  },
-  dotsContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 8,
-  },
-  dotsWrapper: {
-    alignItems: "center",
-    marginTop: 8,
-    marginBottom: 4,
-  },
-  
-  dotsContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-  },
-  
+  galleryScroll: { width, height: 200 },
+  fullImageWrapper: { width, height: 200 },
+  fullImage: { width: "100%", height: "100%", resizeMode: "cover" },
+  dotsWrapper: { alignItems: "center", marginTop: 8, marginBottom: 4 },
+  dotsContainer: { flexDirection: "row", justifyContent: "center" },
   dot: {
     width: 10,
     height: 10,
@@ -253,14 +248,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ccc",
     marginHorizontal: 4,
   },
-  
-  activeDot: {
-    backgroundColor: "#2661A1",
-  },
-  
-  activeDot: {
-    backgroundColor: "#E3965A",
-  },
+  activeDot: { backgroundColor: "#E3965A" },
   details: { padding: 10 },
   title: { fontSize: 16, fontWeight: "bold", textAlign: "right" },
   description: { fontSize: 14, color: "gray", textAlign: "right" },
