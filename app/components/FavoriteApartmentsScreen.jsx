@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext,useEffect, useState } from "react";
 import { View, ScrollView, StyleSheet, TouchableOpacity, Text } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -7,11 +7,17 @@ import ApartmentGallery from "./ApartmentGallery";
 import { ActiveApartmentContext } from "../contex/ActiveApartmentContext";
 
 export default function FavoriteApartmentsScreen({ onClose }) {
-  const { allApartments } = useContext(ActiveApartmentContext);
+  const { allApartments, setAllApartments } = useContext(ActiveApartmentContext);
+  const [favoriteApartments, setFavoriteApartments] = useState([{}]);
   const router = useRouter();
-  const favoriteApartments = allApartments.filter(
-    (apt) => apt.IsLikedByUser === 1 || apt.IsLikedByUser === true
-  );
+
+  useEffect(()=>{
+    const newfavoriteApartments = allApartments.filter(
+      (apt) => apt.IsLikedByUser === 1 || apt.IsLikedByUser === true
+    );
+    setFavoriteApartments(newfavoriteApartments);
+  },[allApartments])
+ 
 
   const getBorderColor = (type) => {
     switch (type) {

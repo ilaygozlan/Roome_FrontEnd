@@ -1,4 +1,4 @@
-import React, { useRef, useState, useContext, useEffect } from "react";
+import React, { useRef, useState, useContext, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -9,9 +9,9 @@ import {
   PanResponder,
   ActivityIndicator,
 } from "react-native";
-import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 import { ActiveApartmentContext } from "../contex/ActiveApartmentContext";
 import API from "../../config";
+import { userInfoContext } from "../contex/userInfoContext";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -22,15 +22,18 @@ const EXTRA_OFFSET = 25;
 const SWIPE_THRESHOLD = 0.25 * SCREEN_WIDTH;
 const SWIPE_OUT_DURATION = 250;
 
-const userId = 22;
-
 export default function ForYou() {
-  const { allApartments } = useContext(ActiveApartmentContext);
+  const { loginUserId } = useContext(userInfoContext);
+  const userId = loginUserId;
+  const { allApartments,setAllApartments } = useContext(ActiveApartmentContext);
+
   const [interactedApartmentIds, setInteractedApartmentIds] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const currentIndexRef = useRef(0);
   const [isLoading, setIsLoading] = useState(true);
   const position = useRef(new Animated.ValueXY()).current;
 
+  // Load liked and disliked apartments for the user
   useEffect(() => {
     const loadInteracted = async () => {
       try {
@@ -58,6 +61,15 @@ export default function ForYou() {
     loadInteracted();
   }, []);
 
+  // Filter apartments once
+  const swipeableApartments = useMemo(() => {
+    const filtered = allApartments.filter(
+      (apt) => !interactedApartmentIds.includes(apt.ApartmentID)
+    );
+    console.log("✅ Filtered swipeable apartments:", filtered.map((a) => a.ApartmentID));
+    return filtered;
+  }, [allApartments]);
+
   const likeOpacity = position.x.interpolate({
     inputRange: [0, SCREEN_WIDTH * 0.3],
     outputRange: [0, 1],
@@ -73,10 +85,10 @@ export default function ForYou() {
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
-      onPanResponderMove: (event, gesture) => {
+      onPanResponderMove: (_, gesture) => {
         position.setValue({ x: gesture.dx, y: gesture.dy });
       },
-      onPanResponderRelease: (event, gesture) => {
+      onPanResponderRelease: (_, gesture) => {
         if (gesture.dx > SWIPE_THRESHOLD) {
           forceSwipe("right");
         } else if (gesture.dx < -SWIPE_THRESHOLD) {
@@ -97,45 +109,61 @@ export default function ForYou() {
     }).start(() => onSwipeComplete(direction));
   };
 
-  const filteredApartments = allApartments.filter(
-    (apt) => !interactedApartmentIds.includes(apt.ApartmentID)
-  );
-
   const onSwipeComplete = async (direction) => {
-    const apartment = filteredApartments[currentIndex];
+    const apartment = swipeableApartments[currentIndexRef.current];
+
+    console.log("👉 Swiped direction:", direction);
+    console.log("📦 currentIndexRef:", currentIndexRef.current);
+    console.log("🏠 Current apartment:", apartment);
+
+    if (!apartment) {
+      console.warn("⚠️ No apartment found at index", currentIndexRef.current);
+      return;
+    }
 
     if (direction === "right") {
       try {
-        const url = `${API}User/LikeApartment/${userId}/${apartment.ApartmentID}`;
-        const response = await fetch(url, {
+        const response = await fetch(`${API}User/LikeApartment/${userId}/${apartment.ApartmentID}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
         });
-        const text = await response.text();
-        console.log("Like response:", response.status, text);
         if (!response.ok) throw new Error("Failed to like apartment");
+        else {
+        const updatedApartments = allApartments.map((apt)=>
+          apt.ApartmentID == apartment.ApartmentID ? {...apt, IsLikedByUser : true} : apt
+        );
+        setAllApartments(updatedApartments);
+        }
+        console.log("✅ Liked apartment ID:", apartment.ApartmentID,allApartments);
       } catch (error) {
-        console.error("Error liking apartment:", error);
+        console.error("❌ Error liking apartment:", error);
       }
     } else {
       try {
-        const url = `${API}User/RemoveLikeApartment/${userId}/${apartment.ApartmentID}`;
-        const response = await fetch(url, { method: "DELETE" });
-        const text = await response.text();
-        console.log("Dislike response:", response.status, text);
+        const response = await fetch(`${API}User/RemoveLikeApartment/${userId}/${apartment.ApartmentID}`, {
+          method: "DELETE",
+        });
         if (!response.ok && response.status !== 404) {
           throw new Error("Failed to dislike apartment");
-        }
+        }   else {
+          const updatedApartments = allApartments.map((apt)=>
+            apt.ApartmentID == apartment.ApartmentID ? {...apt, IsLikedByUser : false} : apt
+          );
+          setAllApartments(updatedApartments);
+          }
+        console.log("❎ Disliked apartment ID:", apartment.ApartmentID);
       } catch (error) {
         console.error("Error disliking apartment:", error);
       }
     }
 
-    setInteractedApartmentIds((prev) =>
-      prev.includes(apartment.ApartmentID) ? prev : [...prev, apartment.ApartmentID]
-    );    
+    // Advance index safely
+    setCurrentIndex((prev) => {
+      currentIndexRef.current = prev + 1;
+      return prev + 1;
+    });
+
     position.setValue({ x: 0, y: 0 });
-    setCurrentIndex((prev) => prev + 1);
   };
 
   const resetPosition = () => {
@@ -160,15 +188,17 @@ export default function ForYou() {
   };
 
   const renderCards = () => {
+    console.log("🖼 Rendering cards. Index:", currentIndex, "Available:", swipeableApartments.length);
+
     if (isLoading) {
       return <ActivityIndicator size="large" color="#999" style={{ marginTop: 100 }} />;
     }
 
-    if (currentIndex >= filteredApartments.length) {
+    if (currentIndex >= swipeableApartments.length) {
       return <Text style={styles.noMoreText}>No more apartments to show</Text>;
     }
 
-    return filteredApartments.map((apt, index) => {
+    return swipeableApartments.map((apt, index) => {
       if (index < currentIndex) return null;
 
       const cardContent = (
@@ -189,12 +219,6 @@ export default function ForYou() {
             style={[styles.card, getCardStyle(), { zIndex: 99 }]}
             {...panResponder.panHandlers}
           >
-            <Animated.View style={[styles.likeIconContainer, { opacity: likeOpacity }]}>
-              <FontAwesome name="heart" size={50} color="orange" />
-            </Animated.View>
-            <Animated.View style={[styles.dislikeIconContainer, { opacity: dislikeOpacity }]}>
-              <MaterialCommunityIcons name="close" size={50} color="red" />
-            </Animated.View>
             {cardContent}
           </Animated.View>
         );
@@ -265,17 +289,5 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 50,
     marginBottom: 20,
-  },
-  likeIconContainer: {
-    position: "absolute",
-    top: 30,
-    right: 30,
-    zIndex: 100,
-  },
-  dislikeIconContainer: {
-    position: "absolute",
-    top: 30,
-    left: 30,
-    zIndex: 100,
   },
 });
