@@ -1,9 +1,33 @@
-import { Tabs } from "expo-router";
-import React from "react";
+import { useEffect, useState } from "react";
+import { Tabs, useRouter } from "expo-router";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../firebase";
+import { ActivityIndicator, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 
 export default function Layout() {
+  const [checking, setChecking] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        router.replace("/Login"); 
+      }
+      setChecking(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  if (checking) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Tabs
@@ -41,5 +65,5 @@ export default function Layout() {
         />
       </Tabs>
     </GestureHandlerRootView>
-  );
+  );
 }
