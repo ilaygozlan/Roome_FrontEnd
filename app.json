@@ -15,57 +15,84 @@
       "infoPlist": {
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true,
-        "NSAppTransportSecurity": {
-          "NSAllowsArbitraryLoads": true
-        }
-      }
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "package": "com.galaxies.firebase",
-      "googleServicesFile": "./google-services.json"
-    },
-    "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
-    },
-    "plugins": [
-      "expo-router",
-      "@react-native-firebase/app",
-      "@react-native-firebase/auth",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
-        }
-      ],
-      [
-        "expo-build-properties",
-        {
-          "ios": {
-            "useFrameworks": "static"
+          "NSAppTransportSecurity": {
+            "NSAllowsArbitraryLoads": true
           }
+        },
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "android": {
+        "adaptiveIcon": {
+          "foregroundImage": "./assets/images/adaptive-icon.png",
+          "backgroundColor": "#ffffff"
+        },
+        "package": "com.galaxies.firebase",
+        "googleServicesFile": "./google-services.json"
+      },
+      "web": {
+        "bundler": "metro",
+        "output": "static",
+        "favicon": "./assets/images/favicon.png"
+      },
+      "plugins": [
+        "expo-router",
+        "@react-native-firebase/app",
+        "@react-native-firebase/auth",
+        [
+          "expo-splash-screen",
+          {
+            "image": "./assets/images/splash-icon.png",
+            "imageWidth": 200,
+            "resizeMode": "contain",
+            "backgroundColor": "#ffffff"
+          }
+        ],
+        [
+          "expo-build-properties",
+          {
+            "ios": {
+              "useFrameworks": "static"
+            }
+          }
+        ],
+        "expo-router",
+        "@react-native-firebase/app",
+        "@react-native-firebase/auth",
+        [
+          "expo-splash-screen",
+          {
+            "image": "./assets/images/splash-icon.png",
+            "imageWidth": 200,
+            "resizeMode": "contain",
+            "backgroundColor": "#ffffff"
+          }
+        ],
+        [
+          "expo-build-properties",
+          {
+            "ios": {
+              "useFrameworks": "static"
+            }
+          }
+        ]
+      ],
+      "experiments": {
+        "typedRoutes": true
+      },
+      "extra": {
+        "router": {
+          "origin": false
+        },
+        "eas": {
+          "projectId": "74d7d55b-5541-423c-bab5-acf88cf98489"
         }
-      ]
-    ],
-    "experiments": {
-      "typedRoutes": true
+      },
+      "owner": "ilay123"
     },
     "extra": {
-      "router": {
-        "origin": false
-      },
       "eas": {
-        "projectId": "74d7d55b-5541-423c-bab5-acf88cf98489"
+        "projectId": "607a69c3-a4f8-45d8-a2bf-ba06588120b1"
       }
-    },
-    "owner": "ilay123"
+    }
   }
-}}
+}
