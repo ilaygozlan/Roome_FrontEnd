@@ -63,7 +63,9 @@ export async function registerForPushNotificationsAsync() {
       return;
     }
     const projectId =
-      Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
+  Constants?.expoConfig?.extra?.eas?.projectId ??
+  Constants?.manifest?.extra?.eas?.projectId ??
+  '74d7d55b-5541-423c-bab5-acf88cf98489';
     if (!projectId) {
       handleRegistrationError('Project ID not found');
     }
