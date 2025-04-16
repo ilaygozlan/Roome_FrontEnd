@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { FontAwesome5, MaterialIcons, Feather } from "@expo/vector-icons";
 import FavoriteApartmentsScreen from "./FavoriteApartmentsScreen";
-import MyPublishedApartmentsScreen from "./MyPublishedApartmentsScreen";
+import UserOwnedApartmentsGrid from "./UserOwnedApartmentsGrid";
 import API from "../config";
 import { useRouter } from "expo-router";
 import { userInfoContext } from "./contex/userInfoContext";
@@ -33,7 +33,6 @@ const UserProfile = (props) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [updatedProfile, setUpdatedProfile] = useState({});
   const [showFavorites, setShowFavorites] = useState(false);
-  const [showMyPublished, setShowMyPublished] = useState(false);
   const [friends, setFriends] = useState([]);
   const [isFriend, setIsFriend] = useState(false);
 
@@ -131,15 +130,7 @@ const UserProfile = (props) => {
       >
         <FavoriteApartmentsScreen onClose={() => setShowFavorites(false)} />
       </Modal>
-      <Modal
-        visible={showMyPublished}
-        animationType="slide"
-        onRequestClose={() => setShowMyPublished(false)}
-      >
-        <MyPublishedApartmentsScreen
-          onClose={() => setShowMyPublished(false)}
-        />
-      </Modal>
+      
 
       <ScrollView style={styles.container}>
         <View style={styles.headerBackground} />
@@ -234,17 +225,7 @@ const UserProfile = (props) => {
                 : `דירות ש${userProfile.fullName} אהב/ה`}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.smallButton}
-            onPress={() => setShowMyPublished(true)}
-          >
-            <MaterialIcons name="apartment" size={20} color="white" />
-            <Text style={styles.buttonText}>
-              {isMyProfile
-                ? "דירות שפרסמתי"
-                : `דירות ש${userProfile.fullName} פרסם/ה`}
-            </Text>
-          </TouchableOpacity>
+         
         </View>
 
         <View style={styles.friendsSection}>
@@ -410,6 +391,8 @@ const UserProfile = (props) => {
             paddingTop: 150,
           }}
         >
+
+
           <LogoutButton />
         </View>)}
       </ScrollView>
