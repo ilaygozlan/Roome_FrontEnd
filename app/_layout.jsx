@@ -6,6 +6,8 @@ import { ActivityIndicator, View } from "react-native";
 import { ActiveApartmentProvider } from "./contex/ActiveApartmentContext";
 import { UserInfoProvider } from "./contex/userInfoContext";
 import API from "../config";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 export default function RootLayout() {
   const [user, setUser] = useState(null);
@@ -14,7 +16,8 @@ export default function RootLayout() {
   const [isNewUser, setIsNewUser] = useState(null);
   const router = useRouter();
 
-  useEffect(() => {
+  useEffect(()  => {
+     AsyncStorage.clear();
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
       console.log("Auth state changed:", u.email);
       console.log("checking changed:", checking);
