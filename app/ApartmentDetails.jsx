@@ -5,7 +5,6 @@ import {
   Image,
   StyleSheet,
   TouchableOpacity,
-  FlatList,
   ScrollView,
   Dimensions,
   Animated,
@@ -16,6 +15,9 @@ import { FontAwesome5, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import API from "../config";
 import { useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+
 const { width } = Dimensions.get("window");
 
 export default function ApartmentDetails() {
@@ -35,12 +37,11 @@ export default function ApartmentDetails() {
         const res = await fetch(`${API}User/GetUserById/${apt.UserID}`);
         const data = await res.json();
         setUserInfo(data);
-        console.log(data)
       } catch (err) {
         console.error("Failed to fetch user info:", err);
       }
     };
-  
+
     if (apt.UserID) fetchUserInfo();
   }, []);
 
@@ -244,6 +245,7 @@ export default function ApartmentDetails() {
   ];
 
   return (
+     <SafeAreaView style={{ flex: 1 }}>
     <ScrollView>
       <View style={styles.container}>
         <Image
@@ -310,31 +312,32 @@ export default function ApartmentDetails() {
 
         <Text style={styles.sectionTitle}>🏡 סיורים בדירה:</Text>
         {openHouses.length > 0 ? (
-          <FlatList
-            data={openHouses}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <View style={styles.openHouseItem}>
-                <Text style={styles.openHouseText}>
-                  {item.date} - {item.time}
-                </Text>
-                <Text style={styles.openHouseLocation}>{item.location}</Text>
-                <TouchableOpacity
-                  style={styles.registerButton}
-                  onPress={() => alert(`נרשמת לסיור בתאריך ${item.date}`)}
-                >
-                  <Text style={styles.registerText}>להרשמה</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          />
+          openHouses.map((item) => (
+            <View key={item.id.toString()} style={styles.openHouseItem}>
+              <Text style={styles.openHouseText}>
+                {item.date} - {item.time}
+              </Text>
+              <Text style={styles.openHouseLocation}>{item.location}</Text>
+              <TouchableOpacity
+                style={styles.registerButton}
+                onPress={() => alert(`נרשמת לסיור בתאריך ${item.date}`)}
+              >
+                <Text style={styles.registerText}>להרשמה</Text>
+              </TouchableOpacity>
+            </View>
+          ))
         ) : (
           <Text style={styles.noOpenHouses}>אין סיורים זמינים כרגע</Text>
         )}
+
         {userInfo && (
           <TouchableOpacity
-          onPress={() => router.push({ pathname: "/ProfilePage", params: { userId: userInfo.id  } })}
-
+            onPress={() =>
+              router.push({
+                pathname: "/UserProfile",
+                params: { userId: userInfo.id },
+              })
+            }
             style={styles.uploaderContainer}
           >
             <Image
@@ -353,6 +356,7 @@ export default function ApartmentDetails() {
         <ApartmentReview apartmentId={apt.ApartmentID} />
       </View>
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -486,5 +490,4 @@ const styles = StyleSheet.create({
     color: "#333",
     fontWeight: "bold",
   },
-  
 });

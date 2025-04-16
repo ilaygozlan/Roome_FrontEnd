@@ -103,10 +103,7 @@ export default function SearchFilters({ onSearch }) {
       </TouchableOpacity>
 
       {expanded && (
-        <ScrollView
-          style={styles.scrollContainer}
-          contentContainerStyle={styles.scrollContent}
-        >
+       <>
           {/* date */}
           <View style={styles.dateSection}>
             <TouchableOpacity
@@ -230,7 +227,7 @@ export default function SearchFilters({ onSearch }) {
           >
             <Text style={styles.searchButtonText}>חיפוש</Text>
           </TouchableOpacity>
-        </ScrollView>
+       </>
       )}
 
      {/* <DateTimePickerModal

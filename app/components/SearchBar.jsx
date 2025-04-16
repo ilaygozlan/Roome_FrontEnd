@@ -23,11 +23,17 @@ const colors = {
   background: "#FDEAD7",
 };
 
-export default function SearchBar() {
+export default function SearchBar({
+  selectedType,
+  setSelectedType,
+  selectedLocation,
+  setSelectedLocation,
+  priceRange,
+  setPriceRange,
+  SearchApartments,
+}) {
   const [expanded, setExpanded] = useState(false);
-  const [selectedType, setSelectedType] = useState(null);
-  const [selectedLocation, setSelectedLocation] = useState("");
-  const [priceRange, setPriceRange] = useState([100, 10000]);
+
   const router = useRouter();
   const googlePlacesRef = useRef();
 
@@ -208,7 +214,7 @@ export default function SearchBar() {
               <Text style={styles.priceText}>מינימום: {priceRange[0]} ₪</Text>
               <Text style={styles.priceText}>מקסימום: {priceRange[1]} ₪</Text>
             </View>
-
+            <SearchFilters onSearch={(filters) => console.log("🔎", filters)} />
             {/* search btn */}
             <View style={styles.searchButtonContainer}>
               <TouchableOpacity
@@ -221,13 +227,13 @@ export default function SearchBar() {
                     "טווח מחירים:",
                     `${priceRange[0]} - ${priceRange[1]} `
                   );
+                  SearchApartments();
                   setExpanded(false);
                 }}
               >
                 <Text style={styles.searchButtonText}>חיפוש</Text>
               </TouchableOpacity>
             </View>
-            <SearchFilters onSearch={(filters) => console.log("🔎", filters)} />
           </ScrollView>
         )}
       </View>
@@ -272,8 +278,8 @@ const styles = StyleSheet.create({
     color: "gray",
   },
   expandSection: {
-    marginTop: -35,
-    paddingTop: 50,
+    marginTop: 0,
+    paddingTop: 20,
     maxHeight: 500,
     padding: 10,
     backgroundColor: "#fefefe",
@@ -328,14 +334,14 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   searchButtonContainer: {
-    marginTop: 30,
+    marginTop: 10,
     alignItems: "center",
   },
 
   searchButton: {
     backgroundColor: "#E3965A", // צבע כתום
     paddingVertical: 12,
-    paddingHorizontal: 40,
+    paddingHorizontal: 60,
     borderRadius: 25,
     elevation: 3, // צל
   },
