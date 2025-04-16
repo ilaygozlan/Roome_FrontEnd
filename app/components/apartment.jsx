@@ -14,33 +14,31 @@ import OpenHouseButton from "./OpenHouseButton";
 import SearchBar from "./SearchBar";
 import ApartmentGallery from "./ApartmentGallery";
 import { ActiveApartmentContext } from "../contex/ActiveApartmentContext";
-import  ApartmentDetails  from "../ApartmentDetails";
+import ApartmentDetails from "../ApartmentDetails";
 import { userInfoContext } from "../contex/userInfoContext";
 
 export default function Apartment(props) {
   const { allApartments, setAllApartments } = useContext(
     ActiveApartmentContext
   );
-  const [previewSearchApt, setPreviewSearchApt] = useState(allApartments);
   const { loginUserId } = useContext(userInfoContext);
+  const [previewSearchApt, setPreviewSearchApt] = useState(allApartments);
   const [showApartmentDetails, setShowApartmentDetails] = useState(false);
+  const [selectedApartment, setSelectedApartment] = useState(null);
   const router = useRouter();
 
-  // search bar filters
   const [selectedType, setSelectedType] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState("");
   const [priceRange, setPriceRange] = useState([100, 10000]);
-  //-------------------
 
-  // Define colors for each apartment type
   const getBorderColor = (type) => {
     switch (type) {
       case 0:
-        return "#F0C27B"; // Rental - Soft Pastel Orange
+        return "#F0C27B";
       case 1:
-        return "#F4B982"; // Roommates - Warm Peach
+        return "#F4B982";
       case 2:
-        return "#E3965A"; // Sublet - Light Apricot
+        return "#E3965A";
       default:
         return "#ddd";
     }
@@ -77,25 +75,22 @@ export default function Apartment(props) {
           <Text style={styles.typeText}>{getTypeName(apt.ApartmentType)}</Text>
         </View>
 
-        <TouchableOpacity onPress={() => setShowApartmentDetails(true)}>
+        <View style={styles.cardContent}>
           <ApartmentGallery images={apt.Images} />
-          <View style={styles.details}>
-            <Text style={styles.title}>דירה ברחוב {apt.Location}</Text>
-            <Text style={styles.description}>{apt.Description}</Text>
-            <Text style={styles.price}>{apt.Price} ש"ח</Text>
-          </View>
-        </TouchableOpacity>
 
-        <Modal
-          visible={showApartmentDetails}
-          animationType="slide"
-          onRequestClose={() => setShowApartmentDetails(false)}
-        >
-          <ApartmentDetails
-            apt={apt}
-            onClose={() => setShowApartmentDetails(false)}
-          />
-        </Modal>
+          <TouchableOpacity
+            onPress={() => {
+              setSelectedApartment(apt);
+              setShowApartmentDetails(true);
+            }}
+          >
+            <View style={styles.details}>
+              <Text style={styles.title}>דירה ברחוב {apt.Location}</Text>
+              <Text style={styles.description}>{apt.Description}</Text>
+              <Text style={styles.price}>{apt.Price} ש"ח</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
 
         {!props.hideIcons && (
           <View style={styles.iconRow}>
@@ -130,27 +125,12 @@ export default function Apartment(props) {
   }, [allApartments]);
 
   const SearchApartments = () => {
-    console.log("Searching with type:", selectedType);
-
     const newAptArr = allApartments.filter((apt) => {
-      // Type matching - strict equality check
       const matchesType =
         selectedType === null || apt.ApartmentType === selectedType;
-
-      // Price range matching
       const matchesPrice =
         apt.Price >= priceRange[0] && apt.Price <= priceRange[1];
-
-      // Location matching (commented out for now)
-      // const matchesLocation = !selectedLocation ||
-      //   apt.Location.toLowerCase().includes(selectedLocation.toLowerCase());
-
-      const shouldInclude = matchesType && matchesPrice;
-      console.log(
-        `Apartment ${apt.ApartmentID}: Type=${apt.ApartmentType}, Selected=${selectedType}, Matches=${shouldInclude}`
-      );
-
-      return shouldInclude;
+      return matchesType && matchesPrice;
     });
     setPreviewSearchApt(newAptArr);
   };
@@ -164,13 +144,32 @@ export default function Apartment(props) {
         setSelectedLocation={setSelectedLocation}
         priceRange={priceRange}
         setPriceRange={setPriceRange}
-        SearchApartments={() => {
-          SearchApartments();
-        }}
+        SearchApartments={SearchApartments}
       />
       <ScrollView>
         <View style={styles.container}>{renderApartments()}</View>
       </ScrollView>
+
+      {/* Modal for selected apartment */}
+      <Modal
+        visible={showApartmentDetails}
+        animationType="slide"
+        onRequestClose={() => {
+          setShowApartmentDetails(false);
+          setSelectedApartment(null);
+        }}
+      >
+        {selectedApartment && (
+          <ApartmentDetails
+            key={selectedApartment.ApartmentID}
+            apt={selectedApartment}
+            onClose={() => {
+              setShowApartmentDetails(false);
+              setSelectedApartment(null);
+            }}
+          />
+        )}
+      </Modal>
     </>
   );
 }
@@ -183,7 +182,6 @@ const styles = StyleSheet.create({
   },
   card: {
     alignSelf: "center",
-    fontFamily: "RubikRegular",
     width: 350,
     backgroundColor: "white",
     borderRadius: 10,
@@ -194,21 +192,6 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 3,
     margin: 10,
-  },
-  imageContainer: {
-    position: "relative",
-  },
-  image: {
-    width: "100%",
-    height: 200,
-  },
-  infoIcon: {
-    position: "absolute",
-    top: 10,
-    right: 10,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    borderRadius: 20,
-    padding: 5,
   },
   details: {
     padding: 10,
@@ -234,22 +217,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     padding: 5,
   },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    backgroundColor: "#fff",
-  },
-  searchIcon: {
-    marginRight: 5,
-  },
-  searchInput: {
-    flex: 1,
-    height: 40,
-  },
   typeText: {
     fontSize: 14,
     fontWeight: "bold",
@@ -261,9 +228,9 @@ const styles = StyleSheet.create({
     zIndex: 2,
     top: 5,
     left: 5,
-    paddingHorizontal: 10, // Adjust width to text size
+    paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 5,
-    alignSelf: "flex-start", // Ensures the label wraps around text
+    alignSelf: "flex-start",
   },
 });
