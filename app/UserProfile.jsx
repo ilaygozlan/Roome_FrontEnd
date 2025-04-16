@@ -20,10 +20,11 @@ import { userInfoContext } from "./contex/userInfoContext";
 import LogoutButton from "./components/LogoutButton";
 import { useLocalSearchParams } from "expo-router";
 
-const UserProfile = () => {
+const UserProfile = (props) => {
   const { loginUserId } = useContext(userInfoContext);
   const { userId } = useLocalSearchParams();
-  const isMyProfile = userId == loginUserId;
+  const finalUserId = userId ?? props.userId;
+  const isMyProfile = finalUserId == loginUserId;
   const router = useRouter();
 
   const [userProfile, setUserProfile] = useState(null);
@@ -37,8 +38,8 @@ const UserProfile = () => {
   const [isFriend, setIsFriend] = useState(false);
 
   useEffect(() => {
-    console.log(userId)
-    fetch(API + "User/GetUserById/" + userId)
+    console.log(finalUserId)
+    fetch(API + "User/GetUserById/" + finalUserId)
       .then((res) => {
         if (!res.ok) throw new Error("שגיאה בטעינת פרופיל");
         return res.json();
@@ -52,11 +53,12 @@ const UserProfile = () => {
         setError(err);
         setLoading(false);
       });
-  }, [userId]);
+  }, [finalUserId
+  ]);
 
   useEffect(() => {
-    if (userId) {
-      fetch(API + "User/GetUserFriends/" + userId)
+    if (finalUserId) {
+      fetch(API + "User/GetUserFriends/" + finalUserId)
         .then((res) => res.json())
         .then((data) => {
           setFriends(data);
@@ -64,11 +66,11 @@ const UserProfile = () => {
         })
         .catch((err) => console.error("שגיאה בטעינת חברים", err));
     }
-  }, [userId]);
+  }, [finalUserId]);
 
   const handleFriendToggle = () => {
     if (isFriend) {
-      fetch(`${API}User/RemoveFriend/${loginUserId}/${userId}`, {
+      fetch(`${API}User/RemoveFriend/${loginUserId}/${finalUserId}`, {
         method: "DELETE",
       })
         .then(() => setIsFriend(false))
@@ -79,7 +81,7 @@ const UserProfile = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userID1: loginUserId,
-          userID2: userId,
+          userID2: finalUserId,
         }),
       })
         .then((res) => {

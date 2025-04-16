@@ -9,7 +9,7 @@ const ProfilePage = () => {
 
   const { loginUserId } = useContext(userInfoContext);
 
-
+  console.log(loginUserId)
   return (
     <UserInfoProvider>
       <View style={{ flex: 1 }}>
