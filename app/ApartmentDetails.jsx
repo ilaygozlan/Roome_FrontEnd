@@ -9,7 +9,7 @@ import {
   Dimensions,
   Animated,
 } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import Constants from "expo-constants";
 import ApartmentReview from "./components/apartmentReview";
 import { FontAwesome5, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -17,12 +17,9 @@ import API from "../config";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-
 const { width } = Dimensions.get("window");
 
-export default function ApartmentDetails() {
-  const { apartment } = useLocalSearchParams();
-  const apt = JSON.parse(apartment);
+export default function ApartmentDetails({ apt, onClose }) {
   const router = useRouter();
   const [activeSlide, setActiveSlide] = useState(0);
   const scrollX = useRef(new Animated.Value(0)).current;
@@ -245,117 +242,123 @@ export default function ApartmentDetails() {
   ];
 
   return (
-     <SafeAreaView style={{ flex: 1 }}>
-    <ScrollView>
-      <View style={styles.container}>
-        <Image
-          source={{ uri: apt.Images?.split(",")[0] }}
-          style={styles.image}
-        />
-
-        <Text style={styles.title}>{apt.Location}</Text>
-        <Text style={styles.price}>{apt.Price} ש"ח</Text>
-        <Text style={styles.description}>{apt.Description}</Text>
-
-        <Text style={styles.sectionTitle}>
-          סוג דירה: {getTypeName(apt.ApartmentType)}
-        </Text>
-
-        <View style={styles.detailRow}>
-          <MaterialIcons name="meeting-room" size={16} color="#E3965A" />
-          <Text style={styles.detail}>חדרים: {apt.AmountOfRooms}</Text>
-        </View>
-        <View style={styles.detailRow}>
-          <MaterialIcons
-            name="pets"
-            size={16}
-            color={apt.AllowPet ? "#E3965A" : "#ccc"}
+    <SafeAreaView style={{ flex: 1 }}>
+      <ScrollView>
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={onClose} style={styles.backButton}>
+              <Text style={styles.backText}>←</Text>
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}></Text>
+          </View>
+          <Image
+            source={{ uri: apt.Images?.split(",")[0] }}
+            style={styles.image}
           />
-          <Text style={styles.detail}>
-            חיות מחמד: {apt.AllowPet ? "מותר" : "אסור"}
+
+          <Text style={styles.title}>{apt.Location}</Text>
+          <Text style={styles.price}>{apt.Price} ש"ח</Text>
+          <Text style={styles.description}>{apt.Description}</Text>
+
+          <Text style={styles.sectionTitle}>
+            סוג דירה: {getTypeName(apt.ApartmentType)}
           </Text>
-        </View>
-        <View style={styles.detailRow}>
-          <MaterialIcons
-            name="smoking-rooms"
-            size={16}
-            color={apt.AllowSmoking ? "#E3965A" : "#ccc"}
-          />
-          <Text style={styles.detail}>
-            עישון: {apt.AllowSmoking ? "מותר" : "אסור"}
-          </Text>
-        </View>
-        <View style={styles.detailRow}>
-          <MaterialIcons
-            name="local-parking"
-            size={16}
-            color={apt.ParkingSpace > 0 ? "#E3965A" : "#ccc"}
-          />
-          <Text style={styles.detail}>חניה: {apt.ParkingSpace}</Text>
-        </View>
-        <View style={styles.detailRow}>
-          <MaterialIcons name="event-available" size={16} color="#E3965A" />
-          <Text style={styles.detail}>
-            תאריך כניסה: {apt.EntryDate?.split("T")[0]}
-          </Text>
-        </View>
-        {apt.ExitDate && (
+
           <View style={styles.detailRow}>
-            <MaterialIcons name="event-busy" size={16} color="#E3965A" />
+            <MaterialIcons name="meeting-room" size={16} color="#E3965A" />
+            <Text style={styles.detail}>חדרים: {apt.AmountOfRooms}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <MaterialIcons
+              name="pets"
+              size={16}
+              color={apt.AllowPet ? "#E3965A" : "#ccc"}
+            />
             <Text style={styles.detail}>
-              תאריך יציאה: {apt.ExitDate?.split("T")[0]}
+              חיות מחמד: {apt.AllowPet ? "מותר" : "אסור"}
             </Text>
           </View>
-        )}
-
-        {renderExtraDetails()}
-
-        <Text style={styles.sectionTitle}>🏡 סיורים בדירה:</Text>
-        {openHouses.length > 0 ? (
-          openHouses.map((item) => (
-            <View key={item.id.toString()} style={styles.openHouseItem}>
-              <Text style={styles.openHouseText}>
-                {item.date} - {item.time}
-              </Text>
-              <Text style={styles.openHouseLocation}>{item.location}</Text>
-              <TouchableOpacity
-                style={styles.registerButton}
-                onPress={() => alert(`נרשמת לסיור בתאריך ${item.date}`)}
-              >
-                <Text style={styles.registerText}>להרשמה</Text>
-              </TouchableOpacity>
-            </View>
-          ))
-        ) : (
-          <Text style={styles.noOpenHouses}>אין סיורים זמינים כרגע</Text>
-        )}
-
-        {userInfo && (
-          <TouchableOpacity
-            onPress={() =>
-              router.push({
-                pathname: "/UserProfile",
-                params: { userId: userInfo.id },
-              })
-            }
-            style={styles.uploaderContainer}
-          >
-            <Image
-              source={{
-                uri:
-                  userInfo.profilePicture ||
-                  "https://example.com/default-profile.png",
-              }}
-              style={styles.uploaderImage}
+          <View style={styles.detailRow}>
+            <MaterialIcons
+              name="smoking-rooms"
+              size={16}
+              color={apt.AllowSmoking ? "#E3965A" : "#ccc"}
             />
-            <Text style={styles.uploaderName}>
-              מפורסם ע״י: {userInfo.fullName}
+            <Text style={styles.detail}>
+              עישון: {apt.AllowSmoking ? "מותר" : "אסור"}
             </Text>
-          </TouchableOpacity>
-        )}
-        <ApartmentReview apartmentId={apt.ApartmentID} />
-      </View>
-    </ScrollView>
+          </View>
+          <View style={styles.detailRow}>
+            <MaterialIcons
+              name="local-parking"
+              size={16}
+              color={apt.ParkingSpace > 0 ? "#E3965A" : "#ccc"}
+            />
+            <Text style={styles.detail}>חניה: {apt.ParkingSpace}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <MaterialIcons name="event-available" size={16} color="#E3965A" />
+            <Text style={styles.detail}>
+              תאריך כניסה: {apt.EntryDate?.split("T")[0]}
+            </Text>
+          </View>
+          {apt.ExitDate && (
+            <View style={styles.detailRow}>
+              <MaterialIcons name="event-busy" size={16} color="#E3965A" />
+              <Text style={styles.detail}>
+                תאריך יציאה: {apt.ExitDate?.split("T")[0]}
+              </Text>
+            </View>
+          )}
+
+          {renderExtraDetails()}
+
+          <Text style={styles.sectionTitle}>🏡 סיורים בדירה:</Text>
+          {openHouses.length > 0 ? (
+            openHouses.map((item) => (
+              <View key={item.id.toString()} style={styles.openHouseItem}>
+                <Text style={styles.openHouseText}>
+                  {item.date} - {item.time}
+                </Text>
+                <Text style={styles.openHouseLocation}>{item.location}</Text>
+                <TouchableOpacity
+                  style={styles.registerButton}
+                  onPress={() => alert(`נרשמת לסיור בתאריך ${item.date}`)}
+                >
+                  <Text style={styles.registerText}>להרשמה</Text>
+                </TouchableOpacity>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.noOpenHouses}>אין סיורים זמינים כרגע</Text>
+          )}
+
+          {userInfo && (
+            <TouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: "/UserProfile",
+                  params: { userId: userInfo.id },
+                })
+              }
+              style={styles.uploaderContainer}
+            >
+              <Image
+                source={{
+                  uri:
+                    userInfo.profilePicture ||
+                    "https://example.com/default-profile.png",
+                }}
+                style={styles.uploaderImage}
+              />
+              <Text style={styles.uploaderName}>
+                מפורסם ע״י: {userInfo.fullName}
+              </Text>
+            </TouchableOpacity>
+          )}
+          <ApartmentReview apartmentId={apt.ApartmentID} />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -366,6 +369,17 @@ const styles = StyleSheet.create({
     padding: 15,
     backgroundColor: "#fff",
   },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    paddingTop: Constants.statusBarHeight + 15,
+    backgroundColor: "#fff",
+  },
+  backButton: { padding: 5, marginRight: 10 },
+  backText: { fontSize: 24, color: '#E3965A' , fontWeight: 'bold'},
+  headerTitle: { color: "white", fontSize: 18, fontWeight: "bold" },
   image: {
     width: "100%",
     height: 250,
