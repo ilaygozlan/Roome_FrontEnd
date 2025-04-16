@@ -67,7 +67,7 @@ export default function FavoriteApartmentsScreen({ onClose }) {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {favoriteApartments.map((apt) => (
           <View
-            key={apt.ApartmentID}
+            key={apt.ApartmentID +1}
             style={[
               styles.card,
               { borderColor: getBorderColor(apt.ApartmentType) },

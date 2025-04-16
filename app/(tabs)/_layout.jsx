@@ -5,6 +5,8 @@ import { auth } from "../firebase";
 import { ActivityIndicator, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+
 
 export default function Layout() {
   const [checking, setChecking] = useState(true);
@@ -50,7 +52,7 @@ export default function Layout() {
             title: "For You",
             unmountOnBlur: false,
             tabBarIcon: ({ color, size }) => (
-              <Ionicons name="fast-food-outline" size={size} color={color} />
+              <FontAwesome name="star-o" size={size} color={color} />
             ),
           }}
         />
