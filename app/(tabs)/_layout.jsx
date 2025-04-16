@@ -6,6 +6,7 @@ import { ActivityIndicator, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import Feather from '@expo/vector-icons/Feather';
 
 
 export default function Layout() {
@@ -62,6 +63,15 @@ export default function Layout() {
             title: "Profile",
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="person-outline" size={size} color={color} />
+            ),
+          }}
+        />
+           <Tabs.Screen
+          name="UploadNewApartment"
+          options={{
+            title: "Post",
+            tabBarIcon: ({ color, size }) => (
+              <Feather name="plus-circle" size={size} color={color}  />
             ),
           }}
         />
