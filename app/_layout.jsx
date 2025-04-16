@@ -6,7 +6,7 @@ import { ActivityIndicator, View } from "react-native";
 import { ActiveApartmentProvider } from "./contex/ActiveApartmentContext";
 import { UserInfoProvider } from "./contex/userInfoContext";
 import AuthStack from "./AuthStack";
-import API from "../config";
+
 
 export default function RootLayout() {
   const [user, setUser] = useState(null);
