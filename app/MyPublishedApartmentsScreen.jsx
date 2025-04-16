@@ -30,8 +30,8 @@ const MyPublishedApartmentsScreen = () => {
   const router = useRouter();
 
   useEffect(() => {
-    if (userId) {
-      fetch(API + "User/GetUserOwnedApartments/" + userId)
+    if (loginUserId) {
+      fetch(API + "User/GetUserOwnedApartments/" + loginUserId)
         .then((response) => {
           if (!response.ok) {
             return response.text().then((text) => {
@@ -50,7 +50,7 @@ const MyPublishedApartmentsScreen = () => {
           setLoading(false);
         });
     }
-  }, [userId]);
+  }, [loginUserId]);
 
   useEffect(() => {
     if (userId) {
@@ -117,7 +117,7 @@ const MyPublishedApartmentsScreen = () => {
           <Text style={styles.backText}>←</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>
-          {isMyProfile ? "דירות שפרסמתי" : `דירות ש${userFullName} פרסם/ה`}
+          {isMyProfile ? "דירות שפרסמתי" :` דירות ש${userFullName} פרסם/ה`}
         </Text>
       </View>
 

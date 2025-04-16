@@ -8,6 +8,7 @@ import {
   ScrollView,
   Dimensions,
   Animated,
+  Modal
 } from "react-native";
 import Constants from "expo-constants";
 import ApartmentReview from "./components/apartmentReview";
@@ -16,6 +17,7 @@ import { useNavigation } from "@react-navigation/native";
 import API from "../config";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import UserProfile from "./UserProfile"; 
 
 const { width } = Dimensions.get("window");
 
@@ -24,14 +26,14 @@ export default function ApartmentDetails({ apt, onClose }) {
   const [activeSlide, setActiveSlide] = useState(0);
   const scrollX = useRef(new Animated.Value(0)).current;
   const carouselRef = useRef(null);
-
+  const [showUserProfile, setShowUserProfile] = useState(false);
   const navigation = useNavigation();
   const [userInfo, setUserInfo] = useState(null);
 
   useEffect(() => {
     console.log("APT CHANGED:", apt.ApartmentID);
   }, [apt]);
-  
+
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
@@ -339,12 +341,7 @@ export default function ApartmentDetails({ apt, onClose }) {
 
           {userInfo && (
             <TouchableOpacity
-              onPress={() =>
-                router.push({
-                  pathname: "/UserProfile",
-                  params: { userId: userInfo.id },
-                })
-              }
+              onPress={() => setShowUserProfile(true)}
               style={styles.uploaderContainer}
             >
               <Image
@@ -363,6 +360,16 @@ export default function ApartmentDetails({ apt, onClose }) {
           <ApartmentReview apartmentId={apt.ApartmentID} />
         </View>
       </ScrollView>
+      <Modal
+        visible={showUserProfile}
+        animationType="slide"
+        onRequestClose={() => setShowUserProfile(false)}
+      >
+        <UserProfile
+          userId={apt.UserID}
+          onClose={() => setShowUserProfile(false)}
+        />
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -382,7 +389,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   backButton: { padding: 5, marginRight: 10 },
-  backText: { fontSize: 24, color: '#E3965A' , fontWeight: 'bold'},
+  backText: { fontSize: 24, color: "#E3965A", fontWeight: "bold" },
   headerTitle: { color: "white", fontSize: 18, fontWeight: "bold" },
   image: {
     width: "100%",
