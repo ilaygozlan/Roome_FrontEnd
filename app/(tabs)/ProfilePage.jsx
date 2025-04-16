@@ -1,20 +1,18 @@
 // app/tabs/ProfilePage.jsx
 import React, { useContext } from "react";
 import { View, ScrollView } from "react-native";
-import UserProfile from "../UserProfile";
+import MyProfile from "../MyProfile";
 import { userInfoContext } from "../contex/userInfoContext";
 import { UserInfoProvider } from "../contex/userInfoContext";
 
 const ProfilePage = () => {
-
   const { loginUserId } = useContext(userInfoContext);
 
-  console.log(loginUserId)
   return (
     <UserInfoProvider>
       <View style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-          <UserProfile userId={loginUserId} />
+          <MyProfile myId={loginUserId} />
         </ScrollView>
       </View>
     </UserInfoProvider>

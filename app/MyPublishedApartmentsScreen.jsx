@@ -111,7 +111,7 @@ const MyPublishedApartmentsScreen = () => {
     <SafeAreaView style={styles.safeContainer} edges={["top"]}>
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={() => router.push({ pathname: "/ProfilePage", params: { userId } })}
+          onPress={() => router.push({ pathname: "/ProfilePage", params: { userId: userId } })}
           style={styles.backButton}
         >
           <Text style={styles.backText}>←</Text>

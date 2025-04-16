@@ -78,9 +78,9 @@ export default function RootLayout() {
   const AppStack = ({ isNewUser, userId }) => (
     <Stack screenOptions={{ headerShown: false }}>
       {isNewUser ? (
-        <Stack.Screen name="ProfileInfo" initialParams={{ userId }} />
+        <Stack.Screen name="ProfileInfo" />
       ) : (
-        <Stack.Screen name="(tabs)" initialParams={{ userId }} />
+        <Stack.Screen name="(tabs)" />
       )}
       <Stack.Screen name="ApartmentDetails"/>
       <Stack.Screen name="UserProfile"/>

@@ -3,8 +3,8 @@ import { View, ScrollView, StyleSheet, TouchableOpacity, Text } from "react-nati
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Constants from "expo-constants";
-import ApartmentGallery from "./ApartmentGallery";
-import { ActiveApartmentContext } from "../contex/ActiveApartmentContext";
+import ApartmentGallery from "./components/ApartmentGallery";
+import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
 
 export default function FavoriteApartmentsScreen({ onClose }) {
   const { allApartments, setAllApartments } = useContext(ActiveApartmentContext);

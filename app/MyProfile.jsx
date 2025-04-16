@@ -20,16 +20,13 @@ import { userInfoContext } from "./contex/userInfoContext";
 import LogoutButton from "./components/LogoutButton";
 import { useLocalSearchParams } from "expo-router";
 
-const UserProfile = (props) => {
-  const { loginUserId } = useContext(userInfoContext);
-  const { userId } = useLocalSearchParams();
-  const finalUserId = userId ?? props.userId;
-  const isMyProfile = finalUserId == loginUserId;
+const MyProfile = (props) => {
+  const loginUserId  = props.myId;
   const router = useRouter();
 
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [updatedProfile, setUpdatedProfile] = useState({});
   const [showFavorites, setShowFavorites] = useState(false);
@@ -38,8 +35,8 @@ const UserProfile = (props) => {
   const [isFriend, setIsFriend] = useState(false);
 
   useEffect(() => {
-    console.log(finalUserId)
-    fetch(API + "User/GetUserById/" + finalUserId)
+    console.log("useinp  ", loginUserId)
+    fetch(API + "User/GetUserById/" + loginUserId)
       .then((res) => {
         if (!res.ok) throw new Error("שגיאה בטעינת פרופיל");
         return res.json();
@@ -52,13 +49,13 @@ const UserProfile = (props) => {
       .catch((err) => {
         setError(err);
         setLoading(false);
+        console.log("ss",err)
       });
-  }, [finalUserId
-  ]);
+  }, [loginUserId]);
 
   useEffect(() => {
-    if (finalUserId) {
-      fetch(API + "User/GetUserFriends/" + finalUserId)
+    if (loginUserId) {
+      fetch(API + "User/GetUserFriends/" + loginUserId)
         .then((res) => res.json())
         .then((data) => {
           setFriends(data);
@@ -66,32 +63,7 @@ const UserProfile = (props) => {
         })
         .catch((err) => console.error("שגיאה בטעינת חברים", err));
     }
-  }, [finalUserId]);
-
-  const handleFriendToggle = () => {
-    if (isFriend) {
-      fetch(`${API}User/RemoveFriend/${loginUserId}/${finalUserId}`, {
-        method: "DELETE",
-      })
-        .then(() => setIsFriend(false))
-        .catch((err) => console.error("שגיאה בהסרת חבר", err));
-    } else {
-      fetch(`${API}User/AddFriend`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userID1: loginUserId,
-          userID2: finalUserId,
-        }),
-      })
-        .then((res) => {
-          if (!res.ok) throw new Error("שגיאה בהוספת חבר");
-          return res.text();
-        })
-        .then(() => setIsFriend(true))
-        .catch((err) => console.error(err));
-    }
-  };
+  }, [loginUserId]);
 
   const handleSave = async () => {
     const updatedUser = { ...updatedProfile, id: loginUserId };
@@ -115,10 +87,10 @@ const UserProfile = (props) => {
     return (
       <ActivityIndicator size="large" color="#2661A1" style={{ flex: 1 }} />
     );
-  if (error || !userProfile)
+  if (error)
     return (
       <Text style={{ color: "red", textAlign: "center", marginTop: 40 }}>
-        שגיאה: {error?.message}
+        שגיאה
       </Text>
     );
 
@@ -152,35 +124,12 @@ const UserProfile = (props) => {
             }
             style={styles.profileImage}
           />
-          {isMyProfile ? (
-            <TouchableOpacity
-              style={styles.editIcon}
-              onPress={() => setModalVisible(true)}
-            >
-              <Feather name="edit" size={20} color="white" />
-            </TouchableOpacity>
-          ) : (
-            <>
-              <TouchableOpacity
-                style={styles.editIcon}
-                onPress={handleFriendToggle}
-              >
-                <FontAwesome5
-                  name={isFriend ? "user-minus" : "user-plus"}
-                  size={18}
-                  color="#fff"
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.backButton}
-                onPress={() =>
-                  router.back()
-                }
-              >
-                <Feather name="arrow-left" size={24} color="#fff" />
-              </TouchableOpacity>
-            </>
-          )}
+          <TouchableOpacity
+            style={styles.editIcon}
+            onPress={() => setModalVisible(true)}
+          >
+            <Feather name="edit" size={20} color="white" />
+          </TouchableOpacity>
 
           <Text style={styles.profileName}>{userProfile.fullName}</Text>
 
@@ -228,28 +177,22 @@ const UserProfile = (props) => {
             onPress={() => setShowFavorites(true)}
           >
             <MaterialIcons name="favorite" size={20} color="white" />
-            <Text style={styles.buttonText}>
-              {isMyProfile
-                ? "דירות שאהבתי"
-                : `דירות ש${userProfile.fullName} אהב/ה`}
-            </Text>
+            <Text style={styles.buttonText}>"דירות שאהבתי"</Text>
           </TouchableOpacity>
+
           <TouchableOpacity
             style={styles.smallButton}
             onPress={() => setShowMyPublished(true)}
           >
             <MaterialIcons name="apartment" size={20} color="white" />
-            <Text style={styles.buttonText}>
-              {isMyProfile
-                ? "דירות שפרסמתי"
-                : `דירות ש${userProfile.fullName} פרסם/ה`}
-            </Text>
+            <Text style={styles.buttonText}>"דירות שפרסמתי"</Text>
           </TouchableOpacity>
+
         </View>
 
         <View style={styles.friendsSection}>
           <Text style={styles.sectionTitle}>
-            {isMyProfile ? "החברים שלי" : `החברים של ${userProfile.fullName}`}
+            "החברים שלי" 
           </Text>
 
           {friends.length === 0 ? (
@@ -274,7 +217,7 @@ const UserProfile = (props) => {
                     style={styles.friendCard}
                     onPress={() =>
                       router.push({
-                        pathname: "/ProfilePage",
+                        pathname: "/UserProfile",
                         params: { userId: friend.id },
                       })
                     }
@@ -295,7 +238,6 @@ const UserProfile = (props) => {
           )}
         </View>
 
-        {isMyProfile && (
           <Modal
             visible={modalVisible}
             transparent
@@ -401,17 +343,17 @@ const UserProfile = (props) => {
               </View>
             </View>
           </Modal>
-        )}
-        {isMyProfile && (<View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            paddingTop: 150,
-          }}
-        >
-          <LogoutButton />
-        </View>)}
+
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              paddingTop: 150,
+            }}
+          >
+            <LogoutButton />
+          </View>
       </ScrollView>
     </View>
   );
@@ -549,4 +491,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default UserProfile;
+export default MyProfile;
