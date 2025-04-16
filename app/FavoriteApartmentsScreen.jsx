@@ -1,23 +1,34 @@
-import React, { useContext,useEffect, useState } from "react";
-import { View, ScrollView, StyleSheet, TouchableOpacity, Text } from "react-native";
+import React, { useContext, useEffect, useState } from "react";
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  Text,
+  Modal
+} from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Constants from "expo-constants";
 import ApartmentGallery from "./components/ApartmentGallery";
 import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
+import ApartmentDetails from "./ApartmentDetails";
 
 export default function FavoriteApartmentsScreen({ onClose }) {
-  const { allApartments, setAllApartments } = useContext(ActiveApartmentContext);
+  const { allApartments, setAllApartments } = useContext(
+    ActiveApartmentContext
+  );
   const [favoriteApartments, setFavoriteApartments] = useState([{}]);
+  const [showApartmentDetails, setShowApartmentDetails] = useState(false);
+  const [selectedApartment, setSelectedApartment] = useState(null);
   const router = useRouter();
 
-  useEffect(()=>{
+  useEffect(() => {
     const newfavoriteApartments = allApartments.filter(
       (apt) => apt.IsLikedByUser === 1 || apt.IsLikedByUser === true
     );
     setFavoriteApartments(newfavoriteApartments);
-  },[allApartments])
- 
+  }, [allApartments]);
 
   const getBorderColor = (type) => {
     switch (type) {
@@ -57,35 +68,63 @@ export default function FavoriteApartmentsScreen({ onClose }) {
         {favoriteApartments.map((apt) => (
           <View
             key={apt.ApartmentID}
-            style={[styles.card, { borderColor: getBorderColor(apt.ApartmentType) }]}
+            style={[
+              styles.card,
+              { borderColor: getBorderColor(apt.ApartmentType) },
+            ]}
           >
-            <View style={[styles.typeLabel, { backgroundColor: getBorderColor(apt.ApartmentType) }]}>
-              <Text style={styles.typeText}>{getTypeName(apt.ApartmentType)}</Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => {
-                onClose();
-                setTimeout(() => {
-                  router.push({
-                    pathname: "/ApartmentDetails",
-                    params: { apartment: JSON.stringify(apt) },
-                  });
-                }, 300);
-              }}
+            <View
+              style={[
+                styles.typeLabel,
+                { backgroundColor: getBorderColor(apt.ApartmentType) },
+              ]}
             >
+              <Text style={styles.typeText}>
+                {getTypeName(apt.ApartmentType)}
+              </Text>
+            </View>
+            <View style={styles.cardContent}>
               <ApartmentGallery images={apt.Images} />
-              <View style={styles.details}>
-                <Text style={styles.title}>דירה ברחוב {apt.Location}</Text>
-                <Text style={styles.description}>{apt.Description}</Text>
-                <Text style={styles.price}>{apt.Price} ש"ח</Text>
-              </View>
-            </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setSelectedApartment(apt);
+                  setShowApartmentDetails(true);
+                }}
+              >
+                <View style={styles.details}>
+                  <Text style={styles.title}>דירה ברחוב {apt.Location}</Text>
+                  <Text style={styles.description}>{apt.Description}</Text>
+                  <Text style={styles.price}>{apt.Price} ש"ח</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
           </View>
         ))}
         {favoriteApartments.length === 0 && (
           <Text style={styles.emptyText}>אין דירות שמורות כרגע 💔</Text>
         )}
       </ScrollView>
+      {/* Modal for selected apartment */}
+      <Modal
+        visible={showApartmentDetails}
+        animationType="slide"
+        onRequestClose={() => {
+          setShowApartmentDetails(false);
+          setSelectedApartment(null);
+        }}
+      >
+        {selectedApartment && (
+          <ApartmentDetails
+            key={selectedApartment.ApartmentID}
+            apt={selectedApartment}
+            onClose={() => {
+              setShowApartmentDetails(false);
+              setSelectedApartment(null);
+            }}
+          />
+        )}
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -121,7 +160,25 @@ const styles = StyleSheet.create({
   title: { fontSize: 16, fontWeight: "bold", textAlign: "right" },
   description: { fontSize: 14, color: "gray", textAlign: "right" },
   price: { fontSize: 16, fontWeight: "bold", marginTop: 5, textAlign: "right" },
-  typeText: { fontSize: 14, fontWeight: "bold", color: "black", textTransform: "uppercase" },
-  typeLabel: { position: "absolute", zIndex: 2, top: 5, left: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 5 },
-  emptyText: { textAlign: "center", marginTop: 40, fontSize: 16, color: "#777" },
+  typeText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "black",
+    textTransform: "uppercase",
+  },
+  typeLabel: {
+    position: "absolute",
+    zIndex: 2,
+    top: 5,
+    left: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 5,
+  },
+  emptyText: {
+    textAlign: "center",
+    marginTop: 40,
+    fontSize: 16,
+    color: "#777",
+  },
 });
