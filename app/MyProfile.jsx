@@ -17,10 +17,10 @@ import API from "../config";
 import { useRouter } from "expo-router";
 import LogoutButton from "./components/LogoutButton";
 import UserOwnedApartmentsGrid from "./UserOwnedApartmentsGrid";
-
+import UserProfile from "./UserProfile"
 
 const MyProfile = (props) => {
-  const loginUserId  = props.myId;
+  const loginUserId = props.myId;
   const router = useRouter();
 
   const [userProfile, setUserProfile] = useState(null);
@@ -31,9 +31,11 @@ const MyProfile = (props) => {
   const [showFavorites, setShowFavorites] = useState(false);
   const [friends, setFriends] = useState([]);
   const [isFriend, setIsFriend] = useState(false);
+  const [showFriendProfile, setFriendProfile] = useState(false);
+  const [selectedFriendId, setFriendId] = useState(null);
 
   useEffect(() => {
-    console.log("useinp  ", loginUserId)
+    console.log("useinp  ", loginUserId);
     fetch(API + "User/GetUserById/" + loginUserId)
       .then((res) => {
         if (!res.ok) throw new Error("שגיאה בטעינת פרופיל");
@@ -47,7 +49,7 @@ const MyProfile = (props) => {
       .catch((err) => {
         setError(err);
         setLoading(false);
-        console.log("ss",err)
+        console.log("ss", err);
       });
   }, [loginUserId]);
 
@@ -63,6 +65,9 @@ const MyProfile = (props) => {
     }
   }, [loginUserId]);
 
+  const removeFriend = (friendId) => {
+    setFriends((prev) => prev.filter((f) => f.id !== friendId));
+  };
   const handleSave = async () => {
     const updatedUser = { ...updatedProfile, id: loginUserId };
     try {
@@ -101,7 +106,6 @@ const MyProfile = (props) => {
       >
         <FavoriteApartmentsScreen onClose={() => setShowFavorites(false)} />
       </Modal>
-    
 
       <ScrollView style={styles.container}>
         <View style={styles.headerBackground} />
@@ -159,24 +163,20 @@ const MyProfile = (props) => {
               value={userProfile.jobStatus}
             />
           </View>
-        </View>
-
-        <View style={styles.buttonsContainer}>
-          <TouchableOpacity
-            style={styles.smallButton}
-            onPress={() => setShowFavorites(true)}
-          >
-            <MaterialIcons name="favorite" size={20} color="white" />
-            <Text style={styles.buttonText}>"דירות שאהבתי"</Text>
-          </TouchableOpacity>
-
-
+          <View style={styles.buttonsContainer}>
+            <TouchableOpacity
+              style={styles.smallButton}
+              onPress={() => setShowFavorites(true)}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Text style={styles.buttonText}>דירות שאהבתי</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.friendsSection}>
-          <Text style={styles.sectionTitle}>
-            "החברים שלי" 
-          </Text>
+          <Text style={styles.sectionTitle}>החברים שלי</Text>
 
           {friends.length === 0 ? (
             <Text
@@ -198,12 +198,10 @@ const MyProfile = (props) => {
                   <TouchableOpacity
                     key={friend.id}
                     style={styles.friendCard}
-                    onPress={() =>
-                      router.push({
-                        pathname: "/UserProfile",
-                        params: { userId: friend.id },
-                      })
-                    }
+                    onPress={() => {
+                      setFriendProfile(true);
+                      setFriendId(friend.id);
+                    }}
                   >
                     <Image
                       source={{
@@ -221,123 +219,134 @@ const MyProfile = (props) => {
           )}
         </View>
 
+        {showFriendProfile && (
           <Modal
-            visible={modalVisible}
-            transparent
+            visible={true}
             animationType="slide"
-            onRequestClose={() => setModalVisible(false)}
+            onRequestClose={() => setFriendProfile(false)}
           >
-            <View style={styles.modalContainer}>
-              <View style={styles.modalContent}>
-                <TouchableOpacity
-                  onPress={() => setModalVisible(false)}
-                  style={styles.closeButton}
-                >
-                  <Feather name="x" size={24} color="#333" />
-                </TouchableOpacity>
-                <Text style={styles.modalTitle}>ערוך פרופיל</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="שם מלא"
-                  value={updatedProfile.fullName}
-                  onChangeText={(text) =>
-                    setUpdatedProfile({ ...updatedProfile, fullName: text })
-                  }
-                />
-                <TextInput
-                  style={[
-                    styles.input,
-                    { backgroundColor: "#f2f2f2", color: "#888" },
-                  ]}
-                  value={updatedProfile.email}
-                  editable={false}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="מספר טלפון"
-                  value={updatedProfile.phoneNumber}
-                  onChangeText={(text) =>
-                    setUpdatedProfile({ ...updatedProfile, phoneNumber: text })
-                  }
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="מגדר (M / F)"
-                  value={updatedProfile.gender}
-                  onChangeText={(text) =>
-                    setUpdatedProfile({ ...updatedProfile, gender: text })
-                  }
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="תאריך לידה (YYYY-MM-DD)"
-                  value={updatedProfile.birthDate?.toString()?.substring(0, 10)}
-                  onChangeText={(text) =>
-                    setUpdatedProfile({ ...updatedProfile, birthDate: text })
-                  }
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="קישור לתמונת פרופיל"
-                  value={updatedProfile.profilePicture}
-                  onChangeText={(text) =>
-                    setUpdatedProfile({
-                      ...updatedProfile,
-                      profilePicture: text,
-                    })
-                  }
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="יש לי חיית מחמד? (true / false)"
-                  value={updatedProfile.ownPet?.toString()}
-                  onChangeText={(text) =>
-                    setUpdatedProfile({
-                      ...updatedProfile,
-                      ownPet: text === "true",
-                    })
-                  }
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="מעשן? (true / false)"
-                  value={updatedProfile.smoke?.toString()}
-                  onChangeText={(text) =>
-                    setUpdatedProfile({
-                      ...updatedProfile,
-                      smoke: text === "true",
-                    })
-                  }
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="סטטוס תעסוקה"
-                  value={updatedProfile.jobStatus}
-                  onChangeText={(text) =>
-                    setUpdatedProfile({ ...updatedProfile, jobStatus: text })
-                  }
-                />
-                <TouchableOpacity
-                  style={styles.saveButton}
-                  onPress={handleSave}
-                >
-                  <Text style={styles.buttonText}>שמור</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+            <UserProfile
+              userId={selectedFriendId}
+              onClose={() => setFriendProfile(false)}
+              onRemoveFriend={removeFriend}
+            />
+              
           </Modal>
-
-          <View
-            style={{
-              flex: 1,
-              justifyContent: "center",
-              alignItems: "center",
-              paddingTop: 150,
-            }}
-          >
-      <UserOwnedApartmentsGrid userId={loginUserId} isMyProfile={true} />
-            <LogoutButton />
+        )}
+        <Modal
+          visible={modalVisible}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <TouchableOpacity
+                onPress={() => setModalVisible(false)}
+                style={styles.closeButton}
+              >
+                <Feather name="x" size={24} color="#333" />
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>ערוך פרופיל</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="שם מלא"
+                value={updatedProfile.fullName}
+                onChangeText={(text) =>
+                  setUpdatedProfile({ ...updatedProfile, fullName: text })
+                }
+              />
+              <TextInput
+                style={[
+                  styles.input,
+                  { backgroundColor: "#f2f2f2", color: "#888" },
+                ]}
+                value={updatedProfile.email}
+                editable={false}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="מספר טלפון"
+                value={updatedProfile.phoneNumber}
+                onChangeText={(text) =>
+                  setUpdatedProfile({ ...updatedProfile, phoneNumber: text })
+                }
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="מגדר (M / F)"
+                value={updatedProfile.gender}
+                onChangeText={(text) =>
+                  setUpdatedProfile({ ...updatedProfile, gender: text })
+                }
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="תאריך לידה (YYYY-MM-DD)"
+                value={updatedProfile.birthDate?.toString()?.substring(0, 10)}
+                onChangeText={(text) =>
+                  setUpdatedProfile({ ...updatedProfile, birthDate: text })
+                }
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="קישור לתמונת פרופיל"
+                value={updatedProfile.profilePicture}
+                onChangeText={(text) =>
+                  setUpdatedProfile({
+                    ...updatedProfile,
+                    profilePicture: text,
+                  })
+                }
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="יש לי חיית מחמד? (true / false)"
+                value={updatedProfile.ownPet?.toString()}
+                onChangeText={(text) =>
+                  setUpdatedProfile({
+                    ...updatedProfile,
+                    ownPet: text === "true",
+                  })
+                }
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="מעשן? (true / false)"
+                value={updatedProfile.smoke?.toString()}
+                onChangeText={(text) =>
+                  setUpdatedProfile({
+                    ...updatedProfile,
+                    smoke: text === "true",
+                  })
+                }
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="סטטוס תעסוקה"
+                value={updatedProfile.jobStatus}
+                onChangeText={(text) =>
+                  setUpdatedProfile({ ...updatedProfile, jobStatus: text })
+                }
+              />
+              <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+                <Text style={styles.buttonText}>שמור</Text>
+              </TouchableOpacity>
+            </View>
           </View>
+        </Modal>
+
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            paddingTop: 150,
+          }}
+        >
+          <UserOwnedApartmentsGrid userId={loginUserId} isMyProfile={true} />
+          <LogoutButton />
+        </View>
       </ScrollView>
     </View>
   );
@@ -406,18 +415,25 @@ const styles = StyleSheet.create({
   },
   infoGrid: { marginTop: 20 },
   buttonsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginVertical: 20,
+    flexDirection: "row-reverse",
+    justifyContent: "flex-start",
+    alignItems: "center",
+    marginTop: 20,
   },
+
   smallButton: {
     alignItems: "center",
     backgroundColor: "#2661A1",
-    padding: 10,
-    borderRadius: 10,
-    width: 140,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    borderRadius: 5,
   },
-  buttonText: { color: "#fff", textAlign: "center", marginTop: 5 },
+  buttonText: {
+    color: "#fff",
+    textAlign: "center",
+    marginTop: 5,
+    justifyContent: "center",
+  },
   friendsSection: { marginHorizontal: 20 },
   sectionTitle: {
     fontSize: 18,

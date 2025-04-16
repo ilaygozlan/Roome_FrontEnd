@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 15,
     paddingVertical: 15,
-    paddingTop: Constants.statusBarHeight + 15,
+    paddingTop: Constants.statusBarHeight,
     backgroundColor: "#2661A1",
   },
   backButton: { padding: 5, marginRight: 10 },

@@ -29,10 +29,6 @@ export default function ApartmentDetails({ apt, onClose }) {
   const [userInfo, setUserInfo] = useState(null);
 
   useEffect(() => {
-    console.log("APT CHANGED:", apt.ApartmentID);
-  }, [apt]);
-  
-  useEffect(() => {
     const fetchUserInfo = async () => {
       try {
         const res = await fetch(`${API}User/GetUserById/${apt.UserID}`);

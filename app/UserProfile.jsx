@@ -72,7 +72,9 @@ const UserProfile = (props) => {
       fetch(`${API}User/RemoveFriend/${loginUserId}/${finalUserId}`, {
         method: "DELETE",
       })
-        .then(() => setIsFriend(false))
+        .then(() => {setIsFriend(false);
+          props.onRemoveFriend(finalUserId);
+        })
         .catch((err) => console.error("שגיאה בהסרת חבר", err));
     } else {
       fetch(`${API}User/AddFriend`, {
@@ -165,7 +167,7 @@ const UserProfile = (props) => {
               <TouchableOpacity
                 style={styles.backButton}
                 onPress={() =>
-                  router.back()
+                  props.onClose()
                 }
               >
                 <Feather name="arrow-left" size={24} color="#fff" />
