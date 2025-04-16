@@ -18,7 +18,8 @@
           "NSAppTransportSecurity": {
             "NSAllowsArbitraryLoads": true
           }
-        }
+        },
+        "ITSAppUsesNonExemptEncryption": false
       },
       "android": {
         "adaptiveIcon": {
@@ -53,6 +54,26 @@
               "useFrameworks": "static"
             }
           }
+        ],
+        "expo-router",
+        "@react-native-firebase/app",
+        "@react-native-firebase/auth",
+        [
+          "expo-splash-screen",
+          {
+            "image": "./assets/images/splash-icon.png",
+            "imageWidth": 200,
+            "resizeMode": "contain",
+            "backgroundColor": "#ffffff"
+          }
+        ],
+        [
+          "expo-build-properties",
+          {
+            "ios": {
+              "useFrameworks": "static"
+            }
+          }
         ]
       ],
       "experiments": {
@@ -68,8 +89,10 @@
       },
       "owner": "ilay123"
     },
-    "plugins": [
-      "expo-router"
-    ]
+    "extra": {
+      "eas": {
+        "projectId": "607a69c3-a4f8-45d8-a2bf-ba06588120b1"
+      }
+    }
   }
 }

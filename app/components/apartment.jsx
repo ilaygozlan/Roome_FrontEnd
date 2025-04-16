@@ -4,6 +4,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Modal,
 } from "react-native";
 import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useState, useEffect, useContext } from "react";
@@ -13,6 +14,7 @@ import OpenHouseButton from "./OpenHouseButton";
 import SearchBar from "./SearchBar";
 import ApartmentGallery from "./ApartmentGallery";
 import { ActiveApartmentContext } from "../contex/ActiveApartmentContext";
+import  ApartmentDetails  from "../ApartmentDetails";
 import { userInfoContext } from "../contex/userInfoContext";
 
 export default function Apartment(props) {
@@ -21,6 +23,7 @@ export default function Apartment(props) {
   );
   const [previewSearchApt, setPreviewSearchApt] = useState(allApartments);
   const { loginUserId } = useContext(userInfoContext);
+  const [showApartmentDetails, setShowApartmentDetails] = useState(false);
   const router = useRouter();
 
   // search bar filters
@@ -60,7 +63,10 @@ export default function Apartment(props) {
     return previewSearchApt.map((apt) => (
       <View
         key={apt.ApartmentID}
-        style={[styles.card, { borderColor: getBorderColor(apt.ApartmentType) }]}
+        style={[
+          styles.card,
+          { borderColor: getBorderColor(apt.ApartmentType) },
+        ]}
       >
         <View
           style={[
@@ -70,15 +76,8 @@ export default function Apartment(props) {
         >
           <Text style={styles.typeText}>{getTypeName(apt.ApartmentType)}</Text>
         </View>
-  
-        <TouchableOpacity
-          onPress={() =>
-            router.push({
-              pathname: "/ApartmentDetails",
-              params: { apartment: JSON.stringify(apt) },
-            })
-          }
-        >
+
+        <TouchableOpacity onPress={() => setShowApartmentDetails(true)}>
           <ApartmentGallery images={apt.Images} />
           <View style={styles.details}>
             <Text style={styles.title}>דירה ברחוב {apt.Location}</Text>
@@ -86,7 +85,18 @@ export default function Apartment(props) {
             <Text style={styles.price}>{apt.Price} ש"ח</Text>
           </View>
         </TouchableOpacity>
-  
+
+        <Modal
+          visible={showApartmentDetails}
+          animationType="slide"
+          onRequestClose={() => setShowApartmentDetails(false)}
+        >
+          <ApartmentDetails
+            apt={apt}
+            onClose={() => setShowApartmentDetails(false)}
+          />
+        </Modal>
+
         {!props.hideIcons && (
           <View style={styles.iconRow}>
             <TouchableOpacity>
@@ -118,7 +128,7 @@ export default function Apartment(props) {
   useEffect(() => {
     setPreviewSearchApt(allApartments);
   }, [allApartments]);
-  
+
   const SearchApartments = () => {
     console.log("Searching with type:", selectedType);
 
@@ -145,7 +155,6 @@ export default function Apartment(props) {
     setPreviewSearchApt(newAptArr);
   };
 
-
   return (
     <>
       <SearchBar
@@ -159,7 +168,7 @@ export default function Apartment(props) {
           SearchApartments();
         }}
       />
-      <ScrollView >
+      <ScrollView>
         <View style={styles.container}>{renderApartments()}</View>
       </ScrollView>
     </>
