@@ -16,7 +16,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
-      console.log("Auth state changed:", u);
+      console.log("Auth state changed:", u.email);
       console.log("checking changed:", checking);
       if (u) {
         const result = await checkIfUserExists(u.email);
@@ -76,22 +76,27 @@ export default function RootLayout() {
   );
 
   const AppStack = ({ isNewUser, userId }) => (
-    <UserInfoProvider>
-      <ActiveApartmentProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          {isNewUser ? (
-            <Stack.Screen name="ProfileInfo" initialParams={{ userId }} />
-          ) : (
-            <Stack.Screen name="(tabs)" initialParams={{ userId }} />
-          )}
-        </Stack>
-      </ActiveApartmentProvider>
-    </UserInfoProvider>
+    <Stack screenOptions={{ headerShown: false }}>
+      {isNewUser ? (
+        <Stack.Screen name="ProfileInfo" initialParams={{ userId }} />
+      ) : (
+        <Stack.Screen name="(tabs)" initialParams={{ userId }} />
+      )}
+      <Stack.Screen name="ApartmentDetails"/>
+      <Stack.Screen name="UserProfile"/>
+    </Stack>
   );
 
-  return user ? (
-    <AppStack isNewUser={isNewUser} userId={userId} />
-  ) : (
-    <AuthStack />
+
+  return (
+    <UserInfoProvider>
+      <ActiveApartmentProvider>
+        {user ? (
+          <AppStack isNewUser={isNewUser} userId={userId} />
+        ) : (
+          <AuthStack />
+        )}
+      </ActiveApartmentProvider>
+    </UserInfoProvider>
   );
 }

@@ -22,8 +22,15 @@ export default function Apartment(props) {
   const { allApartments, setAllApartments } = useContext(
     ActiveApartmentContext
   );
+  const [previewSearchApt, setPreviewSearchApt] = useState(allApartments);
   const { loginUserId } = useContext(userInfoContext);
   const router = useRouter();
+
+  // search bar filters
+  const [selectedType, setSelectedType] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState("");
+  const [priceRange, setPriceRange] = useState([100, 10000]);
+  //-------------------
 
   // Define colors for each apartment type
   const getBorderColor = (type) => {
@@ -52,61 +59,111 @@ export default function Apartment(props) {
     }
   };
 
-  let apartmentsList = allApartments.map((apt) => (
-    <View
-      key={apt.ApartmentID}
-      style={[styles.card, { borderColor: getBorderColor(apt.ApartmentType) }]}
-    >
-      {/* Label for Apartment Type */}
+  const renderApartments = () => {
+    return previewSearchApt.map((apt) => (
       <View
-        style={[
-          styles.typeLabel,
-          { backgroundColor: getBorderColor(apt.ApartmentType) },
-        ]}
+        key={apt.ApartmentID}
+        style={[styles.card, { borderColor: getBorderColor(apt.ApartmentType) }]}
       >
-        <Text style={styles.typeText}>{getTypeName(apt.ApartmentType)}</Text>
-      </View>
-      <TouchableOpacity
-        onPress={() =>
-          router.push({
-            pathname: "/ApartmentDetails",
-            params: { apartment: JSON.stringify(apt) },
-          })
-        }
-      >
-        {/* Apartment Image */}
-        <ApartmentGallery images={apt.Images} />
-
-        {/* Apartment Details */}
-        <View style={styles.details}>
-          <Text style={styles.title}>דירה ברחוב {apt.Location}</Text>
-          <Text style={styles.description}>{apt.Description}</Text>
-          <Text style={styles.price}>{apt.Price} ש"ח</Text>
+        <View
+          style={[
+            styles.typeLabel,
+            { backgroundColor: getBorderColor(apt.ApartmentType) },
+          ]}
+        >
+          <Text style={styles.typeText}>{getTypeName(apt.ApartmentType)}</Text>
         </View>
-      </TouchableOpacity>
-      {/* Icons Row */}
-      {!props.hideIcons && (
-        <View style={styles.iconRow}>
-          <TouchableOpacity>
-            <LikeButton apartmentId={apt.ApartmentID} numOfLikes={apt.LikeCount} isLikedByUser={apt.IsLikedByUser == 1}/>
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <MaterialCommunityIcons
-              name="share-outline"
-              size={24}
-              color="gray"
+  
+        <TouchableOpacity
+          onPress={() =>
+            router.push({
+              pathname: "/ApartmentDetails",
+              params: { apartment: JSON.stringify(apt) },
+            })
+          }
+        >
+          <ApartmentGallery images={apt.Images} />
+          <View style={styles.details}>
+            <Text style={styles.title}>דירה ברחוב {apt.Location}</Text>
+            <Text style={styles.description}>{apt.Description}</Text>
+            <Text style={styles.price}>{apt.Price} ש"ח</Text>
+          </View>
+        </TouchableOpacity>
+  
+        {!props.hideIcons && (
+          <View style={styles.iconRow}>
+            <TouchableOpacity>
+              <LikeButton
+                apartmentId={apt.ApartmentID}
+                numOfLikes={apt.LikeCount}
+                isLikedByUser={apt.IsLikedByUser == 1}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity>
+              <MaterialCommunityIcons
+                name="share-outline"
+                size={24}
+                color="gray"
+              />
+            </TouchableOpacity>
+            <OpenHouseButton
+              apartmentId={apt.ApartmentID}
+              userId={loginUserId}
+              location={apt.Location}
+              userOwnerId={apt.userID}
             />
-          </TouchableOpacity>
-          <OpenHouseButton apartmentId={apt.ApartmentID} userId={loginUserId} location={apt.Location} userOwnerId={apt.userID} />
-        </View>
-      )}
-    </View>
-  ));
+          </View>
+        )}
+      </View>
+    ));
+  };
+
+  useEffect(() => {
+    setPreviewSearchApt(allApartments);
+  }, [allApartments]);
+  
+  const SearchApartments = () => {
+    console.log("Searching with type:", selectedType);
+
+    const newAptArr = allApartments.filter((apt) => {
+      // Type matching - strict equality check
+      const matchesType =
+        selectedType === null || apt.ApartmentType === selectedType;
+
+      // Price range matching
+      const matchesPrice =
+        apt.Price >= priceRange[0] && apt.Price <= priceRange[1];
+
+      // Location matching (commented out for now)
+      // const matchesLocation = !selectedLocation ||
+      //   apt.Location.toLowerCase().includes(selectedLocation.toLowerCase());
+
+      const shouldInclude = matchesType && matchesPrice;
+      console.log(
+        `Apartment ${apt.ApartmentID}: Type=${apt.ApartmentType}, Selected=${selectedType}, Matches=${shouldInclude}`
+      );
+
+      return shouldInclude;
+    });
+    setPreviewSearchApt(newAptArr);
+  };
+
+
   return (
     <>
-      <ScrollView>
-        <SearchBar />
-        <View style={styles.container}>{apartmentsList}</View>
+      <SearchBar
+        selectedType={selectedType}
+        setSelectedType={setSelectedType}
+        selectedLocation={selectedLocation}
+        setSelectedLocation={setSelectedLocation}
+        priceRange={priceRange}
+        setPriceRange={setPriceRange}
+        SearchApartments={() => {
+          SearchApartments();
+        }}
+      />
+      <ScrollView >
+        <View style={styles.container}>{renderApartments()}</View>
       </ScrollView>
     </>
   );

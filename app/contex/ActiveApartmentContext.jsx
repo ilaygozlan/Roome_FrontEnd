@@ -26,6 +26,7 @@ export const ActiveApartmentProvider = ({ children }) => {
     if (user?.email) {
       getUserId(user.email);
     }
+
   }, [user]);
 
 
@@ -36,6 +37,7 @@ export const ActiveApartmentProvider = ({ children }) => {
         .then((data) => setAllApartments(data))
         .catch((error) => console.error("Error fetching apartments:", error));
     }
+    console.log(loginUserId)
   }, [loginUserId]);
 
   return (
