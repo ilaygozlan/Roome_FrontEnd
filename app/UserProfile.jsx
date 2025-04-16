@@ -146,12 +146,12 @@ const UserProfile = (props) => {
             style={styles.profileImage}
           />
           {isMyProfile ? (
-            <TouchableOpacity
-              style={styles.editIcon}
-              onPress={() => setModalVisible(true)}
-            >
-              <Feather name="edit" size={20} color="white" />
-            </TouchableOpacity>
+           <TouchableOpacity
+           style={styles.backButton}
+           onPress={() => {props.onClose()}}
+         >
+           <Feather name="arrow-left" size={24} color="#fff" />
+         </TouchableOpacity>         
           ) : (
             <>
               <TouchableOpacity
