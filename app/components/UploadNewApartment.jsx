@@ -38,14 +38,20 @@ export default function UploadApartmentForm() {
       setImages([...images, ...result.assets.map((a) => a.uri)]);
     }
   };
-
   const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert("שגיאה", "לא התקבלו הרשאות למצלמה");
+      return;
+    }
+  
     const result = await ImagePicker.launchCameraAsync({
       quality: 1,
+      allowsEditing: true,
     });
-
+  
     if (!result.canceled) {
-      setImages([...images, result.assets[0].uri]);
+      setImages((prev) => [...prev, result.assets[0].uri]);
     }
   };
 
