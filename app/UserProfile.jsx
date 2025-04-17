@@ -74,7 +74,9 @@ const UserProfile = (props) => {
       })
         .then(() => {
           setIsFriend(false);
-          props.onRemoveFriend(finalUserId);
+          if (props.onRemoveFriend) {
+            props.onRemoveFriend(finalUserId);
+          }
         })
         .catch((err) => console.error("שגיאה בהסרת חבר", err));
     } else {
@@ -90,7 +92,12 @@ const UserProfile = (props) => {
           if (!res.ok) throw new Error("שגיאה בהוספת חבר");
           return res.text();
         })
-        .then(() => setIsFriend(true))
+        .then(() => {
+          setIsFriend(true);
+          if (props.onAddFriend) {
+            props.onAddFriend(userProfile);
+          }
+        })
         .catch((err) => console.error(err));
     }
   };
@@ -284,9 +291,9 @@ const UserProfile = (props) => {
             <UserProfile
               userId={selectedFriendId}
               onClose={() => setFriendProfile(false)}
-              //onRemoveFriend={removeFriend}
+              onRemoveFriend={props.onRemoveFriend}
+              onAddFriend={props.onAddFriend}
             />
-          
           </Modal>
         )}
 

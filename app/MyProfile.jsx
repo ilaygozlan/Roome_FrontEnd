@@ -68,6 +68,13 @@ const MyProfile = (props) => {
   const removeFriend = (friendId) => {
     setFriends((prev) => prev.filter((f) => f.id !== friendId));
   };
+
+  const addFriend = (newFriend) => {
+    setFriends((prev) => {
+      return [...prev, newFriend]; 
+    });
+  };
+  
   const handleSave = async () => {
     const updatedUser = { ...updatedProfile, id: loginUserId };
     try {
@@ -229,6 +236,7 @@ const MyProfile = (props) => {
               userId={selectedFriendId}
               onClose={() => setFriendProfile(false)}
               onRemoveFriend={removeFriend}
+              onAddFriend={addFriend}
             />
               
           </Modal>
