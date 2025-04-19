@@ -85,7 +85,7 @@ export default function Apartment(props) {
             }}
           >
             <View style={styles.details}>
-              <Text style={styles.title}>דירה ברחוב {apt.Location}</Text>
+              <Text style={styles.title}> {apt.Location}</Text>
               <Text style={styles.description}>{apt.Description}</Text>
               <Text style={styles.price}>{apt.Price} ש"ח</Text>
             </View>

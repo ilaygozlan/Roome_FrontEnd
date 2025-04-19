@@ -1,19 +1,33 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
+  TouchableOpacity,
+  Modal,
+  TextInput,
+  Platform,
 } from "react-native";
 import ApartmentGallery from "./components/ApartmentGallery";
 import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import API from "../config";
 
 const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
   const { allApartments } = useContext(ActiveApartmentContext);
 
-  const ownedApartments = allApartments.filter(
-    (apt) => apt.UserID === userId
-  );
+  const [openHouseModalVisible, setOpenHouseModalVisible] = useState(false);
+  const [selectedApartmentId, setSelectedApartmentId] = useState(null);
+  const [openHouseDate, setOpenHouseDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [showEndPicker, setShowEndPicker] = useState(false);
+  const [startTime, setStartTime] = useState(null);
+  const [endTime, setEndTime] = useState(null);
+  const [peopleCount, setPeopleCount] = useState(20);
+
+  const ownedApartments = allApartments.filter((apt) => apt.UserID === userId);
 
   const getBorderColor = (type) => {
     switch (type) {
@@ -40,6 +54,57 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
         return "Unknown";
     }
   };
+
+  const handleCreateOpenHouse = (apartmentId) => {
+    setSelectedApartmentId(apartmentId);
+    setOpenHouseModalVisible(true);
+  };
+
+  const submitOpenHouse = async () => {
+    if (!startTime || !endTime || !peopleCount || !openHouseDate) {
+      alert("אנא מלא את כל שדות הבית הפתוח לפני השליחה");
+      return;
+    }
+
+    const requestBody = {
+      openHouseId: 0,
+      apartmentId: selectedApartmentId,
+      date: formatDateOnly(openHouseDate), 
+      amountOfPeoples: peopleCount,
+      totalRegistrations: 0,
+      startTime: startTime,
+      endTime: endTime,    
+      isRegistered: true,
+      userConfirmed: true,
+    };
+
+    try {
+      const response = await fetch(
+        API+`/OpenHouse/CreateNewOpenHouse/${userId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
+      const result = await response.json();
+      alert("✅ בית פתוח נוצר בהצלחה!");
+      setOpenHouseModalVisible(false);
+    } catch (error) {
+      console.error("שגיאה:", error);
+      alert("❌ שגיאה ביצירת בית פתוח");
+    }
+  };
+
+  const formatDateOnly = (dateObj) => {
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const day = String(dateObj.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+  
 
   if (ownedApartments.length === 0) {
     return (
@@ -70,10 +135,108 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
               <Text style={styles.titleText}>דירה ברחוב {apt.Location}</Text>
               <Text style={styles.description}>{apt.Description}</Text>
               <Text style={styles.price}>{apt.Price} ש"ח</Text>
+
+              {isMyProfile && (
+                <TouchableOpacity
+                  style={styles.openHouseButton}
+                  onPress={() => handleCreateOpenHouse(apt.ApartmentID)}
+                >
+                  <Text style={styles.openHouseButtonText}>צור בית פתוח</Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         ))}
       </ScrollView>
+
+      <Modal
+        visible={openHouseModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setOpenHouseModalVisible(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" }}>
+          <View style={{ backgroundColor: "#fff", padding: 20, borderRadius: 10, width: "80%" }}>
+            <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10, textAlign: "center" }}>צור בית פתוח</Text>
+
+            <Text>בחר תאריך:</Text>
+            <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+              <Text style={{ padding: 10, borderColor: "#ccc", borderWidth: 1, borderRadius: 5 }}>
+                {openHouseDate.toLocaleDateString("he-IL")}
+              </Text>
+            </TouchableOpacity>
+            {showDatePicker && (
+              <DateTimePicker
+                value={openHouseDate}
+                mode="date"
+                display="default"
+                onChange={(event, selectedDate) => {
+                  setShowDatePicker(false);
+                  if (selectedDate) setOpenHouseDate(selectedDate);
+                }}
+              />
+            )}
+
+            <Text>שעת התחלה:</Text>
+            <TouchableOpacity onPress={() => setShowStartPicker(true)}>
+              <Text style={{ padding: 10, borderColor: "#ccc", borderWidth: 1, borderRadius: 5 }}>
+                {startTime ? startTime : "בחר שעה"}
+              </Text>
+            </TouchableOpacity>
+            {showStartPicker && (
+              <DateTimePicker
+                value={new Date()}
+                mode="time"
+                display="default"
+                onChange={(event, selectedDate) => {
+                  setShowStartPicker(false);
+                  if (selectedDate) setStartTime(formatTime(selectedDate));
+                }}
+              />
+            )}
+
+            <Text>שעת סיום:</Text>
+            <TouchableOpacity onPress={() => setShowEndPicker(true)}>
+              <Text style={{ padding: 10, borderColor: "#ccc", borderWidth: 1, borderRadius: 5 }}>
+                {endTime ? endTime : "בחר שעה"}
+              </Text>
+            </TouchableOpacity>
+            {showEndPicker && (
+              <DateTimePicker
+                value={new Date()}
+                mode="time"
+                display="default"
+                onChange={(event, selectedDate) => {
+                  setShowEndPicker(false);
+                  if (selectedDate) setEndTime(formatTime(selectedDate));
+                }}
+              />
+            )}
+
+            <Text>כמות משתתפים:</Text>
+            <TextInput
+              value={peopleCount.toString()}
+              onChangeText={(val) => setPeopleCount(Number(val))}
+              keyboardType="numeric"
+              style={{ borderWidth: 1, padding: 10, marginBottom: 20 }}
+            />
+
+            <TouchableOpacity
+              style={{ backgroundColor: "#2661A1", padding: 10, borderRadius: 5 }}
+              onPress={submitOpenHouse}
+            >
+              <Text style={{ color: "white", textAlign: "center" }}>אישור</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{ marginTop: 10 }}
+              onPress={() => setOpenHouseModalVisible(false)}
+            >
+              <Text style={{ color: "#888", textAlign: "center" }}>ביטול</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -138,6 +301,17 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 5,
     alignSelf: "flex-start",
+  },
+  openHouseButton: {
+    backgroundColor: "#2661A1",
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  openHouseButtonText: {
+    color: "#fff",
+    textAlign: "center",
+    fontWeight: "bold",
   },
 });
 

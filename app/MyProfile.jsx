@@ -443,13 +443,17 @@ const MyProfile = (props) => {
             flex: 1,
             justifyContent: "center",
             alignItems: "center",
-            paddingTop: 150,
+            paddingTop: 50,
           }}
         >
           <UserOwnedApartmentsGrid userId={loginUserId} isMyProfile={true} />
+        </View>
+              
+        <View style={styles.logoutContainer}>
           <LogoutButton />
         </View>
       </ScrollView>
+      
     </View>
   );
 };
@@ -677,6 +681,14 @@ const styles = StyleSheet.create({
   toggleTextActive: {
     color: "#fff",
   },
+  logoutContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 20,
+    marginBottom: 30
+  }
+  
+  
 });
 
 export default MyProfile;
