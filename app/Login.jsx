@@ -16,12 +16,13 @@ export default function LoginScreen() {
   const router = useRouter();
 
   const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: "182842175967-l3ihifvtioodbbkv4pgv99358ed2ih4u.apps.googleusercontent.com",
-    iosClientId: "182842175967-l3ihifvtioodbbkv4pgv99358ed2ih4u.apps.googleusercontent.com",
-    webClientId: "182842175967-l3ihifvtioodbbkv4pgv99358ed2ih4u.apps.googleusercontent.com",
-    expoClientId: "182842175967-l3ihifvtioodbbkv4pgv99358ed2ih4u.apps.googleusercontent.com"
+    androidClientId: "182842175967-vgsq937kjmtv3bbnsckm4p7l8dbe3mgd.apps.googleusercontent.com",
+    iosClientId: "182842175967-vgsq937kjmtv3bbnsckm4p7l8dbe3mgd.apps.googleusercontent.com",
+    webClientId: "182842175967-vgsq937kjmtv3bbnsckm4p7l8dbe3mgd.apps.googleusercontent.com",
+    expoClientId: "182842175967-vgsq937kjmtv3bbnsckm4p7l8dbe3mgd.apps.googleusercontent.com",
   });
 
+  
   const checkIfUserExists = async (email) => {
     try {
       const res = await fetch(`${API}User/CheckIfExists?email=${encodeURIComponent(email)}`, {

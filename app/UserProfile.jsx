@@ -26,7 +26,8 @@ const UserProfile = (props) => {
   const finalUserId = userId ?? props.userId;
   const isMyProfile = finalUserId == loginUserId;
   const router = useRouter();
-
+  const [showFriendProfile, setFriendProfile] = useState(false);
+  const [selectedFriendId, setFriendId] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -37,7 +38,7 @@ const UserProfile = (props) => {
   const [isFriend, setIsFriend] = useState(false);
 
   useEffect(() => {
-    console.log(finalUserId)
+    console.log(finalUserId);
     fetch(API + "User/GetUserById/" + finalUserId)
       .then((res) => {
         if (!res.ok) throw new Error("שגיאה בטעינת פרופיל");
@@ -52,8 +53,7 @@ const UserProfile = (props) => {
         setError(err);
         setLoading(false);
       });
-  }, [finalUserId
-  ]);
+  }, [finalUserId]);
 
   useEffect(() => {
     if (finalUserId) {
@@ -72,8 +72,11 @@ const UserProfile = (props) => {
       fetch(`${API}User/RemoveFriend/${loginUserId}/${finalUserId}`, {
         method: "DELETE",
       })
-        .then(() => {setIsFriend(false);
-          props.onRemoveFriend(finalUserId);
+        .then(() => {
+          setIsFriend(false);
+          if (props.onRemoveFriend) {
+            props.onRemoveFriend(finalUserId);
+          }
         })
         .catch((err) => console.error("שגיאה בהסרת חבר", err));
     } else {
@@ -89,7 +92,12 @@ const UserProfile = (props) => {
           if (!res.ok) throw new Error("שגיאה בהוספת חבר");
           return res.text();
         })
-        .then(() => setIsFriend(true))
+        .then(() => {
+          setIsFriend(true);
+          if (props.onAddFriend) {
+            props.onAddFriend(userProfile);
+          }
+        })
         .catch((err) => console.error(err));
     }
   };
@@ -132,7 +140,6 @@ const UserProfile = (props) => {
       >
         <FavoriteApartmentsScreen onClose={() => setShowFavorites(false)} />
       </Modal>
-      
 
       <ScrollView style={styles.container}>
         <View style={styles.headerBackground} />
@@ -146,12 +153,14 @@ const UserProfile = (props) => {
             style={styles.profileImage}
           />
           {isMyProfile ? (
-           <TouchableOpacity
-           style={styles.backButton}
-           onPress={() => {props.onClose()}}
-         >
-           <Feather name="arrow-left" size={24} color="#fff" />
-         </TouchableOpacity>         
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => {
+                props.onClose();
+              }}
+            >
+              <Feather name="arrow-left" size={24} color="#fff" />
+            </TouchableOpacity>
           ) : (
             <>
               <TouchableOpacity
@@ -166,9 +175,7 @@ const UserProfile = (props) => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.backButton}
-                onPress={() =>
-                  props.onClose()
-                }
+                onPress={() => props.onClose()}
               >
                 <Feather name="arrow-left" size={24} color="#fff" />
               </TouchableOpacity>
@@ -227,7 +234,6 @@ const UserProfile = (props) => {
                 : `דירות ש${userProfile.fullName} אהב/ה`}
             </Text>
           </TouchableOpacity>
-         
         </View>
 
         <View style={styles.friendsSection}>
@@ -255,12 +261,10 @@ const UserProfile = (props) => {
                   <TouchableOpacity
                     key={friend.id}
                     style={styles.friendCard}
-                    onPress={() =>
-                      router.push({
-                        pathname: "/ProfilePage",
-                        params: { userId: friend.id },
-                      })
-                    }
+                    onPress={() => {
+                      setFriendProfile(true);
+                      setFriendId(friend.id);
+                    }}
                   >
                     <Image
                       source={{
@@ -277,6 +281,21 @@ const UserProfile = (props) => {
             </View>
           )}
         </View>
+
+        {showFriendProfile && (
+          <Modal
+            visible={true}
+            animationType="slide"
+            onRequestClose={() => setFriendProfile(false)}
+          >
+            <UserProfile
+              userId={selectedFriendId}
+              onClose={() => setFriendProfile(false)}
+              onRemoveFriend={props.onRemoveFriend}
+              onAddFriend={props.onAddFriend}
+            />
+          </Modal>
+        )}
 
         {isMyProfile && (
           <Modal
@@ -385,18 +404,18 @@ const UserProfile = (props) => {
             </View>
           </Modal>
         )}
-        {isMyProfile && (<View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            paddingTop: 150,
-          }}
-        >
-
-
-          <LogoutButton />
-        </View>)}
+        {isMyProfile && (
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              paddingTop: 150,
+            }}
+          >
+            <LogoutButton />
+          </View>
+        )}
       </ScrollView>
     </View>
   );

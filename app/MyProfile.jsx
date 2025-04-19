@@ -1,4 +1,3 @@
-// UserProfile.jsx
 import React, { useState, useEffect, useContext } from "react";
 import {
   Text,
@@ -8,16 +7,20 @@ import {
   Modal,
   TextInput,
   Image,
+  Alert,
+  Lable,
   ScrollView,
   ActivityIndicator,
 } from "react-native";
-import { FontAwesome5, MaterialIcons, Feather } from "@expo/vector-icons";
+import { FontAwesome5, Feather } from "@expo/vector-icons";
 import FavoriteApartmentsScreen from "./FavoriteApartmentsScreen";
 import API from "../config";
 import { useRouter } from "expo-router";
 import LogoutButton from "./components/LogoutButton";
 import UserOwnedApartmentsGrid from "./UserOwnedApartmentsGrid";
-import UserProfile from "./UserProfile"
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { Picker } from "@react-native-picker/picker";
+import * as ImagePicker from "expo-image-picker";
 
 const MyProfile = (props) => {
   const loginUserId = props.myId;
@@ -33,7 +36,8 @@ const MyProfile = (props) => {
   const [isFriend, setIsFriend] = useState(false);
   const [showFriendProfile, setFriendProfile] = useState(false);
   const [selectedFriendId, setFriendId] = useState(null);
-
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showPhoneError, setShowPhoneError] = useState(false);
   useEffect(() => {
     console.log("useinp  ", loginUserId);
     fetch(API + "User/GetUserById/" + loginUserId)
@@ -68,8 +72,17 @@ const MyProfile = (props) => {
   const removeFriend = (friendId) => {
     setFriends((prev) => prev.filter((f) => f.id !== friendId));
   };
+
+  const addFriend = (newFriend) => {
+    setFriends((prev) => {
+      return [...prev, newFriend];
+    });
+  };
+
   const handleSave = async () => {
     const updatedUser = { ...updatedProfile, id: loginUserId };
+    if(!updatedUser.token) {updatedUser.token = "";}
+
     try {
       const res = await fetch(API + "User/UpdateUserDetails", {
         method: "PUT",
@@ -81,8 +94,46 @@ const MyProfile = (props) => {
 
       console.log("✔️ profile updated");
       setModalVisible(false);
+      setUserProfile(updatedUser);
+      setUpdatedProfile(updatedUser);
     } catch (err) {
       console.error("❌", err);
+    }
+  };
+  const handleImagePick = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("שגיאה", "יש לאשר גישה לגלריה");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+    if (!result.canceled) {
+      setUpdatedProfile({
+        ...updatedProfile,
+        profilePicture: result.assets[0].uri,
+      });
+    }
+  };
+  const handleDateChange = (event, selectedDate) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      setUpdatedProfile({ ...updatedProfile, birthDate: selectedDate });
+    }
+  };
+
+  const HandlePhoneNumber = (phoneNumber) => {
+    // Phone number validation
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phoneRegex.test(phoneNumber)) {
+      setShowPhoneError(true);
+      return;
+    } else {
+      setShowPhoneError(false);
     }
   };
 
@@ -229,6 +280,7 @@ const MyProfile = (props) => {
               userId={selectedFriendId}
               onClose={() => setFriendProfile(false)}
               onRemoveFriend={removeFriend}
+              onAddFriend={addFriend}
             />
               
           </Modal>
@@ -247,9 +299,26 @@ const MyProfile = (props) => {
               >
                 <Feather name="x" size={24} color="#333" />
               </TouchableOpacity>
-              <Text style={styles.modalTitle}>ערוך פרופיל</Text>
+              <View style={{ textAlign: "right", margin: "auto" }}>
+                <Text style={styles.modalTitle}>ערוך פרופיל</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.photoContainer}
+                onPress={handleImagePick}
+              >
+                {updatedProfile.profilePicture ? (
+                  <Image
+                    source={{ uri: updatedProfile.profilePicture }}
+                    style={styles.profilePhoto}
+                  />
+                ) : (
+                  <View style={styles.photoPlaceholder}>
+                    <Text style={styles.photoText}>הוסף תמונה</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { textAlign: "right" }]}
                 placeholder="שם מלא"
                 value={updatedProfile.fullName}
                 onChangeText={(text) =>
@@ -257,78 +326,109 @@ const MyProfile = (props) => {
                 }
               />
               <TextInput
-                style={[
-                  styles.input,
-                  { backgroundColor: "#f2f2f2", color: "#888" },
-                ]}
+                style={[styles.inputDisabled, { textAlign: "right" }]}
                 value={updatedProfile.email}
                 editable={false}
               />
               <TextInput
-                style={styles.input}
+                style={[styles.input, { textAlign: "right" }]}
                 placeholder="מספר טלפון"
                 value={updatedProfile.phoneNumber}
-                onChangeText={(text) =>
-                  setUpdatedProfile({ ...updatedProfile, phoneNumber: text })
-                }
+                onChangeText={(text) => {
+                  setUpdatedProfile({ ...updatedProfile, phoneNumber: text });
+                  HandlePhoneNumber(text);
+                }}
+                keyboardType="phone-pad"
               />
+              {showPhoneError && (
+                <Text style={{ color: "red", textAlign: "right" }}>
+                  Please enter a valid phone number
+                </Text>
+              )}{" "}
               <TextInput
-                style={styles.input}
-                placeholder="מגדר (M / F)"
-                value={updatedProfile.gender}
-                onChangeText={(text) =>
-                  setUpdatedProfile({ ...updatedProfile, gender: text })
-                }
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="תאריך לידה (YYYY-MM-DD)"
-                value={updatedProfile.birthDate?.toString()?.substring(0, 10)}
-                onChangeText={(text) =>
-                  setUpdatedProfile({ ...updatedProfile, birthDate: text })
-                }
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="קישור לתמונת פרופיל"
-                value={updatedProfile.profilePicture}
-                onChangeText={(text) =>
-                  setUpdatedProfile({
-                    ...updatedProfile,
-                    profilePicture: text,
-                  })
-                }
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="יש לי חיית מחמד? (true / false)"
-                value={updatedProfile.ownPet?.toString()}
-                onChangeText={(text) =>
-                  setUpdatedProfile({
-                    ...updatedProfile,
-                    ownPet: text === "true",
-                  })
-                }
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="מעשן? (true / false)"
-                value={updatedProfile.smoke?.toString()}
-                onChangeText={(text) =>
-                  setUpdatedProfile({
-                    ...updatedProfile,
-                    smoke: text === "true",
-                  })
-                }
-              />
-              <TextInput
-                style={styles.input}
+                style={[styles.input, { textAlign: "right" }]}
                 placeholder="סטטוס תעסוקה"
                 value={updatedProfile.jobStatus}
                 onChangeText={(text) =>
                   setUpdatedProfile({ ...updatedProfile, jobStatus: text })
                 }
               />
+              <Text style={[styles.label, { textAlign: "right" }]}>מגדר:</Text>
+              <Picker
+                selectedValue={updatedProfile.gender}
+                onValueChange={(val) =>
+                  setUpdatedProfile({ ...updatedProfile, gender: val })
+                }
+                style={styles.picker}
+              >
+                <Picker.Item label="זכר" value="M" />
+                <Picker.Item label="נקבה" value="F" />
+                <Picker.Item label="אחר" value="O" />
+              </Picker>
+              <TouchableOpacity
+                style={styles.dateButton}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <Text style={styles.dateButtonText}>
+                  תאריך לידה:{" "}
+                  {new Date(updatedProfile.birthDate).toLocaleDateString(
+                    "he-IL"
+                  )}
+                </Text>
+              </TouchableOpacity>
+              {showDatePicker && (
+                <DateTimePicker
+                  value={new Date(updatedProfile.birthDate)}
+                  mode="date"
+                  display="default"
+                  maximumDate={new Date()}
+                  onChange={handleDateChange}
+                />
+              )}
+              <View style={styles.toggleContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.toggleButton,
+                    updatedProfile.ownPet && styles.toggleButtonActive,
+                  ]}
+                  onPress={() =>
+                    setUpdatedProfile({
+                      ...updatedProfile,
+                      ownPet: !updatedProfile.ownPet,
+                    })
+                  }
+                >
+                  <Text
+                    style={[
+                      styles.toggleText,
+                      updatedProfile.ownPet && styles.toggleTextActive,
+                    ]}
+                  >
+                    יש חיית מחמד
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.toggleButton,
+                    updatedProfile.smoke && styles.toggleButtonActive,
+                  ]}
+                  onPress={() =>
+                    setUpdatedProfile({
+                      ...updatedProfile,
+                      smoke: !updatedProfile.smoke,
+                    })
+                  }
+                >
+                  <Text
+                    style={[
+                      styles.toggleText,
+                      updatedProfile.smoke && styles.toggleTextActive,
+                    ]}
+                  >
+                    מעשן/ת
+                  </Text>
+                </TouchableOpacity>
+              </View>
               <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
                 <Text style={styles.buttonText}>שמור</Text>
               </TouchableOpacity>
@@ -448,7 +548,7 @@ const styles = StyleSheet.create({
   friendCard: {
     alignItems: "center",
     marginLeft: 15,
-    backgroundColor: "#fff",
+    backgroundColor: "#f9f9f9",
     padding: 10,
     borderRadius: 10,
     elevation: 2,
@@ -466,13 +566,31 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 20,
     width: "80%",
+    direction: "rtl",
+    textAlign: "right",
   },
-  modalTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 20 },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "right",
+    paddingRight: 10,
+    alignSelf: "flex-start",
+    width: "100%",
+  },
   input: {
     borderBottomWidth: 1,
     borderColor: "#ccc",
     marginBottom: 15,
     padding: 5,
+  },
+  inputDisabled: {
+    backgroundColor: "#eee",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 15,
+    textAlign: "right",
+    color: "#888",
   },
   saveButton: {
     backgroundColor: "#2661A1",
@@ -488,6 +606,74 @@ const styles = StyleSheet.create({
     padding: 6,
     borderRadius: 20,
     zIndex: 10,
+  },
+
+  photoContainer: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  profilePhoto: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  photoPlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "#ddd",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  photoText: {
+    color: "#666",
+  },
+  label: {
+    fontSize: 16,
+    marginBottom: 5,
+    textAlign: "right",
+    margin: "auto",
+    fontWeight: "bold",
+  },
+  picker: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    marginBottom: 15,
+  },
+  dateButton: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 15,
+    borderRadius: 8,
+    marginBottom: 15,
+  },
+  dateButtonText: {
+    textAlign: "right",
+    fontSize: 16,
+  },
+  toggleContainer: {
+    flexDirection: "row-reverse",
+    justifyContent: "space-around",
+    marginBottom: 20,
+  },
+  toggleButton: {
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    width: "45%",
+    alignItems: "center",
+  },
+  toggleButtonActive: {
+    backgroundColor: "#007AFF",
+    borderColor: "#007AFF",
+  },
+  toggleText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  toggleTextActive: {
+    color: "#fff",
   },
 });
 
