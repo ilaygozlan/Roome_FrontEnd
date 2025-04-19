@@ -15,7 +15,7 @@ Notifications.setNotificationHandler({
 });
 
 //what will be write at the notification
-async function sendPushNotification(expoPushToken) {
+export async function sendPushNotification(expoPushToken) {
   const message = {
     to: expoPushToken,
     sound: 'default',
