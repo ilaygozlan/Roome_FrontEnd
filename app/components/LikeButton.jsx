@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext,useEffect } from "react";
 import { TouchableOpacity, Alert, StyleSheet, View, Text } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import API from "../../config";
@@ -7,6 +7,9 @@ import { ActiveApartmentContext } from "../contex/ActiveApartmentContext";
 
 export default function LikeButton(props) {
   const [liked, setLiked] = useState(props.isLikedByUser);
+  useEffect(()=>{
+    setLiked(props.isLikedByUser);
+  },[props.isLikedByUser]);
   const { loginUserId } = useContext(userInfoContext);
   const [numOfLikes, setNumOfLikes] = useState(props.numOfLikes);
   const {
@@ -14,7 +17,6 @@ export default function LikeButton(props) {
     setAllApartments,
     triggerFavoritesRefresh,
   } = useContext(ActiveApartmentContext);
-
   const setApartmentLikedByUser = (id) => {
     const updatedApartments = allApartments.map((apt) => {
       if (apt.ApartmentID === id) {
