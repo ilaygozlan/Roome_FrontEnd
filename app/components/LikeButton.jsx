@@ -1,22 +1,56 @@
 import React, { useState, useContext } from "react";
-import { TouchableOpacity, Alert ,StyleSheet, View, Text} from "react-native";
+import { TouchableOpacity, Alert, StyleSheet, View, Text } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
-import API from "../../config"
+import API from "../../config";
 import { userInfoContext } from "../contex/userInfoContext";
+import { ActiveApartmentContext } from "../contex/ActiveApartmentContext";
 
 export default function LikeButton(props) {
   const [liked, setLiked] = useState(props.isLikedByUser);
   const { loginUserId } = useContext(userInfoContext);
   const [numOfLikes, setNumOfLikes] = useState(props.numOfLikes);
+  const {
+    allApartments,
+    setAllApartments,
+    triggerFavoritesRefresh,
+  } = useContext(ActiveApartmentContext);
 
+  const setApartmentLikedByUser = (id) => {
+    const updatedApartments = allApartments.map((apt) => {
+      if (apt.ApartmentID === id) {
+        return { ...apt, IsLikedByUser: true };
+      }
+      return apt;
+    });
+  
+    setAllApartments(updatedApartments);
+    triggerFavoritesRefresh();
+  };
+
+  const setApartmentUnLikedByUser = (id) => {
+    const updatedApartments = allApartments.map((apt) => {
+      if (apt.ApartmentID === id) {
+        return { ...apt, IsLikedByUser: false };
+      }
+      return apt;
+    });
+  
+    setAllApartments(updatedApartments);
+    triggerFavoritesRefresh();
+  };
+  
   const likeApartment = async () => {
     try {
-      const response = await fetch(API + `User/LikeApartment/${loginUserId}/${props.apartmentId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
+      const response = await fetch(
+        API + `User/LikeApartment/${loginUserId}/${props.apartmentId}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
       if (!response.ok) throw new Error("Failed to like apartment");
+      setApartmentLikedByUser(props.apartmentId);
       console.log("✅ Liked successfully");
     } catch (error) {
       console.error("❌ Error liking apartment:", error);
@@ -26,12 +60,16 @@ export default function LikeButton(props) {
 
   const unlikeApartment = async () => {
     try {
-      const response = await fetch(API + `User/RemoveLikeApartment/${loginUserId}/${props.apartmentId}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-      });
+      const response = await fetch(
+        API + `User/RemoveLikeApartment/${loginUserId}/${props.apartmentId}`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
       if (!response.ok) throw new Error("Failed to unlike apartment");
+      setApartmentUnLikedByUser(props.apartmentId);
       console.log("✅ Unliked successfully");
     } catch (error) {
       console.error("❌ Error unliking apartment:", error);
