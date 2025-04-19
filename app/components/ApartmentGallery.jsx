@@ -7,8 +7,14 @@ export default function ApartmentGallery({ images }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollRef = useRef();
 
-  const imageArray = images?.split(',').map((img) => img.trim()) || [];
+  const baseUrl = "https://roomebackend20250414140006.azurewebsites.net";
 
+  const imageArray = images?.split(',').map((img) => {
+    const trimmed = img.trim();
+    return trimmed.startsWith('https') ? trimmed : `${baseUrl}${trimmed.startsWith('/') ? '' : '/'}${trimmed}`;
+  }) || [];
+  
+  
   const handleScroll = (event) => {
     const x = event.nativeEvent.contentOffset.x;
     const index = Math.round(x / width);
