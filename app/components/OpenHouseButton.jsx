@@ -11,8 +11,8 @@ import {
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import API from "../../config";
-import pushNatification from './pushNatification';
-import { sendPushNotification } from "./pushNatification";
+import { sendPushNotification } from './pushNatification';
+
 
 export default function OpenHouseButton({ apartmentId, userId, location ,userOwnerId}) {
   const [modalVisible, setModalVisible] = useState(false);
