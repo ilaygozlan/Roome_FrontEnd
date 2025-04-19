@@ -112,8 +112,8 @@ export default function Apartment(props) {
               apartmentId={apt.ApartmentID}
               userId={loginUserId}
               location={apt.Location}
-              userOwnerId={apt.userID}
-            />
+              userOwnerId={apt.UserID}
+            /> 
           </View>
         )}
       </View>
