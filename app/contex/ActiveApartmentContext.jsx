@@ -9,6 +9,7 @@ export const ActiveApartmentProvider = ({ children }) => {
   const [allApartments, setAllApartments] = useState([]);
   const [loginUserId, setLoginUserId] = useState(null);
   const [user, loading] = useAuthState(auth);
+  const [refreshFavorites, setRefreshFavorites] = useState(false);
 
 
   useEffect(() => {
@@ -41,7 +42,12 @@ export const ActiveApartmentProvider = ({ children }) => {
   }, [loginUserId]);
 
   return (
-    <ActiveApartmentContext.Provider value={{ allApartments, setAllApartments }}>
+    <ActiveApartmentContext.Provider value={{
+      allApartments,
+      setAllApartments,
+      refreshFavorites,
+      triggerFavoritesRefresh: () => setRefreshFavorites((prev) => !prev),
+    }}>
       {children}
     </ActiveApartmentContext.Provider>
   );

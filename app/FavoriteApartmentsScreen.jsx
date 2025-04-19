@@ -15,21 +15,22 @@ import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
 import ApartmentDetails from "./ApartmentDetails";
 
 export default function FavoriteApartmentsScreen({ onClose }) {
-  const { allApartments, setAllApartments } = useContext(
-    ActiveApartmentContext
-  );
-  const [favoriteApartments, setFavoriteApartments] = useState([{}]);
   const [showApartmentDetails, setShowApartmentDetails] = useState(false);
   const [selectedApartment, setSelectedApartment] = useState(null);
   const router = useRouter();
 
-  useEffect(() => {
-    const newfavoriteApartments = allApartments.filter(
-      (apt) => apt.IsLikedByUser === 1 || apt.IsLikedByUser === true
-    );
-    setFavoriteApartments(newfavoriteApartments);
-  }, [allApartments]);
+  const {
+    allApartments,
+    refreshFavorites
+  } = useContext(ActiveApartmentContext);
 
+  const [favoriteApartments, setFavoriteApartments] = useState([]);
+
+  useEffect(() => {
+    const liked = allApartments.filter((apt) => apt.IsLikedByUser === true);
+    setFavoriteApartments(liked);
+  }, [allApartments, refreshFavorites]); 
+  
   const getBorderColor = (type) => {
     switch (type) {
       case 0:
@@ -67,7 +68,7 @@ export default function FavoriteApartmentsScreen({ onClose }) {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {favoriteApartments.map((apt) => (
           <View
-            key={apt.ApartmentID +1}
+            key={apt.ApartmentID}
             style={[
               styles.card,
               { borderColor: getBorderColor(apt.ApartmentType) },
@@ -105,6 +106,7 @@ export default function FavoriteApartmentsScreen({ onClose }) {
           <Text style={styles.emptyText}>אין דירות שמורות כרגע 💔</Text>
         )}
       </ScrollView>
+      
       {/* Modal for selected apartment */}
       <Modal
         visible={showApartmentDetails}

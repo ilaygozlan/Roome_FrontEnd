@@ -55,9 +55,7 @@ export default function RootLayout() {
 
   return (
     <UserInfoProvider>
-      <ActiveApartmentProvider>
        <AuthStack/>
-      </ActiveApartmentProvider>
     </UserInfoProvider>
   );
 }
