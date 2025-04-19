@@ -22,7 +22,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import UserProfile from "./UserProfile";
 import * as ImagePicker from "expo-image-picker";
-import UserProfile from "./UserProfile";
+
 
 const MyProfile = (props) => {
   const loginUserId = props.myId;
