@@ -15,27 +15,32 @@ Notifications.setNotificationHandler({
 });
 
 //what will be write at the notification
-async function sendPushNotification(expoPushToken) {
+export async function sendPushNotification(expoPushToken) {
   const message = {
     to: expoPushToken,
     sound: 'default',
     title: 'נרשם לבית הפתוח שלך',
-    body: '',
+    body: 'נרשם לבית הפתוח שלך', // ממליץ לשים משהו כדי לוודא שזה יוצג
     data: { someData: 'goes here' },
   };
 
-  await fetch('https://exp.host/--/api/v2/push/send', {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Accept-encoding': 'gzip, deflate',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(message),
-  });
+  try {
+    const response = await fetch('https://exp.host/--/api/v2/push/send', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Accept-encoding': 'gzip, deflate',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(message),
+    });
+
+    const responseData = await response.json();
+    console.log('🔔 Push Notification Response:', responseData);
+  } catch (error) {
+    console.error('❌ Error sending push notification:', error);
+  }
 }
-
-
 function handleRegistrationError(errorMessage) {
   //alert(errorMessage);
   throw new Error(errorMessage);

@@ -11,7 +11,8 @@ import {
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import API from "../../config";
-import pushNatification from './pushNatification'
+import { sendPushNotification } from './pushNatification';
+
 
 export default function OpenHouseButton({ apartmentId, userId, location ,userOwnerId}) {
   const [modalVisible, setModalVisible] = useState(false);
@@ -73,7 +74,7 @@ export default function OpenHouseButton({ apartmentId, userId, location ,userOwn
           console.log("📬 טוקן של בעל הדירה:", ownerPushToken);
   
           // 3. Send the push notification to the property owner
-          await pushNatification.sendPushNotification(ownerPushToken);
+          await sendPushNotification(ownerPushToken);
   
           console.log(" שלחתי את ההתראה לבעל הדירה");
         } else {
