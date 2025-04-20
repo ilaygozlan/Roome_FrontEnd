@@ -57,7 +57,7 @@ export default function OpenHouseButton({ apartmentId, userId, location ,userOwn
       });
   
       if (res.ok) {
-        Alert.alert("Registration Successful", "You have registered for the open house successfully!");
+        Alert.alert("נרשמת בהצלחה לבית הפתוח", "נרשמת בהצלחה לבית הפתוח!");
   
         console.log(" נרשמת בהצלחה לסיור, מנסה לשלוח התראה לבעל הדירה");
   
@@ -83,7 +83,7 @@ export default function OpenHouseButton({ apartmentId, userId, location ,userOwn
   
         fetchOpenHouses();
       } else if (res.status === 409) {
-        Alert.alert("Already Registered", "You are already registered or there is an issue.");
+        Alert.alert("נרשמת כבר לבית הפתוח", "נרשמת כבר לבית הפתוח/הייתה בעיה בהרשמה");
       } else {
         Alert.alert("Error", "Failed to register for the open house.");
       }
