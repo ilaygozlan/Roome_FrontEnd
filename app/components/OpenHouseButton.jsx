@@ -26,11 +26,15 @@ export default function OpenHouseButton({ apartmentId, userId, location ,userOwn
   }, [modalVisible]);
 
   const fetchOpenHouses = async () => {
-    setLoading(true);
+   
     try {
       const res = await fetch(
-        API + `OpenHouse/GetOpenHousesByApartment/${apartmentId}/${userId}`
+        API + `OpenHouse/GetOpenHousesByApartment/${apartmentId}/${userOwnerId}`
       );
+      if(res.status===404){
+        setOpenHouses([]);
+        return;
+      }
       if (!res.ok) throw new Error("Failed to fetch open houses");
       const data = await res.json();
       setOpenHouses(data);
@@ -38,10 +42,9 @@ export default function OpenHouseButton({ apartmentId, userId, location ,userOwn
     } catch (err) {
       console.error("Error fetching open houses:", err.message);
       setOpenHouses([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }
+};
+
 
   const registerForOpenHouse = async (openHouseId) => {
     try {
