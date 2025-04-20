@@ -11,10 +11,14 @@ import {
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import API from "../../config";
-import { sendPushNotification } from './pushNatification';
+import { sendPushNotification } from "./pushNatification";
 
-
-export default function OpenHouseButton({ apartmentId, userId, location ,userOwnerId}) {
+export default function OpenHouseButton({
+  apartmentId,
+  userId,
+  location,
+  userOwnerId,
+}) {
   const [modalVisible, setModalVisible] = useState(false);
   const [openHouses, setOpenHouses] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -26,25 +30,23 @@ export default function OpenHouseButton({ apartmentId, userId, location ,userOwn
   }, [modalVisible]);
 
   const fetchOpenHouses = async () => {
-   
     try {
       const res = await fetch(
-        API + `OpenHouse/GetOpenHousesByApartment/${apartmentId}/${userOwnerId}`
+        API + `OpenHouse/GetOpenHousesByApartment/${apartmentId}/${userId}`
       );
-      if(res.status===404){
+      if (res.status === 404) {
         setOpenHouses([]);
         return;
       }
       if (!res.ok) throw new Error("Failed to fetch open houses");
       const data = await res.json();
       setOpenHouses(data);
-      console.log(data)
+      console.log(data);
     } catch (err) {
       console.error("Error fetching open houses:", err.message);
       setOpenHouses([]);
-  }
-};
-
+    }
+  };
 
   const registerForOpenHouse = async (openHouseId) => {
     try {
@@ -58,35 +60,44 @@ export default function OpenHouseButton({ apartmentId, userId, location ,userOwn
           confirmed: false,
         }),
       });
-  
+
       if (res.ok) {
-        Alert.alert("Registration Successful", "You have registered for the open house successfully!");
-  
+        Alert.alert(
+          "Registration Successful",
+          "You have registered for the open house successfully!"
+        );
+     
         console.log(" נרשמת בהצלחה לסיור, מנסה לשלוח התראה לבעל הדירה");
-  
+
         // 2. Retrieve the push token for the property owner using the ownerId
-        const tokenResponse = await fetch(API + `User/GetPushToken/${userOwnerId}`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
-  
+        const tokenResponse = await fetch(
+          API + `User/GetPushToken/${userOwnerId}`,
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+
         if (tokenResponse.ok) {
           const result = await tokenResponse.json();
           const ownerPushToken = result.pushToken; // ← אם זה JSON, ולא טקסט
-  
+
           console.log("📬 טוקן של בעל הדירה:", ownerPushToken);
-  
+
           // 3. Send the push notification to the property owner
           await sendPushNotification(ownerPushToken);
-  
+
           console.log(" שלחתי את ההתראה לבעל הדירה");
         } else {
           console.error(" לא הצלחתי להביא טוקן של בעל הדירה");
         }
-  
+
         fetchOpenHouses();
       } else if (res.status === 409) {
-        Alert.alert("Already Registered", "You are already registered or there is an issue.");
+        Alert.alert(
+          "Already Registered",
+          "You are already registered or there is an issue."
+        );
       } else {
         Alert.alert("Error", "Failed to register for the open house.");
       }
@@ -95,8 +106,6 @@ export default function OpenHouseButton({ apartmentId, userId, location ,userOwn
       Alert.alert("Network Error", "Could not connect to the server.");
     }
   };
-  
-  
 
   const cancelRegistration = async (openHouseId) => {
     try {
@@ -118,7 +127,6 @@ export default function OpenHouseButton({ apartmentId, userId, location ,userOwn
       Alert.alert("שגיאת תקשורת", "לא ניתן להתחבר לשרת.");
     }
   };
-  
 
   return (
     <View>
@@ -134,55 +142,46 @@ export default function OpenHouseButton({ apartmentId, userId, location ,userOwn
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>🏡 סיורים בדירה</Text>
+            {openHouses.length > 0 ? (
+              openHouses.map((item) => {
+                const isFull = item.confirmedPeoples >= item.amountOfPeoples;
 
-            {loading ? (
-              <ActivityIndicator size="large" color="#E3965A" />
-            ) : openHouses.length > 0 ? (
-              <FlatList
-                data={openHouses}
-                keyExtractor={(item) => item.openHouseId.toString()}
-                renderItem={({ item }) => {
-                  const isFull = item.confirmedPeoples >= item.amountOfPeoples;
+                return (
+                  <View key={item.openHouseId} style={styles.openHouseItem}>
+                    <Text style={styles.openHouseText}>
+                      {new Date(item.date).toLocaleDateString("he-IL")} -{" "}
+                      {item.startTime} - {item.endTime}
+                    </Text>
+                    <Text style={styles.openHouseLocation}>{location}</Text>
+                    <Text style={styles.openHouseLocation}>
+                      נרשמו: {item.totalRegistrations} / {item.amountOfPeoples}
+                    </Text>
 
-                  return (
-                    <View style={styles.openHouseItem}>
-                      <Text style={styles.openHouseText}>
-                        {new Date(item.date).toLocaleDateString("he-IL")} -{" "}
-                        {item.startTime} - {item.endTime}
-                      </Text>
-                      <Text style={styles.openHouseLocation}>{location}</Text>
-                      <Text style={styles.openHouseLocation}>
-                        נרשמו: {item.totalRegistrations} /{" "}
-                        {item.amountOfPeoples}
-                      </Text>
-
-                      {/* רישום או סטטוס */}
-                      {item.isRegistered ? (
-                        <>
-                          <Text style={styles.statusConfirmed}>
-                            ✔ רשום לסיור
-                          </Text>
-                          <TouchableOpacity
-                            style={styles.cancelButton}
-                            onPress={() => cancelRegistration(item.openHouseId)}
-                          >
-                            <Text style={styles.cancelText}>בטל רישום</Text>
-                          </TouchableOpacity>
-                        </>
-                      ) : isFull ? (
-                        <Text style={styles.fullMessage}>הסיור מלא</Text>
-                      ) : (
+                    {item.isRegistered ? (
+                      <>
+                        <Text style={styles.statusConfirmed}>
+                          ✔ רשום לסיור
+                        </Text>
                         <TouchableOpacity
-                          style={styles.registerButton}
-                          onPress={() => registerForOpenHouse(item.openHouseId)}
+                          style={styles.cancelButton}
+                          onPress={() => cancelRegistration(item.openHouseId)}
                         >
-                          <Text style={styles.registerText}>להרשמה</Text>
+                          <Text style={styles.cancelText}>בטל רישום</Text>
                         </TouchableOpacity>
-                      )}
-                    </View>
-                  );
-                }}
-              />
+                      </>
+                    ) : isFull ? (
+                      <Text style={styles.fullMessage}>הסיור מלא</Text>
+                    ) : (
+                      <TouchableOpacity
+                        style={styles.registerButton}
+                        onPress={() => registerForOpenHouse(item.openHouseId)}
+                      >
+                        <Text style={styles.registerText}>להרשמה</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                );
+              })
             ) : (
               <Text style={styles.noOpenHouses}>אין סיורים זמינים</Text>
             )}
