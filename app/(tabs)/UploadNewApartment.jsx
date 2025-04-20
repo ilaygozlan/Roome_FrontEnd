@@ -304,6 +304,7 @@ export default function UploadApartmentForm() {
               });
 
               apartmentData.Images = imageLinks.join(",");
+              apartmentData.Location = JSON.parse(apartmentData.location).address;
               const updatedAllApartments = [...allApartments, apartmentData];
               setAllApartments(updatedAllApartments);
               console.log(apartmentData.Images, apartmentData);

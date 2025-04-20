@@ -14,9 +14,9 @@ import {
 import MultiSlider from "@ptomasroos/react-native-multi-slider";
 import { AntDesign, Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import SearchFilters from "./SearchFilters";
-import SearchFiltersRentalApt from "./SearchFiltersRentalApt";
 import { useRouter } from "expo-router";
 import { Keyboard, TouchableWithoutFeedback } from "react-native";
+import GooglePlacesInput from "./GooglePlacesAPI";
 
 const colors = {
   primary: "#E3965A",
@@ -55,81 +55,50 @@ export default function SearchBar({
   };
 
   return (
-    <TouchableWithoutFeedback
-      onPress={() => {
-        if (expanded) setExpanded(false); //close by press from outside
-        Keyboard.dismiss();
-      }}
-    >
-      <View style={styles.container}>
-        {/* Row: Search bar + Map icon */}
-        <View style={styles.searchRow}>
-          {/* Search bar */}
-          <TouchableOpacity style={styles.searchBar} onPress={toggleExpand}>
-            <Ionicons
-              name="search"
-              size={20}
-              color="#000"
-              style={styles.icon}
-            />
-            <View style={{ flex: 1, alignItems: "flex-end" }}>
-              <Text style={[styles.locationMain, { textAlign: "right" }]}>
-                {selectedLocation || selectedType !== null
-                  ? `${selectedLocation || ""}${
-                      selectedLocation && selectedType !== null ? " • " : ""
-                    }${
-                      selectedType !== null ? categories[selectedType].name : ""
-                    }`
-                  : "מה תרצה לחפש?"}
-              </Text>
-              <Text style={[styles.locationSub, { textAlign: "right" }]}>
-                הוספת מיקום, תאריכים, טווח מחירים
-              </Text>
-            </View>
-          </TouchableOpacity>
+    <View style={styles.container}>
+      {/* Row: Search bar + Map icon */}
+      <View style={styles.searchRow}>
+        {/* Search bar */}
+        <TouchableOpacity style={styles.searchBar} onPress={toggleExpand}>
+          <Ionicons name="search" size={20} color="#000" style={styles.icon} />
+          <View style={{ flex: 1, alignItems: "flex-end" }}>
+            <Text style={[styles.locationMain, { textAlign: "right" }]}>
+              {selectedLocation || selectedType !== null
+                ? `${selectedLocation || ""}${
+                    selectedLocation && selectedType !== null ? " • " : ""
+                  }${
+                    selectedType !== null ? categories[selectedType].name : ""
+                  }`
+                : "מה תרצה לחפש?"}
+            </Text>
+            <Text style={[styles.locationSub, { textAlign: "right" }]}>
+              הוספת מיקום, תאריכים, טווח מחירים
+            </Text>
+          </View>
+        </TouchableOpacity>
 
-          {/* Map icon */}
-          <TouchableOpacity
-            style={styles.mapIconContainer}
-            onPress={() => router.push({ pathname: "/map" })}
-          >
-            <FontAwesome5 name="map-marked-alt" size={20} color="#fff" />
-          </TouchableOpacity>
-        </View>
-        {/* חלק מורחב */}
-        {expanded && (
-          <ScrollView style={styles.expandSection}>
-            {/* Google Autocomplete */}
-            {/*<GooglePlacesAutocomplete
-            ref={googlePlacesRef}
-            placeholder="הקלד מיקום..."
-            onPress={(data, details = null) => {
-              setSelectedLocation(data.description);
-              setExpanded(false); // סגור את החלק המורחב
-            }}
-            query={{
-              key: "YOUR_GOOGLE_API_KEY", // ← תחליף בזה שלך!
-              language: "he",
-              components: "country:il",
-            }}
-            fetchDetails={true}
-            styles={{
-              container: { zIndex: 1000 },
-              textInput: {
-                backgroundColor: "#f2f2f2",
-                borderRadius: 10,
-                paddingVertical: 10,
-                paddingHorizontal: 15,
-                fontSize: 16,
-                textAlign: "right",
-              },
-              listView: { backgroundColor: "#fff" },
-            }}
-            enablePoweredByContainer={false}
-          />*/}
+        {/* Map icon */}
+        <TouchableOpacity
+          style={styles.mapIconContainer}
+          onPress={() => router.push({ pathname: "/map" })}
+        >
+          <FontAwesome5 name="map-marked-alt" size={20} color="#fff" />
+        </TouchableOpacity>
+      </View>
 
-            {/* מיקומים נפוצים */}
-            <Text style={[styles.label, { marginTop: 0 }]}>בחר מיקום:</Text>
+      {expanded && (
+        <ScrollView
+          style={styles.expandSection}
+        >
+          {/* Google Autocomplete */}
+          {/* <View style={{ zIndex: 9999, width: "100%" }}>
+              <GooglePlacesInput onLocationSelected={setSelectedLocation} />
+            </View>*/}
+
+          {/* מיקומים נפוצים */}
+          {/*
+           <Text style={[styles.label, { marginTop: 0 }]}>בחר מיקום:</Text>
+
             <FlatList
               data={locations}
               horizontal
@@ -168,76 +137,75 @@ export default function SearchBar({
                 );
               }}
             />
-
-            {/* קטגוריות דירה */}
-            <Text style={[styles.label, { marginTop: 25 }]}>בחר קטגוריה:</Text>
-            <View style={styles.categories}>
-              {categories.map((cat) => (
-                <TouchableOpacity
-                  key={cat.id}
-                  style={[
-                    styles.categoryBox,
-                    selectedType === cat.id && styles.selectedCategory,
-                  ]}
-                  onPress={() =>
-                    setSelectedType(selectedType === cat.id ? null : cat.id)
-                  }
-                >
-                  <AntDesign
-                    name={cat.icon}
-                    size={28}
-                    color={selectedType === cat.id ? colors.primary : "gray"}
-                    style={{ marginBottom: 5 }}
-                  />
-                  <Text style={styles.categoryText}>{cat.name}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {/* select apartment price range */}
-            <Text style={[styles.label, { marginTop: 25 }]}>
-              בחר טווח מחירים:
-            </Text>
-
-            <MultiSlider
-              values={priceRange}
-              min={0}
-              max={20000}
-              step={100}
-              onValuesChange={(values) => setPriceRange(values)}
-              selectedStyle={{ backgroundColor: colors.primary }}
-              markerStyle={{ backgroundColor: colors.primary }}
-              containerStyle={{ marginHorizontal: 10 }}
-            />
-
-            <View style={styles.priceDisplay}>
-              <Text style={styles.priceText}>מינימום: {priceRange[0]} ₪</Text>
-              <Text style={styles.priceText}>מקסימום: {priceRange[1]} ₪</Text>
-            </View>
-            <SearchFilters onSearch={(filters) => console.log("🔎", filters)} />
-            {/* search btn */}
-            <View style={styles.searchButtonContainer}>
+            */}
+          {/* קטגוריות דירה */}
+          <Text style={[styles.label, { marginTop: 25 }]}>בחר קטגוריה:</Text>
+          <View style={styles.categories}>
+            {categories.map((cat) => (
               <TouchableOpacity
-                style={styles.searchButton}
-                onPress={() => {
-                  // כאן אתה יכול לבצע ניווט או סינון
-                  console.log("מיקום שנבחר:", selectedLocation);
-                  console.log("סוג דירה שנבחר:", selectedType);
-                  console.log(
-                    "טווח מחירים:",
-                    `${priceRange[0]} - ${priceRange[1]} `
-                  );
-                  SearchApartments();
-                  setExpanded(false);
-                }}
+                key={cat.id}
+                style={[
+                  styles.categoryBox,
+                  selectedType === cat.id && styles.selectedCategory,
+                ]}
+                onPress={() =>
+                  setSelectedType(selectedType === cat.id ? null : cat.id)
+                }
               >
-                <Text style={styles.searchButtonText}>חיפוש</Text>
+                <AntDesign
+                  name={cat.icon}
+                  size={28}
+                  color={selectedType === cat.id ? colors.primary : "gray"}
+                  style={{ marginBottom: 5 }}
+                />
+                <Text style={styles.categoryText}>{cat.name}</Text>
               </TouchableOpacity>
-            </View>
-          </ScrollView>
-        )}
-      </View>
-    </TouchableWithoutFeedback>
+            ))}
+          </View>
+
+          {/* select apartment price range */}
+          <Text style={[styles.label, { marginTop: 25 }]}>
+            בחר טווח מחירים:
+          </Text>
+
+          <MultiSlider
+            values={priceRange}
+            min={0}
+            max={20000}
+            step={100}
+            onValuesChange={(values) => setPriceRange(values)}
+            selectedStyle={{ backgroundColor: colors.primary }}
+            markerStyle={{ backgroundColor: colors.primary }}
+            containerStyle={{ marginHorizontal: 10 }}
+          />
+
+          <View style={styles.priceDisplay}>
+            <Text style={styles.priceText}>מינימום: {priceRange[0]} ₪</Text>
+            <Text style={styles.priceText}>מקסימום: {priceRange[1]} ₪</Text>
+          </View>
+          <SearchFilters onSearch={(filters) => console.log("🔎", filters)} />
+          {/* search btn */}
+          <View style={styles.searchButtonContainer}>
+            <TouchableOpacity
+              style={styles.searchButton}
+              onPress={() => {
+                // כאן אתה יכול לבצע ניווט או סינון
+                console.log("מיקום שנבחר:", selectedLocation);
+                console.log("סוג דירה שנבחר:", selectedType);
+                console.log(
+                  "טווח מחירים:",
+                  `${priceRange[0]} - ${priceRange[1]} `
+                );
+                SearchApartments();
+                setExpanded(false);
+              }}
+            >
+              <Text style={styles.searchButtonText}>חיפוש</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      )}
+    </View>
   );
 }
 
@@ -253,7 +221,7 @@ const styles = StyleSheet.create({
     flexDirection: "row-reverse",
     alignItems: "center",
     gap: 10,
-    zIndex:2
+    zIndex: 2,
   },
   searchBar: {
     flex: 1,
@@ -285,6 +253,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fefefe",
     zIndex: 1,
     borderRadius: 15,
+    width: "100%",
   },
   label: {
     fontSize: 16,
