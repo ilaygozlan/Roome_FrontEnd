@@ -11,14 +11,17 @@ import {
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import API from "../../config";
-import { sendPushNotification } from '../components/pushNatification';
+import { sendPushNotification } from './pushNatification';
 
-export default function OpenHouseButton({ apartmentId, userId, location, userOwnerId }) {
+
+export default function OpenHouseButton({ apartmentId, userId, location ,userOwnerId}) {
   const [modalVisible, setModalVisible] = useState(false);
+  const [openHouses, setOpenHouses] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (modalVisible && apartmentId) {
-      fetchOpenHouses(apartmentId);
+    if (modalVisible) {
+      fetchOpenHouses();
     }
   }, [modalVisible]);
 
@@ -39,11 +42,13 @@ export default function OpenHouseButton({ apartmentId, userId, location, userOwn
     } catch (err) {
       console.error("Error fetching open houses:", err.message);
       setOpenHouses([]);
-    } 
-  };
+  }
+};
+
 
   const registerForOpenHouse = async (openHouseId) => {
     try {
+      // 1. Register the user for the open house
       const res = await fetch(API + `OpenHouse/RegisterForOpenHouse`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -53,9 +58,9 @@ export default function OpenHouseButton({ apartmentId, userId, location, userOwn
           confirmed: false,
         }),
       });
-
+  
       if (res.ok) {
-        Alert.alert("נרשמת בהצלחה לבית הפתוח", "נרשמת בהצלחה לבית הפתוח!");
+        Alert.alert("Registration Successful", "You have registered for the open house successfully!");
   
         console.log(" נרשמת בהצלחה לסיור, מנסה לשלוח התראה לבעל הדירה");
   
@@ -67,43 +72,62 @@ export default function OpenHouseButton({ apartmentId, userId, location, userOwn
   
         if (tokenResponse.ok) {
           const result = await tokenResponse.json();
-          const ownerPushToken = result.pushToken;
+          const ownerPushToken = result.pushToken; // ← אם זה JSON, ולא טקסט
+  
+          console.log("📬 טוקן של בעל הדירה:", ownerPushToken);
+  
+          // 3. Send the push notification to the property owner
           await sendPushNotification(ownerPushToken);
+  
+          console.log(" שלחתי את ההתראה לבעל הדירה");
+        } else {
+          console.error(" לא הצלחתי להביא טוקן של בעל הדירה");
         }
-
-        fetchOpenHouses(apartmentId);
+  
+        fetchOpenHouses();
       } else if (res.status === 409) {
-        Alert.alert("נרשמת כבר לבית הפתוח", "נרשמת כבר לבית הפתוח/הייתה בעיה בהרשמה");
+        Alert.alert("Already Registered", "You are already registered or there is an issue.");
       } else {
-        Alert.alert("שגיאה", "ההרשמה נכשלה.");
+        Alert.alert("Error", "Failed to register for the open house.");
       }
     } catch (error) {
-      Alert.alert("שגיאת רשת", "לא ניתן להתחבר לשרת.");
+      console.error("Registration error:", error);
+      Alert.alert("Network Error", "Could not connect to the server.");
     }
   };
+  
+  
 
   const cancelRegistration = async (openHouseId) => {
     try {
       const res = await fetch(
         API + `OpenHouse/DeleteRegistration/${openHouseId}/${userId}`,
-        { method: "DELETE" }
+        {
+          method: "DELETE",
+        }
       );
 
       if (res.ok) {
-        Alert.alert("בוטל", "ההרשמה בוטלה בהצלחה.");
-        fetchOpenHouses(apartmentId);
+        Alert.alert("ההרשמה בוטלה", "ביטלת את ההרשמה לסיור.");
+        fetchOpenHouses();
       } else {
-        Alert.alert("שגיאה", "לא ניתן לבטל.");
+        Alert.alert("שגיאה", "לא ניתן לבטל את ההרשמה.");
       }
-    } catch {
-      Alert.alert("שגיאת רשת", "לא ניתן להתחבר.");
+    } catch (error) {
+      console.error("Cancellation error:", error);
+      Alert.alert("שגיאת תקשורת", "לא ניתן להתחבר לשרת.");
     }
   };
+  
 
   return (
     <View>
       <TouchableOpacity onPress={() => setModalVisible(true)}>
-        <MaterialCommunityIcons name="calendar-outline" size={24} color="gray" />
+        <MaterialCommunityIcons
+          name="calendar-outline"
+          size={24}
+          color="gray"
+        />
       </TouchableOpacity>
 
       <Modal visible={modalVisible} transparent animationType="fade">
@@ -111,12 +135,14 @@ export default function OpenHouseButton({ apartmentId, userId, location, userOwn
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>🏡 סיורים בדירה</Text>
 
-            { openHouses.length > 0 ? (
+            {loading ? (
+              <ActivityIndicator size="large" color="#E3965A" />
+            ) : openHouses.length > 0 ? (
               <FlatList
                 data={openHouses}
                 keyExtractor={(item) => item.openHouseId.toString()}
                 renderItem={({ item }) => {
-                  const isFull = item.totalRegistrations >= item.amountOfPeoples;
+                  const isFull = item.confirmedPeoples >= item.amountOfPeoples;
 
                   return (
                     <View style={styles.openHouseItem}>
@@ -126,12 +152,16 @@ export default function OpenHouseButton({ apartmentId, userId, location, userOwn
                       </Text>
                       <Text style={styles.openHouseLocation}>{location}</Text>
                       <Text style={styles.openHouseLocation}>
-                        נרשמו: {item.totalRegistrations} / {item.amountOfPeoples}
+                        נרשמו: {item.totalRegistrations} /{" "}
+                        {item.amountOfPeoples}
                       </Text>
 
+                      {/* רישום או סטטוס */}
                       {item.isRegistered ? (
                         <>
-                          <Text style={styles.statusConfirmed}>✔ רשום לסיור</Text>
+                          <Text style={styles.statusConfirmed}>
+                            ✔ רשום לסיור
+                          </Text>
                           <TouchableOpacity
                             style={styles.cancelButton}
                             onPress={() => cancelRegistration(item.openHouseId)}
@@ -154,7 +184,7 @@ export default function OpenHouseButton({ apartmentId, userId, location, userOwn
                 }}
               />
             ) : (
-              <Text style={styles.noOpenHouses}>אין סיורים זמינים כרגע</Text>
+              <Text style={styles.noOpenHouses}>אין סיורים זמינים</Text>
             )}
 
             <TouchableOpacity
@@ -169,6 +199,8 @@ export default function OpenHouseButton({ apartmentId, userId, location, userOwn
     </View>
   );
 }
+
+// === styles ===
 const styles = StyleSheet.create({
   modalBackground: {
     flex: 1,
