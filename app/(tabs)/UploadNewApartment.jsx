@@ -19,13 +19,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { userInfoContext } from "../contex/userInfoContext";
 import { ActiveApartmentContext } from "../contex/ActiveApartmentContext";
 import API from "../../config";
-import * as FileSystem from "expo-file-system";
-import HouseLoading from "../components/LoadingHouseSign";
 
 export default function UploadApartmentForm() {
-  const { allApartments, setAllApartments } = useContext(
-    ActiveApartmentContext
-  );
+  const { allApartments, setAllApartments } = useContext(ActiveApartmentContext);
   const { loginUserId } = useContext(userInfoContext);
   const [apartmentType, setApartmentType] = useState(null);
   const [location, setLocation] = useState("");
@@ -43,6 +39,7 @@ export default function UploadApartmentForm() {
   const [gardenBalcony, setGardenBalcony] = useState(false);
   const [extensionPossible, setExtensionPossible] = useState(false);
   const [images, setImages] = useState([]);
+  const [uId, setUId] = useState(10);
   const [entryDate, setEntryDate] = useState(
     new Date().toISOString().split("T")[0]
   );
@@ -52,7 +49,6 @@ export default function UploadApartmentForm() {
   const [showEntryPicker, setShowEntryPicker] = useState(false);
   const [showExitPicker, setShowExitPicker] = useState(false);
   const [propertyTypeID, setPropertyTypeID] = useState(null);
-  const [isUploading, setIsUploading] = useState(false);
 
   const categories = [
     { id: 0, name: "השכרה", icon: "home" },
@@ -138,28 +134,6 @@ export default function UploadApartmentForm() {
     setImages(images.filter((uri) => uri !== uriToRemove));
   };
 
-  const ClearFormFields = () => {
-    setLocation("");
-    setPrice("");
-    setRooms("");
-    setDescription("");
-    setFloor("");
-    setParkingSpace("");
-    setContractLength("");
-    setNumberOfRoommates("");
-    setImages([]);
-    setApartmentType(null);
-    setAllowPet(false);
-    setAllowSmoking(false);
-    setGardenBalcony(false);
-    setExtensionPossible(false);
-    setCanCancelWithoutPenalty(false);
-    setIsWholeProperty(false);
-    setPropertyTypeID(null);
-    setEntryDate(new Date().toISOString().split("T")[0]);
-    setExitDate(new Date(Date.now() + 86400000).toISOString().split("T")[0]);
-  };
-
   const handleSubmit = () => {
     if (!location || !price || !rooms || apartmentType === null) {
       Alert.alert("שגיאה", "אנא מלא את כל השדות");
@@ -167,7 +141,7 @@ export default function UploadApartmentForm() {
     }
 
     const commonFields = {
-      id: 0,
+      id: uId,
       userID: loginUserId,
       price: Number(price),
       amountOfRooms: Number(rooms),
@@ -208,8 +182,6 @@ export default function UploadApartmentForm() {
 
     let endpoint = "";
 
-    setIsUploading(true);
-
     if (apartmentType === 0) {
       endpoint = `${API}Apartment/AddRentalApartment`;
     } else if (apartmentType === 1) {
@@ -217,7 +189,7 @@ export default function UploadApartmentForm() {
     } else if (apartmentType === 2) {
       endpoint = `${API}Apartment/AddSubletApartment`;
     }
-    console.log(apartmentData);
+    console.log(apartmentData)
     fetch(endpoint, {
       method: "POST",
       headers: {
@@ -227,109 +199,25 @@ export default function UploadApartmentForm() {
     })
       .then((res) => {
         if (!res.ok) {
-          setIsUploading(false);
           throw new Error("פרסום נכשל");
         }
-        return res.json();
-      })
-      .then((newApartmentId) => {
-        console.log(newApartmentId);
-        apartmentData.ApartmentID = newApartmentId;
-        setApartmentType(null);
-
-        if (images.length > 0) {
-          const formData = new FormData();
-
-          images.forEach((uri) => {
-            const fileName = uri.split("/").pop();
-            const fileType = fileName.split(".").pop();
-
-            let mimeType = "image/jpeg";
-
-            if (fileType === "png") mimeType = "image/png";
-            if (fileType === "jpg" || fileType === "jpeg")
-              mimeType = "image/jpeg";
-
-            let fileUri = uri;
-
-            // Andorid
-            if (Platform.OS === "android" && uri.startsWith("content://")) {
-              const fileInfo = FileSystem.getInfoAsync(uri);
-              if (fileInfo.exists) {
-                fileUri = fileInfo.uri;
-              } else {
-                console.error("❌ לא ניתן לגשת לקובץ:", uri);
-                return;
-              }
-            }
-
-            formData.append("files", {
-              uri: fileUri,
-              name: fileName,
-              type: mimeType,
-            });
-
-            console.log("📤 שולח תמונה:", {
-              uri,
-              name: fileName,
-              type: mimeType,
-            });
-          });
-
-          fetch(
-            `${API}UploadImageCpntroller/uploadApartmentImage/${newApartmentId}`,
-            {
-              method: "POST",
-              body: formData,
-              headers: {},
-            }
-          )
-            .then((res) => {
-              if (!res.ok) {
-                const errorText = res.text();
-                console.error("❌ תגובת השרת:", res.status, errorText);
-                setIsUploading(false);
-                throw new Error("העלאת תמונות נכשלה");
-              }
-              return res.json();
-            })
-            .then((uploadResult) => {
-              console.log("📸 תמונות הועלו:", uploadResult);
-
-              const imageLinks = images.map((uri) => {
-                const fileName = uri.split("/").pop();
-                return `/uploadedFiles/${fileName}`;
-              });
-
-              apartmentData.Images = imageLinks.join(",");
-              const updatedAllApartments = [...allApartments, apartmentData];
-              setAllApartments(updatedAllApartments);
-              console.log(apartmentData.Images, apartmentData);
-              ClearFormFields();
-              setIsUploading(false);
-              Alert.alert("הצלחה", "הדירה והתמונות פורסמו בהצלחה!");
-            })
-            .catch((error) => {
-              console.error("❌ שגיאה בהעלאת תמונות:", error);
-              setIsUploading(false);
-              Alert.alert("שגיאה", "הדירה פורסמה, אך העלאת התמונות נכשלה");
-            });
-        } else {
-          Alert.alert("הצלחה", "הדירה פורסמה בהצלחה!");
-          ClearFormFields();
-          setIsUploading(false);
+        else{
+          const newAptArr = [...allApartments, apartmentData];
+          setAllApartments(newAptArr);
+          const newuid= uId + 1;
+          setUId(newuid);
+          setApartmentType(null);         
         }
+      })
+      .then((data) => {
+        console.log("נשלח בהצלחה:", data);
+        Alert.alert("הצלחה", "הדירה פורסמה בהצלחה!");
       })
       .catch((error) => {
         console.error(error);
-        setIsUploading(false);
         Alert.alert("שגיאה", "אירעה שגיאה בעת פרסום הדירה");
       });
   };
-
-  if (isUploading) {
-    return <HouseLoading />;
-  }  
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -707,11 +595,4 @@ const styles = StyleSheet.create({
     borderColor: "#E3965A",
     backgroundColor: "#FDEAD7",
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "white",
-  },
-  
 });
