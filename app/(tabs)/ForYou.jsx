@@ -1,4 +1,3 @@
-// ForYou.jsx with swipe fixes, preload, AsyncStorage integration and English comments
 import React, { useRef, useState, useContext, useEffect, useMemo } from "react";
 import {
   View,
