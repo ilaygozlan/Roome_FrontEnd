@@ -11,24 +11,22 @@ import {
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import API from "../../config";
-import { sendPushNotification } from './pushNatification';
-import { useOpenHouse } from "../contex/OpenHouseContext";
+import { sendPushNotification } from '../components/pushNatification';
 
 export default function OpenHouseButton({ apartmentId, userId, location, userOwnerId }) {
   const [modalVisible, setModalVisible] = useState(false);
-  const { openHouses, loading, fetchAndSetOpenHouse } = useOpenHouse();
 
   useEffect(() => {
     if (modalVisible && apartmentId) {
-      fetchAndSetOpenHouse(apartmentId);
+      fetchOpenHouses(apartmentId);
     }
   }, [modalVisible]);
 
   const fetchOpenHouses = async () => {
-    setLoading(true);
+   
     try {
       const res = await fetch(
-        API + `OpenHouse/GetOpenHousesByApartment/${apartmentId}/${userId}`
+        API + `OpenHouse/GetOpenHousesByApartment/${apartmentId}/${userOwnerId}`
       );
       if(res.status===404){
         setOpenHouses([]);
@@ -41,9 +39,7 @@ export default function OpenHouseButton({ apartmentId, userId, location, userOwn
     } catch (err) {
       console.error("Error fetching open houses:", err.message);
       setOpenHouses([]);
-    } finally {
-      setLoading(false);
-    }
+    } 
   };
 
   const registerForOpenHouse = async (openHouseId) => {
@@ -75,7 +71,7 @@ export default function OpenHouseButton({ apartmentId, userId, location, userOwn
           await sendPushNotification(ownerPushToken);
         }
 
-        fetchAndSetOpenHouse(apartmentId);
+        fetchOpenHouses(apartmentId);
       } else if (res.status === 409) {
         Alert.alert("נרשמת כבר לבית הפתוח", "נרשמת כבר לבית הפתוח/הייתה בעיה בהרשמה");
       } else {
@@ -95,7 +91,7 @@ export default function OpenHouseButton({ apartmentId, userId, location, userOwn
 
       if (res.ok) {
         Alert.alert("בוטל", "ההרשמה בוטלה בהצלחה.");
-        fetchAndSetOpenHouse(apartmentId);
+        fetchOpenHouses(apartmentId);
       } else {
         Alert.alert("שגיאה", "לא ניתן לבטל.");
       }
@@ -115,9 +111,7 @@ export default function OpenHouseButton({ apartmentId, userId, location, userOwn
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>🏡 סיורים בדירה</Text>
 
-            {loading ? (
-              <ActivityIndicator size="large" color="#E3965A" />
-            ) : openHouses.length > 0 ? (
+            { openHouses.length > 0 ? (
               <FlatList
                 data={openHouses}
                 keyExtractor={(item) => item.openHouseId.toString()}
