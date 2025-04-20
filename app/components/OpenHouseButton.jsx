@@ -24,7 +24,6 @@ export default function OpenHouseButton({ apartmentId, userId, location, userOwn
     }
   }, [modalVisible]);
 
-<<<<<<< HEAD
   const fetchOpenHouses = async () => {
     setLoading(true);
     try {
@@ -47,8 +46,6 @@ export default function OpenHouseButton({ apartmentId, userId, location, userOwn
     }
   };
 
-=======
->>>>>>> bb3090475aa754c68f3171d5ce7338d368917668
   const registerForOpenHouse = async (openHouseId) => {
     try {
       const res = await fetch(API + `OpenHouse/RegisterForOpenHouse`, {
