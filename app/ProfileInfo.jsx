@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { View, TextInput, Text, StyleSheet, TouchableOpacity, Platform, KeyboardAvoidingView, ScrollView, Image, ActivityIndicator } from "react-native";
+import { useContext, useState } from "react";
+import { View, TextInput,Alert , Text, StyleSheet, TouchableOpacity, Platform, KeyboardAvoidingView, ScrollView, Image, ActivityIndicator } from "react-native";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
@@ -11,8 +11,8 @@ export default function ProfileInfo() {
   const [fullName, setFullName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [gender, setGender] = useState("M");
-  const [birthdate, setBirthdate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [birthdate, setBirthdate] = useState(new Date());
   const [profilePhoto, setProfilePhoto] = useState(null);
   const [jobStatus, setJobStatus] = useState("");
   const [ownPet, setOwnPet] = useState(false);
@@ -21,22 +21,50 @@ export default function ProfileInfo() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+
   const handleDateChange = (event, selectedDate) => {
-    setShowDatePicker(false);
-    if (selectedDate) {
-      const formattedDate =
-      `${selectedDate.getDate().toString().padStart(2, '0')}-` +
-      `${(selectedDate.getMonth() + 1).toString().padStart(2, '0')}-` +
-      `${selectedDate.getFullYear()}`;
-  
-    alert(formattedDate);
-    setBirthdate(formattedDate);
-   }
+    setBirthdate(selectedDate);
   };
 
-  const formatDate = (date) => {
-    return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+  const selectImageSource = () => {
+    Alert.alert(
+      "בחר מקור תמונה",
+      "מאיפה תרצה להעלות תמונה?",
+      [
+        { text: "מצלמה", onPress: takePhoto },
+        { text: "גלריה", onPress: pickImage },
+        { text: "ביטול", style: "cancel" },
+      ],
+      { cancelable: true }
+    );
   };
+
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      setError('לא ניתנה גישה למצלמה');
+      return;
+    }
+  
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+  
+    if (!result.canceled && result.assets.length > 0) {
+      setProfilePhoto(result.assets[0].uri); // שמירה של תמונה אחת בלבד
+    }
+  };
+  
+
+  const formatDate = (date) => {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${year}-${month}-${day}`;
+  };
+  
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -85,7 +113,7 @@ export default function ProfileInfo() {
         "fullName": fullName,
         "phoneNumber": phoneNumber,
         "gender": gender,
-        "birthDate": birthdate,
+        "birthDate": formatDate(birthdate),
         "profilePicture": "string",
         "ownPet": ownPet,
         "smoke": smoke,
@@ -125,7 +153,7 @@ export default function ProfileInfo() {
       >
         <Text style={styles.title}>Complete Your Profile</Text>
 
-        <TouchableOpacity style={styles.photoContainer} onPress={pickImage}>
+        <TouchableOpacity style={styles.photoContainer} onPress={selectImageSource}>
           {profilePhoto ? (
             <Image source={{ uri: profilePhoto }} style={styles.profilePhoto} />
           ) : (

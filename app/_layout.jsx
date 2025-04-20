@@ -1,3 +1,4 @@
+import 'react-native-get-random-values';
 import { useEffect, useState, useContext } from "react";
 import { Stack, useRouter } from "expo-router";
 import { onAuthStateChanged } from "firebase/auth";
@@ -54,8 +55,10 @@ export default function RootLayout() {
 
 
   return (
+    <ActiveApartmentProvider>
     <UserInfoProvider>
        <AuthStack/>
     </UserInfoProvider>
+    </ActiveApartmentProvider>
   );
 }

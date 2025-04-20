@@ -14,7 +14,9 @@ import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
 export default function Map() {
-  const { allApartments } = useContext(ActiveApartmentContext);
+  const { allApartments, setAllApartments } = useContext(
+    ActiveApartmentContext
+  );
   const [region, setRegion] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -41,19 +43,22 @@ export default function Map() {
 
   const renderMarkers = () => {
     return allApartments.map((apt, index) => {
-      const lat = apt.latitude;
-      const lng = apt.longitude;
-
-      if (!lat || !lng) return null;
-
-      return (
-        <Marker
-          key={index}
-          coordinate={{ latitude: lat, longitude: lng }}
-          title={apt.title}
-          description={apt.description || "Apartment"}
-        />
-      );
+      if (apt.Location && typeof apt.Location === "string" && apt.Location.trim().startsWith("{")) {
+        const address = JSON.parse(apt.Location);
+        const lat = address.latitude;
+        const lng = address.longitude;
+      
+        if (lat && lng) {
+          return (
+            <Marker
+              key={index}
+              coordinate={{ latitude: lat, longitude: lng }}
+              title={apt.Price.toLocaleString('he-IL') + " ₪"}
+              description={apt.Description || "Apartment"}
+            />
+          );
+        }
+      } 
     });
   };
 
