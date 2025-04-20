@@ -18,20 +18,20 @@ export default function HouseLoading() {
         }),
         Animated.timing(fillAnim, {
           toValue: 0,
-          duration: 0, 
+          duration: 0, // ← reset מיידי
           useNativeDriver: false,
         }),
       ]).start(() => {
-        loopAnimation(); 
+        loopAnimation(); // ריקורסיה להמשך הלולאה
       });
     };
 
-    loopAnimation(); 
+    loopAnimation(); // הפעלה ראשונה
   }, []);
 
   const fillHeight = fillAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [600, 0], 
+    outputRange: [600, 0], // ממלא מלמטה למעלה
   });
 
   return (
@@ -46,11 +46,13 @@ export default function HouseLoading() {
           </Mask>
         </Defs>
 
+        {/* רקע אפור של הבית */}
         <Path
           fill="#ccc"
           d="M256 0L0 192h64v320h128V320h128v192h128V192h64z"
         />
 
+        {/* שכבת המילוי הכתומה שמתמלאת */}
         <AnimatedRect
           x="0"
           y={fillHeight}
