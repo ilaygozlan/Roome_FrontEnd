@@ -31,6 +31,10 @@ export default function OpenHouseButton({ apartmentId, userId, location ,userOwn
       const res = await fetch(
         API + `OpenHouse/GetOpenHousesByApartment/${apartmentId}/${userId}`
       );
+      if(res.status===404){
+        setOpenHouses([]);
+        return;
+      }
       if (!res.ok) throw new Error("Failed to fetch open houses");
       const data = await res.json();
       setOpenHouses(data);

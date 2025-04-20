@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,8 @@ import {
   ScrollView,
   Dimensions,
   Animated,
-  Modal
+  Modal,
+  Alert,
 } from "react-native";
 import Constants from "expo-constants";
 import ApartmentReview from "./components/apartmentReview";
@@ -17,7 +18,9 @@ import { useNavigation } from "@react-navigation/native";
 import API from "../config";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import UserProfile from "./UserProfile"; 
+import UserProfile from "./UserProfile";
+import { userInfoContext } from "./contex/userInfoContext";
+import { sendPushNotification } from './components/pushNatification';
 
 const { width } = Dimensions.get("window");
 
@@ -29,11 +32,7 @@ export default function ApartmentDetails({ apt, onClose }) {
   const [showUserProfile, setShowUserProfile] = useState(false);
   const navigation = useNavigation();
   const [userInfo, setUserInfo] = useState(null);
-
-  useEffect(() => {
-    console.log("APT CHANGED:", apt.ApartmentID);
-  }, [apt]);
-
+  
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
@@ -56,7 +55,7 @@ export default function ApartmentDetails({ apt, onClose }) {
         carouselRef.current.scrollTo({ x: nextIndex * width, animated: true });
         setActiveSlide(nextIndex);
       }
-    }, 5000); // every 5 seconds
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [activeSlide, apt]);
@@ -242,11 +241,6 @@ export default function ApartmentDetails({ apt, onClose }) {
     }
   };
 
-  const openHouses = [
-    { id: 1, date: "25 במרץ 2025", time: "10:00", location: apt.Location },
-    { id: 2, date: "1 באפריל 2025", time: "14:00", location: apt.Location },
-  ];
-
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <ScrollView>
@@ -261,11 +255,9 @@ export default function ApartmentDetails({ apt, onClose }) {
             source={{ uri: apt.Images?.split(",")[0] }}
             style={styles.image}
           />
-
           <Text style={styles.title}>{apt.Location}</Text>
           <Text style={styles.price}>{apt.Price} ש"ח</Text>
           <Text style={styles.description}>{apt.Description}</Text>
-
           <Text style={styles.sectionTitle}>
             סוג דירה: {getTypeName(apt.ApartmentType)}
           </Text>
@@ -275,31 +267,19 @@ export default function ApartmentDetails({ apt, onClose }) {
             <Text style={styles.detail}>חדרים: {apt.AmountOfRooms}</Text>
           </View>
           <View style={styles.detailRow}>
-            <MaterialIcons
-              name="pets"
-              size={16}
-              color={apt.AllowPet ? "#E3965A" : "#ccc"}
-            />
+            <MaterialIcons name="pets" size={16} color="#E3965A" />
             <Text style={styles.detail}>
               חיות מחמד: {apt.AllowPet ? "מותר" : "אסור"}
             </Text>
           </View>
           <View style={styles.detailRow}>
-            <MaterialIcons
-              name="smoking-rooms"
-              size={16}
-              color={apt.AllowSmoking ? "#E3965A" : "#ccc"}
-            />
+            <MaterialIcons name="smoking-rooms" size={16} color="#E3965A" />
             <Text style={styles.detail}>
               עישון: {apt.AllowSmoking ? "מותר" : "אסור"}
             </Text>
           </View>
           <View style={styles.detailRow}>
-            <MaterialIcons
-              name="local-parking"
-              size={16}
-              color={apt.ParkingSpace > 0 ? "#E3965A" : "#ccc"}
-            />
+            <MaterialIcons name="local-parking" size={16} color="#E3965A" />
             <Text style={styles.detail}>חניה: {apt.ParkingSpace}</Text>
           </View>
           <View style={styles.detailRow}>
@@ -319,25 +299,6 @@ export default function ApartmentDetails({ apt, onClose }) {
 
           {renderExtraDetails()}
 
-          <Text style={styles.sectionTitle}>🏡 סיורים בדירה:</Text>
-          {openHouses.length > 0 ? (
-            openHouses.map((item) => (
-              <View key={item.id.toString()} style={styles.openHouseItem}>
-                <Text style={styles.openHouseText}>
-                  {item.date} - {item.time}
-                </Text>
-                <Text style={styles.openHouseLocation}>{item.location}</Text>
-                <TouchableOpacity
-                  style={styles.registerButton}
-                  onPress={() => alert(`נרשמת לסיור בתאריך ${item.date}`)}
-                >
-                  <Text style={styles.registerText}>להרשמה</Text>
-                </TouchableOpacity>
-              </View>
-            ))
-          ) : (
-            <Text style={styles.noOpenHouses}>אין סיורים זמינים כרגע</Text>
-          )}
 
           {userInfo && (
             <TouchableOpacity
@@ -432,10 +393,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
     color: "#444",
   },
-  roommateScroll: {
-    marginTop: 10,
-    paddingVertical: 10,
-  },
   roommateCard: {
     backgroundColor: "#f0f0f0",
     borderRadius: 10,
@@ -514,5 +471,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#333",
     fontWeight: "bold",
+  },
+  statusConfirmed: {
+    color: "green",
+    fontWeight: "bold",
+    textAlign: "center",
+    marginTop: 5,
+  },
+  fullMessage: {
+    color: "red",
+    fontWeight: "bold",
+    textAlign: "center",
+    marginTop: 5,
   },
 });
