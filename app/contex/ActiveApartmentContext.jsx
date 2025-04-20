@@ -46,6 +46,7 @@ export const ActiveApartmentProvider = ({ children }) => {
       allApartments,
       setAllApartments,
       refreshFavorites,
+      loginUserId,
       triggerFavoritesRefresh: () => setRefreshFavorites((prev) => !prev),
     }}>
       {children}

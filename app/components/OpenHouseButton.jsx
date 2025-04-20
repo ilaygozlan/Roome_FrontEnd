@@ -12,19 +12,19 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import API from "../../config";
 import { sendPushNotification } from './pushNatification';
+import { useOpenHouse } from "../contex/OpenHouseContext";
 
-
-export default function OpenHouseButton({ apartmentId, userId, location ,userOwnerId}) {
+export default function OpenHouseButton({ apartmentId, userId, location, userOwnerId }) {
   const [modalVisible, setModalVisible] = useState(false);
-  const [openHouses, setOpenHouses] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const { openHouses, loading, fetchAndSetOpenHouse } = useOpenHouse();
 
   useEffect(() => {
-    if (modalVisible) {
-      fetchOpenHouses();
+    if (modalVisible && apartmentId) {
+      fetchAndSetOpenHouse(apartmentId);
     }
   }, [modalVisible]);
 
+<<<<<<< HEAD
   const fetchOpenHouses = async () => {
     setLoading(true);
     try {
@@ -47,9 +47,10 @@ export default function OpenHouseButton({ apartmentId, userId, location ,userOwn
     }
   };
 
+=======
+>>>>>>> bb3090475aa754c68f3171d5ce7338d368917668
   const registerForOpenHouse = async (openHouseId) => {
     try {
-      // 1. Register the user for the open house
       const res = await fetch(API + `OpenHouse/RegisterForOpenHouse`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -59,7 +60,7 @@ export default function OpenHouseButton({ apartmentId, userId, location ,userOwn
           confirmed: false,
         }),
       });
-  
+
       if (res.ok) {
         Alert.alert("נרשמת בהצלחה לבית הפתוח", "נרשמת בהצלחה לבית הפתוח!");
   
@@ -73,62 +74,43 @@ export default function OpenHouseButton({ apartmentId, userId, location ,userOwn
   
         if (tokenResponse.ok) {
           const result = await tokenResponse.json();
-          const ownerPushToken = result.pushToken; // ← אם זה JSON, ולא טקסט
-  
-          console.log("📬 טוקן של בעל הדירה:", ownerPushToken);
-  
-          // 3. Send the push notification to the property owner
+          const ownerPushToken = result.pushToken;
           await sendPushNotification(ownerPushToken);
-  
-          console.log(" שלחתי את ההתראה לבעל הדירה");
-        } else {
-          console.error(" לא הצלחתי להביא טוקן של בעל הדירה");
         }
-  
-        fetchOpenHouses();
+
+        fetchAndSetOpenHouse(apartmentId);
       } else if (res.status === 409) {
         Alert.alert("נרשמת כבר לבית הפתוח", "נרשמת כבר לבית הפתוח/הייתה בעיה בהרשמה");
       } else {
-        Alert.alert("Error", "Failed to register for the open house.");
+        Alert.alert("שגיאה", "ההרשמה נכשלה.");
       }
     } catch (error) {
-      console.error("Registration error:", error);
-      Alert.alert("Network Error", "Could not connect to the server.");
+      Alert.alert("שגיאת רשת", "לא ניתן להתחבר לשרת.");
     }
   };
-  
-  
 
   const cancelRegistration = async (openHouseId) => {
     try {
       const res = await fetch(
         API + `OpenHouse/DeleteRegistration/${openHouseId}/${userId}`,
-        {
-          method: "DELETE",
-        }
+        { method: "DELETE" }
       );
 
       if (res.ok) {
-        Alert.alert("ההרשמה בוטלה", "ביטלת את ההרשמה לסיור.");
-        fetchOpenHouses();
+        Alert.alert("בוטל", "ההרשמה בוטלה בהצלחה.");
+        fetchAndSetOpenHouse(apartmentId);
       } else {
-        Alert.alert("שגיאה", "לא ניתן לבטל את ההרשמה.");
+        Alert.alert("שגיאה", "לא ניתן לבטל.");
       }
-    } catch (error) {
-      console.error("Cancellation error:", error);
-      Alert.alert("שגיאת תקשורת", "לא ניתן להתחבר לשרת.");
+    } catch {
+      Alert.alert("שגיאת רשת", "לא ניתן להתחבר.");
     }
   };
-  
 
   return (
     <View>
       <TouchableOpacity onPress={() => setModalVisible(true)}>
-        <MaterialCommunityIcons
-          name="calendar-outline"
-          size={24}
-          color="gray"
-        />
+        <MaterialCommunityIcons name="calendar-outline" size={24} color="gray" />
       </TouchableOpacity>
 
       <Modal visible={modalVisible} transparent animationType="fade">
@@ -143,7 +125,7 @@ export default function OpenHouseButton({ apartmentId, userId, location ,userOwn
                 data={openHouses}
                 keyExtractor={(item) => item.openHouseId.toString()}
                 renderItem={({ item }) => {
-                  const isFull = item.confirmedPeoples >= item.amountOfPeoples;
+                  const isFull = item.totalRegistrations >= item.amountOfPeoples;
 
                   return (
                     <View style={styles.openHouseItem}>
@@ -153,16 +135,12 @@ export default function OpenHouseButton({ apartmentId, userId, location ,userOwn
                       </Text>
                       <Text style={styles.openHouseLocation}>{location}</Text>
                       <Text style={styles.openHouseLocation}>
-                        נרשמו: {item.totalRegistrations} /{" "}
-                        {item.amountOfPeoples}
+                        נרשמו: {item.totalRegistrations} / {item.amountOfPeoples}
                       </Text>
 
-                      {/* רישום או סטטוס */}
                       {item.isRegistered ? (
                         <>
-                          <Text style={styles.statusConfirmed}>
-                            ✔ רשום לסיור
-                          </Text>
+                          <Text style={styles.statusConfirmed}>✔ רשום לסיור</Text>
                           <TouchableOpacity
                             style={styles.cancelButton}
                             onPress={() => cancelRegistration(item.openHouseId)}
@@ -185,7 +163,7 @@ export default function OpenHouseButton({ apartmentId, userId, location ,userOwn
                 }}
               />
             ) : (
-              <Text style={styles.noOpenHouses}>אין סיורים זמינים</Text>
+              <Text style={styles.noOpenHouses}>אין סיורים זמינים כרגע</Text>
             )}
 
             <TouchableOpacity
@@ -200,8 +178,6 @@ export default function OpenHouseButton({ apartmentId, userId, location ,userOwn
     </View>
   );
 }
-
-// === styles ===
 const styles = StyleSheet.create({
   modalBackground: {
     flex: 1,
