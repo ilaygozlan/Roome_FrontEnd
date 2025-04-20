@@ -18,6 +18,7 @@ import API from "../config";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import UserProfile from "./UserProfile"; 
+import ApartmentGallery from "./components/ApartmentGallery";
 
 const { width } = Dimensions.get("window");
 
@@ -242,11 +243,6 @@ export default function ApartmentDetails({ apt, onClose }) {
     }
   };
 
-  const openHouses = [
-    { id: 1, date: "25 במרץ 2025", time: "10:00", location: apt.Location },
-    { id: 2, date: "1 באפריל 2025", time: "14:00", location: apt.Location },
-  ];
-
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <ScrollView>
@@ -257,10 +253,7 @@ export default function ApartmentDetails({ apt, onClose }) {
             </TouchableOpacity>
             <Text style={styles.headerTitle}></Text>
           </View>
-          <Image
-            source={{ uri: apt.Images?.split(",")[0] }}
-            style={styles.image}
-          />
+          <ApartmentGallery images={apt.Images} />
 
           <Text style={styles.title}>{apt.Location}</Text>
           <Text style={styles.price}>{apt.Price} ש"ח</Text>
@@ -318,26 +311,6 @@ export default function ApartmentDetails({ apt, onClose }) {
           )}
 
           {renderExtraDetails()}
-
-          <Text style={styles.sectionTitle}>🏡 סיורים בדירה:</Text>
-          {openHouses.length > 0 ? (
-            openHouses.map((item) => (
-              <View key={item.id.toString()} style={styles.openHouseItem}>
-                <Text style={styles.openHouseText}>
-                  {item.date} - {item.time}
-                </Text>
-                <Text style={styles.openHouseLocation}>{item.location}</Text>
-                <TouchableOpacity
-                  style={styles.registerButton}
-                  onPress={() => alert(`נרשמת לסיור בתאריך ${item.date}`)}
-                >
-                  <Text style={styles.registerText}>להרשמה</Text>
-                </TouchableOpacity>
-              </View>
-            ))
-          ) : (
-            <Text style={styles.noOpenHouses}>אין סיורים זמינים כרגע</Text>
-          )}
 
           {userInfo && (
             <TouchableOpacity
