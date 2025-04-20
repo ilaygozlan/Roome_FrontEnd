@@ -163,6 +163,7 @@ export default function Apartment(props) {
           <ApartmentDetails
             key={selectedApartment.ApartmentID}
             apt={selectedApartment}
+            userId={loginUserId}
             onClose={() => {
               setShowApartmentDetails(false);
               setSelectedApartment(null);

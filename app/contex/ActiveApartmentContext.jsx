@@ -66,6 +66,7 @@ export const ActiveApartmentProvider = ({ children }) => {
       setMapLocationAllApt,
       setAllApartments,
       refreshFavorites,
+      loginUserId,
       triggerFavoritesRefresh: () => setRefreshFavorites((prev) => !prev),
     }}>
       {children}
