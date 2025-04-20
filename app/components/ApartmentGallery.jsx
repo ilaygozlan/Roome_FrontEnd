@@ -39,7 +39,7 @@ export default function ApartmentGallery({ images }) {
         onScroll={handleScroll}
         scrollEventThrottle={16}
         ref={scrollRef}
-        style={styles.scrollView}
+        style={{ width }}
       >
         {imageArray.map((imgUrl, index) => (
           <Image key={index} source={{ uri: imgUrl }} style={styles.image} />

@@ -20,6 +20,7 @@ import { userInfoContext } from "../contex/userInfoContext";
 import { ActiveApartmentContext } from "../contex/ActiveApartmentContext";
 import API from "../../config";
 import * as FileSystem from "expo-file-system";
+import HouseLoading from "../components/LoadingHouseSign";
 
 export default function UploadApartmentForm() {
   const { allApartments, setAllApartments } = useContext(
@@ -301,9 +302,11 @@ export default function UploadApartmentForm() {
               });
 
               apartmentData.Images = imageLinks.join(",");
-              const updatedAllApartments = [...prev, apartmentData];
+              const updatedAllApartments = [...allApartments, apartmentData];
               setAllApartments(updatedAllApartments);
               console.log(apartmentData.Images, apartmentData);
+              ClearFormFields();
+              setIsUploading(false);
               Alert.alert("הצלחה", "הדירה והתמונות פורסמו בהצלחה!");
             })
             .catch((error) => {
@@ -325,15 +328,8 @@ export default function UploadApartmentForm() {
   };
 
   if (isUploading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <FontAwesome5 name="home" size={60} color="#E3965A" />
-        <Text style={{ marginTop: 20, fontSize: 16 }}>
-          מעלה את הדירה והתמונות...
-        </Text>
-      </View>
-    );
-  }
+    return <HouseLoading />;
+  }  
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
