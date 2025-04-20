@@ -1,3 +1,4 @@
+// ForYou.jsx with swipe fixes, preload, AsyncStorage integration and English comments
 import React, { useRef, useState, useContext, useEffect, useMemo } from "react";
 import {
   View,
@@ -22,7 +23,7 @@ const CARD_WIDTH = SCREEN_WIDTH * 0.9;
 const CARD_HEIGHT = 500;
 const NAVBAR_HEIGHT = 80;
 const EXTRA_OFFSET = 25;
-const SWIPE_THRESHOLD = 0.15 * SCREEN_WIDTH; // LOWERED threshold to improve swipe detection
+const SWIPE_THRESHOLD = 0.15 * SCREEN_WIDTH;
 const SWIPE_OUT_DURATION = 250;
 
 const DISLIKED_KEY = "disliked_apartments";
@@ -32,7 +33,6 @@ export default function ForYou() {
   const userId = loginUserId;
   const { allApartments } = useContext(ActiveApartmentContext);
 
-  // App state
   const [interactedApartmentIds, setInteractedApartmentIds] = useState([]);
   const [likedApartments, setLikedApartments] = useState([]);
   const [dislikedApartments, setDislikedApartments] = useState([]);
@@ -42,7 +42,6 @@ export default function ForYou() {
   const [storageReady, setStorageReady] = useState(false);
   const position = useRef(new Animated.ValueXY()).current;
 
-  // Save disliked apartment IDs to AsyncStorage
   const saveDislikedToStorage = async (ids) => {
     try {
       await AsyncStorage.setItem(DISLIKED_KEY, JSON.stringify([...new Set(ids)]));
@@ -51,7 +50,6 @@ export default function ForYou() {
     }
   };
 
-  // Load disliked apartment IDs from AsyncStorage
   const loadDislikedFromStorage = async () => {
     try {
       const stored = await AsyncStorage.getItem(DISLIKED_KEY);
@@ -62,7 +60,6 @@ export default function ForYou() {
     }
   };
 
-  // Load liked and disliked apartments
   const loadInteracted = async () => {
     try {
       const [likedRes, localDisliked] = await Promise.all([
@@ -78,10 +75,6 @@ export default function ForYou() {
       setDislikedApartments(localDisliked);
       setInteractedApartmentIds(allInteracted);
       setStorageReady(true);
-
-      console.log("👍 Liked apartments:", likedIds);
-      console.log("👎 Disliked apartments (from AsyncStorage):", localDisliked);
-      console.log("📦 All interacted apartments:", allInteracted);
     } catch (err) {
       console.error("Error loading interacted apartments:", err);
     } finally {
@@ -89,7 +82,6 @@ export default function ForYou() {
     }
   };
 
-  // Reset all disliked apartments
   const clearDislikedApartments = async () => {
     try {
       await AsyncStorage.removeItem(DISLIKED_KEY);
@@ -97,7 +89,6 @@ export default function ForYou() {
       setInteractedApartmentIds(likedApartments);
       setCurrentIndex(0);
       currentIndexRef.current = 0;
-      console.log("🧹 Disliked apartments cleared!");
     } catch (e) {
       console.error("❌ Failed to clear AsyncStorage:", e);
     }
@@ -107,7 +98,6 @@ export default function ForYou() {
     loadInteracted();
   }, []);
 
-  // Filter apartments that were not seen yet and have images
   const swipeableApartments = useMemo(() => {
     if (!storageReady) return [];
     return allApartments.filter(
@@ -118,29 +108,24 @@ export default function ForYou() {
     );
   }, [allApartments, interactedApartmentIds, storageReady]);
 
-  // Preload images for faster rendering
   useEffect(() => {
     swipeableApartments.forEach((apt) => {
       if (apt?.Images) {
-        Image.prefetch(apt.Images)
-          .then(() => console.log(`📦 Preloaded: ${apt.Images}`))
-          .catch((err) => console.warn("⚠️ Failed to preload image", err));
+        Image.prefetch(apt.Images).catch(() => {});
       }
     });
   }, [swipeableApartments]);
 
-  // PanResponder for swiping gestures
   const panResponder = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 10,
-      onPanResponderGrant: () => position.setOffset({ x: position.x._value, y: position.y._value }),
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 5,
       onPanResponderMove: Animated.event([
         null,
         { dx: position.x, dy: position.y }
       ], { useNativeDriver: false }),
       onPanResponderRelease: (_, gesture) => {
         position.flattenOffset();
-        console.log("📍 Gesture released with dx:", gesture.dx);
         if (gesture.dx > SWIPE_THRESHOLD) {
           forceSwipe("right");
         } else if (gesture.dx < -SWIPE_THRESHOLD) {
@@ -152,7 +137,6 @@ export default function ForYou() {
     })
   ).current;
 
-  // Animate card off-screen on swipe
   const forceSwipe = (direction) => {
     const x = direction === "right" ? SCREEN_WIDTH : -SCREEN_WIDTH;
     Animated.timing(position, {
@@ -162,7 +146,6 @@ export default function ForYou() {
     }).start(() => onSwipeComplete(direction));
   };
 
-  // Handle liking an apartment
   const likeApartment = async (apartmentId) => {
     try {
       const res = await fetch(`${API}User/LikeApartment/${userId}/${apartmentId}`, {
@@ -177,7 +160,6 @@ export default function ForYou() {
     }
   };
 
-  // Handle disliking an apartment (also remove like if exists)
   const dislikeApartment = async (apartmentId) => {
     try {
       if (likedApartments.includes(apartmentId)) {
@@ -197,7 +179,6 @@ export default function ForYou() {
     }
   };
 
-  // Handle completed swipe action
   const onSwipeComplete = async (direction) => {
     const apartment = swipeableApartments[currentIndexRef.current];
     if (!apartment) return;
@@ -216,7 +197,6 @@ export default function ForYou() {
     position.setValue({ x: 0, y: 0 });
   };
 
-  // Animate card back to center if not swiped enough
   const resetPosition = () => {
     Animated.spring(position, {
       toValue: { x: 0, y: 0 },
@@ -224,7 +204,6 @@ export default function ForYou() {
     }).start();
   };
 
-  // Animation style for top card
   const getCardStyle = () => {
     const rotate = position.x.interpolate({
       inputRange: [-SCREEN_WIDTH * 1.5, 0, SCREEN_WIDTH * 1.5],
@@ -239,7 +218,6 @@ export default function ForYou() {
     };
   };
 
-  // Render apartment cards
   const renderCards = () => {
     if (isLoading || !storageReady) {
       return <ActivityIndicator size="large" color="#999" style={{ marginTop: 100 }} />;
@@ -304,7 +282,6 @@ export default function ForYou() {
   );
 }
 
-// Styles for components
 const styles = StyleSheet.create({
   container: {
     flex: 1,
