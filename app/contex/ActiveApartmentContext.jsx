@@ -7,6 +7,7 @@ export const ActiveApartmentContext = createContext();
 
 export const ActiveApartmentProvider = ({ children }) => {
   const [allApartments, setAllApartments] = useState([]);
+  const [mapLocationAllApt, setMapLocationAllApt] = useState([]);
   const [loginUserId, setLoginUserId] = useState(null);
   const [user, loading] = useAuthState(auth);
   const [refreshFavorites, setRefreshFavorites] = useState(false);
@@ -35,7 +36,24 @@ export const ActiveApartmentProvider = ({ children }) => {
     if (loginUserId) {
       fetch(`${API}Apartment/GetAllActiveApartments/${loginUserId}`)
         .then((response) => response.json())
-        .then((data) => setAllApartments(data))
+        .then((data) => {
+          const updatedData = data.map((apt) => {
+            try {
+              const parsedLocation = JSON.parse(apt.Location);
+              return {
+                ...apt,
+                Location: parsedLocation.address,
+              };
+            } catch (e) {
+              return {
+                ...apt,
+                Location: apt.Location, // שומר את המיקום המקורי אם זה לא JSON
+              };
+            }
+          });
+          setAllApartments(updatedData);
+          setMapLocationAllApt(data);
+        })
         .catch((error) => console.error("Error fetching apartments:", error));
     }
     console.log("apt login ", loginUserId)
@@ -44,6 +62,8 @@ export const ActiveApartmentProvider = ({ children }) => {
   return (
     <ActiveApartmentContext.Provider value={{
       allApartments,
+      mapLocationAllApt,
+      setMapLocationAllApt,
       setAllApartments,
       refreshFavorites,
       triggerFavoritesRefresh: () => setRefreshFavorites((prev) => !prev),

@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export default function GooglePlacesInput({ onLocationSelected }) {
   return (
-    <View style={{ zIndex: 10 }}> 
+    <View style={{ zIndex: 1000 }}> 
       <GooglePlacesAutocomplete
         placeholder="הקלד מיקום..."
         onPress={(data, details = null) => {
