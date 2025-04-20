@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -23,11 +23,28 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
-  const [startTime, setStartTime] = useState(null);
-  const [endTime, setEndTime] = useState(null);
-  const [peopleCount, setPeopleCount] = useState(20);
 
-  const ownedApartments = allApartments.filter((apt) => apt.UserID === userId);
+  const [startDateObj, setStartDateObj] = useState(new Date());
+  const [endDateObj, setEndDateObj] = useState(new Date());
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [ownedApartments, setOwnedApartments] = useState([]);
+  const [peopleCount, setPeopleCount] = useState("");
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const filtered = allApartments.filter((apt) => apt.UserID === userId);
+    setOwnedApartments(filtered);
+  }, [allApartments, userId]);
+
+  const [openHousesMap, setOpenHousesMap] = useState({});
+
+  useEffect(() => {
+    ownedApartments.forEach((apt) => {
+      fetchOpenHouses(apt.ApartmentID);
+    });
+  }, [ownedApartments]);
 
   const getBorderColor = (type) => {
     switch (type) {
@@ -55,6 +72,22 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
     }
   };
 
+  const fetchOpenHouses = async (apartmentId) => {
+    try {
+      const res = await fetch(
+        `${API}OpenHouse/GetOpenHousesByApartment/${apartmentId}/${userId}`
+      );
+      if (!res.ok) {
+        setOpenHousesMap((prev) => ({ ...prev, [apartmentId]: [] }));
+        return;
+      }
+      const data = await res.json();
+      setOpenHousesMap((prev) => ({ ...prev, [apartmentId]: data }));
+    } catch (err) {
+      console.error(`שגיאה אמיתית בטעינת בית פתוח לדירה ${apartmentId}:`, err);
+    }
+  };
+
   const handleCreateOpenHouse = (apartmentId) => {
     setSelectedApartmentId(apartmentId);
     setOpenHouseModalVisible(true);
@@ -66,21 +99,26 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
       return;
     }
 
+    if (isNaN(peopleCount) || Number(peopleCount) <= 0) {
+      alert("אנא הזן מספר משתתפים חוקי");
+      return;
+    }
+
     const requestBody = {
       openHouseId: 0,
       apartmentId: selectedApartmentId,
-      date: formatDateOnly(openHouseDate), 
-      amountOfPeoples: peopleCount,
+      date: formatDateOnly(openHouseDate),
+      amountOfPeoples: Number(peopleCount),
       totalRegistrations: 0,
       startTime: startTime,
-      endTime: endTime,    
+      endTime: endTime,
       isRegistered: true,
       userConfirmed: true,
     };
 
     try {
       const response = await fetch(
-        API+`/OpenHouse/CreateNewOpenHouse/${userId}`,
+        API + `OpenHouse/CreateNewOpenHouse/${userId}`,
         {
           method: "POST",
           headers: {
@@ -89,12 +127,38 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
           body: JSON.stringify(requestBody),
         }
       );
-      const result = await response.json();
-      alert("✅ בית פתוח נוצר בהצלחה!");
+
+      const text = await response.text();
+      let result;
+
+      try {
+        result = JSON.parse(text);
+      } catch {
+        result = { message: text };
+      }
+
+      if (!response.ok) {
+        throw new Error(result.message || "שגיאה מהשרת");
+      }
+
+      alert("✅ " + (result.message || "בית פתוח נוצר בהצלחה!"));
       setOpenHouseModalVisible(false);
+
+      const newOpenHouse = {
+        ...requestBody,
+        openHouseId: result.id || Math.random(),
+      };
+
+      setOpenHousesMap((prev) => {
+        const current = prev[selectedApartmentId] || [];
+        return {
+          ...prev,
+          [selectedApartmentId]: [...current, newOpenHouse],
+        };
+      });
     } catch (error) {
       console.error("שגיאה:", error);
-      alert("❌ שגיאה ביצירת בית פתוח");
+      alert("❌ שגיאה ביצירת בית פתוח:\n" + error.message);
     }
   };
 
@@ -104,7 +168,12 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
     const day = String(dateObj.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
-  
+
+  const formatTime = (dateObj) => {
+    const hours = String(dateObj.getHours()).padStart(2, "0");
+    const minutes = String(dateObj.getMinutes()).padStart(2, "0");
+    return `${hours}:${minutes}`;
+  };
 
   if (ownedApartments.length === 0) {
     return (
@@ -116,17 +185,27 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
 
   return (
     <View style={styles.wrapper}>
-      <Text style={styles.title}>{isMyProfile ? "הדירות שלי" : "הדירות שפרסם/ה"}</Text>
+      <Text style={styles.title}>
+        {isMyProfile ? "הדירות שלי" : "הדירות שפרסם/ה"}
+      </Text>
       <ScrollView contentContainerStyle={styles.container}>
         {ownedApartments.map((apt) => (
           <View
             key={apt.ApartmentID}
-            style={[styles.card, { borderColor: getBorderColor(apt.ApartmentType) }]}
+            style={[
+              styles.card,
+              { borderColor: getBorderColor(apt.ApartmentType) },
+            ]}
           >
             <View
-              style={[styles.typeLabel, { backgroundColor: getBorderColor(apt.ApartmentType) }]}
+              style={[
+                styles.typeLabel,
+                { backgroundColor: getBorderColor(apt.ApartmentType) },
+              ]}
             >
-              <Text style={styles.typeText}>{getTypeName(apt.ApartmentType)}</Text>
+              <Text style={styles.typeText}>
+                {getTypeName(apt.ApartmentType)}
+              </Text>
             </View>
 
             <ApartmentGallery images={apt.Images} />
@@ -137,12 +216,30 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
               <Text style={styles.price}>{apt.Price} ש"ח</Text>
 
               {isMyProfile && (
-                <TouchableOpacity
-                  style={styles.openHouseButton}
-                  onPress={() => handleCreateOpenHouse(apt.ApartmentID)}
-                >
-                  <Text style={styles.openHouseButtonText}>צור בית פתוח</Text>
-                </TouchableOpacity>
+                <>
+                  {(openHousesMap[apt.ApartmentID] || []).map((item, idx) => (
+                    <View key={idx} style={styles.openHouseItem}>
+                      <Text style={styles.openHouseText}>
+                        {new Date(item.date).toLocaleDateString("he-IL")} -{" "}
+                        {item.startTime} - {item.endTime}
+                      </Text>
+                      <Text style={styles.openHouseLocation}>
+                        {apt.Location}
+                      </Text>
+                      <Text style={styles.openHouseLocation}>
+                        נרשמו: {item.totalRegistrations} /{" "}
+                        {item.amountOfPeoples}
+                      </Text>
+                    </View>
+                  ))}
+
+                  <TouchableOpacity
+                    style={styles.openHouseCreateButton}
+                    onPress={() => handleCreateOpenHouse(apt.ApartmentID)}
+                  >
+                    <Text style={styles.openHouseButtonText}>צור בית פתוח</Text>
+                  </TouchableOpacity>
+                </>
               )}
             </View>
           </View>
@@ -155,13 +252,43 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
         transparent
         onRequestClose={() => setOpenHouseModalVisible(false)}
       >
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" }}>
-          <View style={{ backgroundColor: "#fff", padding: 20, borderRadius: 10, width: "80%" }}>
-            <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10, textAlign: "center" }}>צור בית פתוח</Text>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "#fff",
+              padding: 20,
+              borderRadius: 10,
+              width: "80%",
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: "bold",
+                marginBottom: 10,
+                textAlign: "center",
+              }}
+            >
+              צור בית פתוח
+            </Text>
 
             <Text>בחר תאריך:</Text>
             <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-              <Text style={{ padding: 10, borderColor: "#ccc", borderWidth: 1, borderRadius: 5 }}>
+              <Text
+                style={{
+                  padding: 10,
+                  borderColor: "#ccc",
+                  borderWidth: 1,
+                  borderRadius: 5,
+                }}
+              >
                 {openHouseDate.toLocaleDateString("he-IL")}
               </Text>
             </TouchableOpacity>
@@ -179,36 +306,60 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
 
             <Text>שעת התחלה:</Text>
             <TouchableOpacity onPress={() => setShowStartPicker(true)}>
-              <Text style={{ padding: 10, borderColor: "#ccc", borderWidth: 1, borderRadius: 5 }}>
-                {startTime ? startTime : "בחר שעה"}
+              <Text
+                style={{
+                  padding: 10,
+                  borderColor: "#ccc",
+                  borderWidth: 1,
+                  borderRadius: 5,
+                }}
+              >
+                {startTime || "בחר שעה"}
               </Text>
             </TouchableOpacity>
             {showStartPicker && (
               <DateTimePicker
-                value={new Date()}
+                value={startDateObj}
                 mode="time"
-                display="default"
+                display={Platform.OS === "ios" ? "spinner" : "default"}
                 onChange={(event, selectedDate) => {
-                  setShowStartPicker(false);
-                  if (selectedDate) setStartTime(formatTime(selectedDate));
+                  if (event.type === "set" && selectedDate) {
+                    setStartDateObj(selectedDate);
+                    setStartTime(formatTime(selectedDate));
+                  }
+                  if (Platform.OS !== "ios") {
+                    setShowStartPicker(false);
+                  }
                 }}
               />
             )}
 
             <Text>שעת סיום:</Text>
             <TouchableOpacity onPress={() => setShowEndPicker(true)}>
-              <Text style={{ padding: 10, borderColor: "#ccc", borderWidth: 1, borderRadius: 5 }}>
-                {endTime ? endTime : "בחר שעה"}
+              <Text
+                style={{
+                  padding: 10,
+                  borderColor: "#ccc",
+                  borderWidth: 1,
+                  borderRadius: 5,
+                }}
+              >
+                {endTime || "בחר שעה"}
               </Text>
             </TouchableOpacity>
             {showEndPicker && (
               <DateTimePicker
-                value={new Date()}
+                value={endDateObj}
                 mode="time"
-                display="default"
+                display={Platform.OS === "ios" ? "spinner" : "default"}
                 onChange={(event, selectedDate) => {
-                  setShowEndPicker(false);
-                  if (selectedDate) setEndTime(formatTime(selectedDate));
+                  if (event.type === "set" && selectedDate) {
+                    setEndDateObj(selectedDate);
+                    setEndTime(formatTime(selectedDate));
+                  }
+                  if (Platform.OS !== "ios") {
+                    setShowEndPicker(false);
+                  }
                 }}
               />
             )}
@@ -216,13 +367,18 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
             <Text>כמות משתתפים:</Text>
             <TextInput
               value={peopleCount.toString()}
-              onChangeText={(val) => setPeopleCount(Number(val))}
+              placeholder="יש לבחור כמות משתתפים"
+              onChangeText={(val) => setPeopleCount(val)}
               keyboardType="numeric"
               style={{ borderWidth: 1, padding: 10, marginBottom: 20 }}
             />
 
             <TouchableOpacity
-              style={{ backgroundColor: "#2661A1", padding: 10, borderRadius: 5 }}
+              style={{
+                backgroundColor: "#2661A1",
+                padding: 10,
+                borderRadius: 5,
+              }}
               onPress={submitOpenHouse}
             >
               <Text style={{ color: "white", textAlign: "center" }}>אישור</Text>
@@ -312,6 +468,23 @@ const styles = StyleSheet.create({
     color: "#fff",
     textAlign: "center",
     fontWeight: "bold",
+  },
+  openHouseRow: {
+    backgroundColor: "#FFA500",
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  openHouseText: {
+    color: "white",
+    textAlign: "center",
+    fontWeight: "bold",
+  },
+  openHouseCreateButton: {
+    backgroundColor: "#FFA500",
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
   },
 });
 
