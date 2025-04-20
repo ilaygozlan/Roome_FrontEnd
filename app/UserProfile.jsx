@@ -12,7 +12,6 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { FontAwesome5, MaterialIcons, Feather } from "@expo/vector-icons";
-import FavoriteApartmentsScreen from "./FavoriteApartmentsScreen";
 import UserOwnedApartmentsGrid from "./UserOwnedApartmentsGrid";
 import API from "../config";
 import { useRouter } from "expo-router";
@@ -33,7 +32,6 @@ const UserProfile = (props) => {
   const [error, setError] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [updatedProfile, setUpdatedProfile] = useState({});
-  const [showFavorites, setShowFavorites] = useState(false);
   const [friends, setFriends] = useState([]);
   const [isFriend, setIsFriend] = useState(false);
 
@@ -133,13 +131,7 @@ const UserProfile = (props) => {
 
   return (
     <View style={{ flex: 1 }}>
-      <Modal
-        visible={showFavorites}
-        animationType="slide"
-        onRequestClose={() => setShowFavorites(false)}
-      >
-        <FavoriteApartmentsScreen onClose={() => setShowFavorites(false)} />
-      </Modal>
+    
 
       <ScrollView style={styles.container}>
         <View style={styles.headerBackground} />
@@ -222,19 +214,7 @@ const UserProfile = (props) => {
           </View>
         </View>
 
-        <View style={styles.buttonsContainer}>
-          <TouchableOpacity
-            style={styles.smallButton}
-            onPress={() => setShowFavorites(true)}
-          >
-            <MaterialIcons name="favorite" size={20} color="white" />
-            <Text style={styles.buttonText}>
-              {isMyProfile
-                ? "דירות שאהבתי"
-                : `דירות ש${userProfile.fullName} אהב/ה`}
-            </Text>
-          </TouchableOpacity>
-        </View>
+       
 
         <View style={styles.friendsSection}>
           <Text style={styles.sectionTitle}>
@@ -296,6 +276,17 @@ const UserProfile = (props) => {
             />
           </Modal>
         )}
+        
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            paddingTop: 50,
+          }}
+        >
+          <UserOwnedApartmentsGrid userId={finalUserId} isMyProfile={false} />
+        </View>
 
         {isMyProfile && (
           <Modal
