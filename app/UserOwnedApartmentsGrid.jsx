@@ -13,6 +13,7 @@ import ApartmentGallery from "./components/ApartmentGallery";
 import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import API from "../config";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
   const { allApartments } = useContext(ActiveApartmentContext);
@@ -218,19 +219,15 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
               {isMyProfile && (
                 <>
                   {(openHousesMap[apt.ApartmentID] || []).map((item, idx) => (
-                    <View key={idx} style={styles.openHouseItem}>
-                      <Text style={styles.openHouseText}>
-                        {new Date(item.date).toLocaleDateString("he-IL")} -{" "}
-                        {item.startTime} - {item.endTime}
-                      </Text>
-                      <Text style={styles.openHouseLocation}>
-                        {apt.Location}
-                      </Text>
-                      <Text style={styles.openHouseLocation}>
-                        נרשמו: {item.totalRegistrations} /{" "}
-                        {item.amountOfPeoples}
-                      </Text>
-                    </View>
+                  <View key={idx} style={styles.openHouseItem}>
+                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+                
+                    <Text style={styles.openHouseButtonText}>
+                      {new Date(item.date).toLocaleDateString("he-IL")} | {item.startTime} - {item.endTime} | נרשמו: {item.amountOfPeoples} / {item.totalRegistrations}
+                    </Text>
+                    <MaterialCommunityIcons name="calendar-outline" size={20} color="white" style={{ marginLeft: 6 }} />
+                  </View>
+                </View>
                   ))}
 
                   <TouchableOpacity
@@ -482,6 +479,12 @@ const styles = StyleSheet.create({
   },
   openHouseCreateButton: {
     backgroundColor: "#FFA500",
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  openHouseItem: {
+    backgroundColor: "#e68400",
     padding: 10,
     borderRadius: 5,
     marginTop: 10,
