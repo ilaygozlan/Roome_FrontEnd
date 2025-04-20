@@ -3,8 +3,7 @@ import React, { useContext } from "react";
 import { View, ScrollView } from "react-native";
 import MyProfile from "../MyProfile";
 import { userInfoContext } from "../contex/userInfoContext";
-import { UserInfoProvider } from "../contex/userInfoContext";
-
+import {UserInfoProvider} from "../contex/userInfoContext"
 const ProfilePage = () => {
   const { loginUserId } = useContext(userInfoContext);
 
@@ -15,7 +14,7 @@ const ProfilePage = () => {
           <MyProfile myId={loginUserId} />
         </ScrollView>
       </View>
-    </UserInfoProvider>
+      </UserInfoProvider>
   );
 };
 

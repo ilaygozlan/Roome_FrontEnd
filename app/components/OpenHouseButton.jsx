@@ -44,7 +44,7 @@ export default function OpenHouseButton({ apartmentId, userId, location, userOwn
         if (tokenResponse.ok) {
           const result = await tokenResponse.json();
           const ownerPushToken = result.pushToken;
-          await sendPushNotification(ownerPushToken);
+          await sendPushNotification(ownerPushToken,"משתמש נרשם לבית הפתוח שלך", "");
         }
 
         fetchAndSetOpenHouse(apartmentId);
@@ -64,10 +64,18 @@ export default function OpenHouseButton({ apartmentId, userId, location, userOwn
         API + `OpenHouse/DeleteRegistration/${openHouseId}/${userId}`,
         { method: "DELETE" }
       );
-
+  
       if (res.ok) {
         Alert.alert("בוטל", "ההרשמה בוטלה בהצלחה.");
         fetchAndSetOpenHouse(apartmentId);
+  
+        const tokenResponse = await fetch(API + `User/GetPushToken/${userOwnerId}`);
+        if (tokenResponse.ok) {
+          const result = await tokenResponse.json();
+          const ownerPushToken = result.pushToken;
+          await sendPushNotification(ownerPushToken, "משתמש ביטל את ההרשמה לבית הפתוח שלך", "");
+        }
+  
       } else {
         Alert.alert("שגיאה", "לא ניתן לבטל.");
       }
@@ -75,6 +83,7 @@ export default function OpenHouseButton({ apartmentId, userId, location, userOwn
       Alert.alert("שגיאת רשת", "לא ניתן להתחבר.");
     }
   };
+  
 
   return (
     <View>

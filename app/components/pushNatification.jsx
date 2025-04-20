@@ -15,12 +15,12 @@ Notifications.setNotificationHandler({
 });
 
 //what will be write at the notification
-export async function sendPushNotification(expoPushToken) {
+export async function sendPushNotification(expoPushToken,title, body) {
   const message = {
     to: expoPushToken,
     sound: 'default',
-    title: 'נרשם לבית הפתוח שלך',
-    body: 'נרשם לבית הפתוח שלך', // ממליץ לשים משהו כדי לוודא שזה יוצג
+    title: title,
+    body: body,
     data: { someData: 'goes here' },
   };
 

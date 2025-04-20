@@ -8,7 +8,8 @@ import {
   ScrollView,
   Dimensions,
   Animated,
-  Modal
+  Modal,
+  
 } from "react-native";
 import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
 
@@ -247,12 +248,12 @@ export default function ApartmentDetails({ apt, onClose }) {
   };
   const {openHouses, fetchAndSetOpenHouse, loading}= useOpenHouse();
   useEffect(()=>{
-    if(apt?.ApartmentID && loginUserId){
+    if(apt?.ApartmentID && apt.userId){
       console.log("APT ID:", apt.ApartmentID);
-      console.log("USER ID:", loginUserId);
-      fetchAndSetOpenHouse(apt.ApartmentID);
+      console.log("USER ID:", apt.userId);
+      fetchAndSetOpenHouse(apt.ApartmentID, apt.userId);
     }
-  }, [apt.ApartmentID, loginUserId]);
+  }, [apt.ApartmentID, apt.userId]);
   
 
   return (
@@ -330,7 +331,7 @@ export default function ApartmentDetails({ apt, onClose }) {
           <Text style={styles.sectionTitle}>🏡 סיורים בדירה:</Text>
           {openHouses.length > 0 ? (
             openHouses.map((item) => (
-              <View key={item.id.toString()} style={styles.openHouseItem}>
+              <View key={item.openHouseId} style={styles.openHouseItem}>
                 <Text style={styles.openHouseText}>
                   {item.date} - {item.time}
                 </Text>
