@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useContext,useRef, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import {
   Animated,
   Modal
 } from "react-native";
+import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
+
 import Constants from "expo-constants";
 import ApartmentReview from "./components/apartmentReview";
 import { FontAwesome5, MaterialIcons } from "@expo/vector-icons";
@@ -18,6 +20,7 @@ import API from "../config";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import UserProfile from "./UserProfile"; 
+import { useOpenHouse, fetchOpenHouses } from "./contex/OpenHouseContext";
 
 const { width } = Dimensions.get("window");
 
@@ -29,6 +32,7 @@ export default function ApartmentDetails({ apt, onClose }) {
   const [showUserProfile, setShowUserProfile] = useState(false);
   const navigation = useNavigation();
   const [userInfo, setUserInfo] = useState(null);
+  const { loginUserId } = useContext(ActiveApartmentContext);
 
   useEffect(() => {
     console.log("APT CHANGED:", apt.ApartmentID);
@@ -241,11 +245,15 @@ export default function ApartmentDetails({ apt, onClose }) {
         return null;
     }
   };
-
-  const openHouses = [
-    { id: 1, date: "25 במרץ 2025", time: "10:00", location: apt.Location },
-    { id: 2, date: "1 באפריל 2025", time: "14:00", location: apt.Location },
-  ];
+  const {openHouses, fetchAndSetOpenHouse, loading}= useOpenHouse();
+  useEffect(()=>{
+    if(apt?.ApartmentID && loginUserId){
+      console.log("APT ID:", apt.ApartmentID);
+      console.log("USER ID:", loginUserId);
+      fetchAndSetOpenHouse(apt.ApartmentID);
+    }
+  }, [apt.ApartmentID, loginUserId]);
+  
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
