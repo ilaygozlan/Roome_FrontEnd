@@ -22,7 +22,7 @@ export const UserInfoProvider = ({ children }) => {
 
   // First effect: Get user ID when user is authenticated
   useEffect(() => {
-    const getUserId = async (email) => {
+    const getUserId = async (email) => {  
       try {
         const res = await fetch(`${API}User/CheckIfExists?email=${encodeURIComponent(email)}`, {
           method: "GET",
@@ -35,6 +35,7 @@ export const UserInfoProvider = ({ children }) => {
 
         const data = await res.json();
         setLoginUserId(data.userId);
+        console.log("login: ",data.userId )
         setIsUserIdFetched(true);
         setIsLoading(false);
       } catch (err) {
@@ -45,12 +46,12 @@ export const UserInfoProvider = ({ children }) => {
       }
     };
 
-    if (user && !isUserIdFetched) {
+    if (user) {
       getUserId(user.email);
     } else if (!user) {
       setIsLoading(false);
     }
-  }, [user, isUserIdFetched]);
+  }, [user]);
 
   // Second effect: Handle push notifications only after user ID is fetched
   useEffect(() => {
@@ -99,7 +100,8 @@ export const UserInfoProvider = ({ children }) => {
   const value = {
     loginUserId,
     error,
-    isLoading
+    isLoading,
+    setIsUserIdFetched
   };
 
   return (

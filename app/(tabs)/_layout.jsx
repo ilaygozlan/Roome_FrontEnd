@@ -8,6 +8,7 @@ import { AntDesign, Ionicons } from "@expo/vector-icons";
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Feather from '@expo/vector-icons/Feather';
 import  {ActiveApartmentProvider } from "../contex/ActiveApartmentContext";
+import { UserInfoProvider } from "../contex/userInfoContext";
 
 export default function Layout() {
   const [checking, setChecking] = useState(true);
@@ -32,10 +33,8 @@ export default function Layout() {
   }
 
   return (
-    
+      <UserInfoProvider>
     <ActiveApartmentProvider>
-  
-
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Tabs
         screenOptions={{
@@ -81,9 +80,7 @@ export default function Layout() {
         />
       </Tabs>
     </GestureHandlerRootView>
- 
-      </ActiveApartmentProvider>
-
-
+    </ActiveApartmentProvider>
+    </UserInfoProvider>
   );
 }

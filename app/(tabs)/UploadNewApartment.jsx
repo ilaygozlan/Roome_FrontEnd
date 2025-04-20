@@ -21,6 +21,7 @@ import { ActiveApartmentContext } from "../contex/ActiveApartmentContext";
 import API from "../../config";
 import * as FileSystem from "expo-file-system";
 import HouseLoading from "../components/LoadingHouseSign";
+import GooglePlacesInput from "../components/GooglePlacesAPI";
 
 export default function UploadApartmentForm() {
   const { allApartments, setAllApartments } = useContext(
@@ -235,6 +236,7 @@ export default function UploadApartmentForm() {
       .then((newApartmentId) => {
         console.log(newApartmentId);
         apartmentData.ApartmentID = newApartmentId;
+        apartmentData.UserID = loginUserId;
         setApartmentType(null);
 
         if (images.length > 0) {
@@ -329,7 +331,7 @@ export default function UploadApartmentForm() {
 
   if (isUploading) {
     return <HouseLoading />;
-  }  
+  }
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -399,12 +401,10 @@ export default function UploadApartmentForm() {
               </TouchableOpacity>
 
               {/* שדות */}
-              <TextInput
-                style={styles.input}
-                placeholder="מיקום"
-                value={location}
-                onChangeText={setLocation}
-              />
+              <View style={{ width: "100%" }}>
+                <GooglePlacesInput onLocationSelected={setLocation} />
+              </View>
+
               <TextInput
                 style={styles.input}
                 placeholder="מחיר"
@@ -713,5 +713,4 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "white",
   },
-  
 });

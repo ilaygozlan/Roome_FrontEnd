@@ -38,7 +38,7 @@ export const ActiveApartmentProvider = ({ children }) => {
         .then((data) => setAllApartments(data))
         .catch((error) => console.error("Error fetching apartments:", error));
     }
-    console.log(loginUserId)
+    console.log("apt login ", loginUserId)
   }, [loginUserId]);
 
   return (
