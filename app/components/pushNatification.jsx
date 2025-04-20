@@ -131,6 +131,6 @@ export default function pushNatification() {
           await sendPushNotification(expoPushToken);
         }}
       />
-    </View>
-  );
+    </View>
+  );
 }
