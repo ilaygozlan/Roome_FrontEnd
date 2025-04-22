@@ -9,6 +9,29 @@ import API from "../config";
 
 WebBrowser.maybeCompleteAuthSession();
 
+/**
+ * @component LoginScreen
+ * @description Authentication screen component that handles user login through
+ * email/password and Google Sign-In methods.
+ * 
+ * Features:
+ * - Email/password authentication
+ * - Google Sign-In integration
+ * - Form validation
+ * - Error handling
+ * - New user detection
+ * - Navigation flow management
+ * - Keyboard handling
+ * 
+ * Authentication Methods:
+ * - Email/Password
+ * - Google OAuth
+ * 
+ * @requires firebase/auth
+ * @requires expo-auth-session
+ * @requires expo-web-browser
+ */
+
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,6 +46,15 @@ export default function LoginScreen() {
   });
 
   
+  /**
+   * Checks if a user exists in the backend
+   * @async
+   * @function checkIfUserExists
+   * @param {string} email - User's email address
+   * @returns {Promise<Object>} User existence data
+   * @property {number} userId - User's ID if exists
+   * @property {boolean} isNewUser - Whether the user is new
+   */
   const checkIfUserExists = async (email) => {
     try {
       const res = await fetch(`${API}User/CheckIfExists?email=${encodeURIComponent(email)}`, {
@@ -45,6 +77,12 @@ export default function LoginScreen() {
     }
   };
 
+  /**
+   * Handles Google Sign-In process
+   * @async
+   * @function handleGoogleSignIn
+   * @returns {Promise<void>}
+   */
   const handleGoogleSignIn = async () => {
     try {
       const result = await promptAsync();
@@ -68,6 +106,19 @@ export default function LoginScreen() {
     }
   };
 
+  /**
+   * Handles email/password login
+   * @async
+   * @function handleLogin
+   * @returns {Promise<void>}
+   * 
+   * Error Codes:
+   * - auth/invalid-credential
+   * - auth/invalid-email
+   * - auth/user-disabled
+   * - auth/user-not-found
+   * - auth/wrong-password
+   */
   const handleLogin = async () => {
     if (!email || !password) {
       setError("Please fill in all fields");
@@ -163,6 +214,11 @@ export default function LoginScreen() {
   );
 }
 
+/**
+ * Component styles
+ * @constant
+ * @type {Object}
+ */
 const styles = StyleSheet.create({
   container: {
     flex: 1,

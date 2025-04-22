@@ -1,3 +1,31 @@
+/**
+ * @component ForYou
+ * @description Tinder-style swipeable card interface for apartment browsing.
+ * Features gesture-based interactions, apartment liking/disliking, and persistent storage.
+ * 
+ * Features:
+ * - Swipeable card interface
+ * - Like/Dislike functionality
+ * - Persistent storage of interactions
+ * - Image preloading
+ * - Animated card transitions
+ * - User interaction tracking
+ * - RTL (Right-to-Left) support
+ * 
+ * Technical Details:
+ * - Uses PanResponder for gesture handling
+ * - AsyncStorage for persistent data
+ * - Animated API for smooth transitions
+ * - Context API for global state
+ * 
+ * Constants:
+ * @constant SCREEN_WIDTH - Device screen width
+ * @constant SCREEN_HEIGHT - Device screen height
+ * @constant CARD_WIDTH - Width of apartment cards
+ * @constant CARD_HEIGHT - Height of apartment cards
+ * @constant SWIPE_THRESHOLD - Distance required for swipe action
+ */
+
 // ForYou.jsx with swipe fixes, preload, AsyncStorage integration and English comments
 import React, { useRef, useState, useContext, useEffect, useMemo } from "react";
 import {
@@ -42,6 +70,12 @@ export default function ForYou() {
   const [storageReady, setStorageReady] = useState(false);
   const position = useRef(new Animated.ValueXY()).current;
 
+  /**
+   * Saves disliked apartment IDs to AsyncStorage
+   * @async
+   * @function saveDislikedToStorage
+   * @param {Array<number>} ids - Array of apartment IDs
+   */
   const saveDislikedToStorage = async (ids) => {
     try {
       await AsyncStorage.setItem(DISLIKED_KEY, JSON.stringify([...new Set(ids)]));
@@ -50,6 +84,12 @@ export default function ForYou() {
     }
   };
 
+  /**
+   * Loads disliked apartment IDs from AsyncStorage
+   * @async
+   * @function loadDislikedFromStorage
+   * @returns {Promise<Array<number>>} Array of disliked apartment IDs
+   */
   const loadDislikedFromStorage = async () => {
     try {
       const stored = await AsyncStorage.getItem(DISLIKED_KEY);
@@ -146,6 +186,12 @@ export default function ForYou() {
     }).start(() => onSwipeComplete(direction));
   };
 
+  /**
+   * Handles apartment like action
+   * @async
+   * @function likeApartment
+   * @param {number} apartmentId - ID of the apartment to like
+   */
   const likeApartment = async (apartmentId) => {
     try {
       const res = await fetch(`${API}User/LikeApartment/${userId}/${apartmentId}`, {
@@ -160,6 +206,12 @@ export default function ForYou() {
     }
   };
 
+  /**
+   * Handles apartment dislike action
+   * @async
+   * @function dislikeApartment
+   * @param {number} apartmentId - ID of the apartment to dislike
+   */
   const dislikeApartment = async (apartmentId) => {
     try {
       if (likedApartments.includes(apartmentId)) {

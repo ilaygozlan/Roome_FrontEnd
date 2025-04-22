@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -7,12 +7,38 @@ import {
   TextInput,
   FlatList,
   Alert,
+  KeyboardAvoidingView,
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
+import { userInfoContext } from "../contex/userInfoContext";
 import API from "../../config";
 
+/**
+ * @component ApartmentReview
+ * @description Component for displaying and managing apartment reviews and ratings.
+ * Allows users to view, add, and delete reviews, and displays average ratings.
+ * 
+ * Features:
+ * - Display average rating
+ * - List all reviews
+ * - Add new reviews with star rating
+ * - Delete own reviews
+ * - RTL (Right-to-Left) layout support
+ * - User-specific review management
+ * 
+ * @param {Object} props
+ * @param {number} props.apartmentId - ID of the apartment being reviewed
+ * 
+ * State Management:
+ * - Reviews list
+ * - Average rating
+ * - New review input
+ * - User review status
+ * - Rating selection
+ */
+
 export default function ApartmentReview({ apartmentId }) {
-  const userId = 999; // temp user
+  const {loginUserId} = useContext(userInfoContext)
 
   const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState("");
@@ -34,6 +60,12 @@ export default function ApartmentReview({ apartmentId }) {
     setAverageRating(reviews.length ? (total / reviews.length).toFixed(1) : "0");
   }, [reviews]);
 
+  /**
+   * Fetches reviews for a specific apartment
+   * @async
+   * @function fetchReviews
+   * @returns {Promise<void>}
+   */
   const fetchReviews = async () => {
     try {
       const response = await fetch(
@@ -53,23 +85,29 @@ export default function ApartmentReview({ apartmentId }) {
         const data = await response.json();
         const mapped = data.map((r) => ({
           id: r.reviewId,
-          user: r.userId === userId ? "You" : `User ${r.userId}`,
+          user: r.userId === loginUserId ? "You" : `User ${r.userId}`,
           comment: r.reviewText,
           rating: r.rate,
           userId: r.userId,
         }));
         setReviews(mapped);
-        setHasReviewed(mapped.some((r) => r.userId === userId));
+        setHasReviewed(mapped.some((r) => r.userId === loginUserId));
       }
     } catch (error) {
       console.error("Error fetching reviews:", error);
     }
   };
 
+  /**
+   * Adds a new review for the apartment
+   * @async
+   * @function addReview
+   * @returns {Promise<void>}
+   */
   const addReview = async () => {
     if (!newReview || !newRating) return;
     try {
-      const response = await fetch("http://192.168.1.111:5000/api/Review/AddNewReview", {
+      const response = await fetch(API + "Review/AddNewReview", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -80,7 +118,7 @@ export default function ApartmentReview({ apartmentId }) {
           apartmentId,
           rate: newRating,
           reviewText: newReview,
-          userId,
+          userId: loginUserId,
         }),
       });
 
@@ -96,6 +134,13 @@ export default function ApartmentReview({ apartmentId }) {
     }
   };
 
+  /**
+   * Deletes a review by ID
+   * @async
+   * @function deleteReview
+   * @param {number} reviewId - ID of the review to delete
+   * @returns {Promise<void>}
+   */
   const deleteReview = async (reviewId) => {
     Alert.alert("מחיקת ביקורת", "אתה בטוח?", [
       { text: "ביטול", style: "cancel" },
@@ -104,7 +149,7 @@ export default function ApartmentReview({ apartmentId }) {
         onPress: async () => {
           try {
             const response = await fetch(
-              `http://192.168.1.111:5000/api/Review/DeleteReview/${reviewId}`,
+              API + `Review/DeleteReview/${reviewId}`,
               {
                 method: "DELETE",
                 headers: { Accept: "text/plain" },
@@ -123,11 +168,18 @@ export default function ApartmentReview({ apartmentId }) {
     ]);
   };
 
+  /**
+   * Renders an individual review item
+   * @function renderItem
+   * @param {Object} props
+   * @param {Object} props.item - Review data object
+   * @returns {JSX.Element}
+   */
   const renderItem = ({ item }) => (
     <View key={item.id} style={styles.reviewCard}>
       <View style={styles.reviewHeader}>
         <Text style={styles.reviewUser}>{item.user}</Text>
-        {item.userId === userId && (
+        {item.userId === loginUserId && (
           <TouchableOpacity onPress={() => deleteReview(item.id)}>
             <AntDesign name="delete" size={20} color="#fb923c" />
           </TouchableOpacity>
@@ -170,6 +222,7 @@ export default function ApartmentReview({ apartmentId }) {
       />
 
       {!hasReviewed && (
+        <KeyboardAvoidingView>
         <View style={styles.addReviewSection}>
           <Text style={styles.addReviewTitle}>הוסף ביקורת חדשה:</Text>
           <TextInput
@@ -195,11 +248,17 @@ export default function ApartmentReview({ apartmentId }) {
             <Text style={styles.submitText}>הוספת ביקורת</Text>
           </TouchableOpacity>
         </View>
+        </KeyboardAvoidingView>
       )}
     </View>
   );
 }
 
+/**
+ * Component styles
+ * @constant
+ * @type {Object}
+ */
 const styles = StyleSheet.create({
   averageRating: {
     fontSize: 17,

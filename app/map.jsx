@@ -1,3 +1,29 @@
+/**
+ * @component Map
+ * @description Interactive map component that displays apartment locations with markers.
+ * Uses device location and apartment data to show available properties on a map interface.
+ * 
+ * Features:
+ * - Current location detection
+ * - Permission handling
+ * - Interactive markers for apartments
+ * - Price and description tooltips
+ * - Back navigation
+ * - Loading state handling
+ * 
+ * Dependencies:
+ * - react-native-maps
+ * - expo-location
+ * - expo-router
+ * 
+ * Context:
+ * - ActiveApartmentContext for apartment data
+ * 
+ * @requires react-native-maps
+ * @requires expo-location
+ * @requires expo-router
+ */
+
 import React, { useEffect, useState, useContext } from "react";
 import {
   View,
@@ -21,6 +47,14 @@ export default function Map() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  /**
+   * Location permission and initialization effect
+   * @effect
+   * Handles:
+   * - Location permission request
+   * - Current position detection
+   * - Initial map region setup
+   */
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
@@ -41,6 +75,16 @@ export default function Map() {
     })();
   }, []);
 
+  /**
+   * Renders apartment markers on the map
+   * @function renderMarkers
+   * @returns {Array<JSX.Element>} Array of Marker components
+   * 
+   * Marker Properties:
+   * - Location coordinates
+   * - Price display
+   * - Apartment description
+   */
   const renderMarkers = () => {
     return mapLocationAllApt.map((apt, index) => {
       if (apt.Location && typeof apt.Location === "string" && apt.Location.trim().startsWith("{")) {
@@ -85,6 +129,11 @@ export default function Map() {
   );
 }
 
+/**
+ * Component styles
+ * @constant
+ * @type {Object}
+ */
 const styles = StyleSheet.create({
   map: {
     flex: 1,

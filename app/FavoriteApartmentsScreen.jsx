@@ -14,6 +14,27 @@ import ApartmentGallery from "./components/ApartmentGallery";
 import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
 import ApartmentDetails from "./ApartmentDetails";
 
+/**
+ * @component FavoriteApartmentsScreen
+ * @description Screen component for displaying user's favorite/liked apartments.
+ * Shows a list of apartments that the user has marked as favorites with detailed information.
+ * 
+ * Features:
+ * - Favorite apartments list
+ * - Apartment type categorization
+ * - Image gallery integration
+ * - Detailed view modal
+ * - RTL (Right-to-Left) support
+ * - Safe area handling
+ * - Pull to refresh functionality
+ * 
+ * @param {Object} props
+ * @param {Function} props.onClose - Callback function to close the screen
+ * 
+ * Context:
+ * - ActiveApartmentContext for apartment data and favorites management
+ */
+
 export default function FavoriteApartmentsScreen({ onClose }) {
   const [showApartmentDetails, setShowApartmentDetails] = useState(false);
   const [selectedApartment, setSelectedApartment] = useState(null);
@@ -26,11 +47,22 @@ export default function FavoriteApartmentsScreen({ onClose }) {
 
   const [favoriteApartments, setFavoriteApartments] = useState([]);
 
+  /**
+   * Favorites filtering effect
+   * @effect
+   * Filters and sets favorite apartments from all apartments
+   */
   useEffect(() => {
     const liked = allApartments.filter((apt) => apt.IsLikedByUser === true);
     setFavoriteApartments(liked);
   }, [allApartments, refreshFavorites]); 
   
+  /**
+   * Gets border color based on apartment type
+   * @function getBorderColor
+   * @param {number} type - Apartment type (0: Rental, 1: Roommates, 2: Sublet)
+   * @returns {string} Color code
+   */
   const getBorderColor = (type) => {
     switch (type) {
       case 0:
@@ -44,6 +76,12 @@ export default function FavoriteApartmentsScreen({ onClose }) {
     }
   };
 
+  /**
+   * Gets display name for apartment type
+   * @function getTypeName
+   * @param {number} type - Apartment type (0: Rental, 1: Roommates, 2: Sublet)
+   * @returns {string} Display name
+   */
   const getTypeName = (type) => {
     switch (type) {
       case 0:
@@ -131,6 +169,11 @@ export default function FavoriteApartmentsScreen({ onClose }) {
   );
 }
 
+/**
+ * Component styles
+ * @constant
+ * @type {Object}
+ */
 const styles = StyleSheet.create({
   safeContainer: { flex: 1, backgroundColor: "white" },
   header: {

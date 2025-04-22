@@ -35,6 +35,46 @@ const colors = {
   lightGray: '#86888A'
 };
 
+/**
+ * @module ForYou
+ * @description A Tinder-like swipeable interface for apartment recommendations
+ * 
+ * Features:
+ * - Card-based swipeable interface for apartment browsing
+ * - Like/Dislike functionality with persistence
+ * - Image validation and error handling
+ * - Async storage for offline data
+ * - Real-time interaction tracking
+ * 
+ * @requires react-native-deck-swiper
+ * @requires @react-native-async-storage/async-storage
+ * 
+ * State Management:
+ * @state {Array} interactedApartmentIds - IDs of apartments user has interacted with
+ * @state {Array} likedApartments - List of apartments user has liked
+ * @state {Array} dislikedApartments - List of apartments user has disliked
+ * @state {number} currentIndex - Current card index
+ * @state {boolean} isLoading - Loading state indicator
+ * @state {boolean} storageReady - AsyncStorage initialization status
+ * @state {boolean} isProcessingSwipe - Swipe action processing status
+ * @state {Object} imageErrors - Tracking of image loading errors
+ * 
+ * Key Functions:
+ * @function handleSwipe - Processes swipe actions (left/right)
+ * @function resetAllInteractions - Clears all user interactions
+ * @function loadInteracted - Loads previously interacted apartments
+ * @function likeApartment - Handles apartment like action
+ * @function dislikeApartment - Handles apartment dislike action
+ * 
+ * Context Usage:
+ * - ActiveApartmentContext for apartment data
+ * - userInfoContext for user authentication
+ * 
+ * Storage:
+ * - Uses AsyncStorage for persisting disliked apartments
+ * - Maintains interaction history
+ */
+
 export default function ForYou() {
   const { loginUserId } = useContext(userInfoContext);
   const userId = loginUserId;
@@ -160,13 +200,13 @@ export default function ForYou() {
       if (singleUrl.includes('encrypted-tbn0.gstatic.com')) return false;
       
       try {
-        // אם זה נתיב יחסי
+        // if it's a relative path
         if (singleUrl.startsWith('/')) return true;
         
-        // בודק אם זה URL תקין
+        // check if it's a valid URL
         new URL(singleUrl);
         
-        // בודק סיומת של תמונה
+        // check if it's an image extension
         const validExtensions = /\.(jpeg|jpg|gif|png|webp|bmp)$/i;
         return validExtensions.test(singleUrl);
       } catch (e) {

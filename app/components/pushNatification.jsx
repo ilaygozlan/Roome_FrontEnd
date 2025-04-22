@@ -4,8 +4,28 @@ import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 
+/**
+ * @module PushNotification
+ * @description Module for handling push notifications in the application using Expo's notification system.
+ * Includes setup, registration, and sending of push notifications.
+ * 
+ * Features:
+ * - Device registration for push notifications
+ * - Push notification sending functionality
+ * - Notification permission handling
+ * - Platform-specific configuration (Android/iOS)
+ * - Error handling and reporting
+ * 
+ * @requires expo-notifications
+ * @requires expo-device
+ * @requires expo-constants
+ */
 
-//notification features
+/**
+ * Configuration for notification handling
+ * @constant
+ * @type {Object}
+ */
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -14,8 +34,16 @@ Notifications.setNotificationHandler({
   }),
 });
 
-//what will be write at the notification
-export async function sendPushNotification(expoPushToken,title, body) {
+/**
+ * Sends a push notification to a specific device
+ * @async
+ * @function sendPushNotification
+ * @param {string} expoPushToken - The target device's Expo push token
+ * @param {string} title - Notification title
+ * @param {string} body - Notification body content
+ * @returns {Promise<void>}
+ */
+export async function sendPushNotification(expoPushToken, title, body) {
   const message = {
     to: expoPushToken,
     sound: 'default',
@@ -38,14 +66,22 @@ export async function sendPushNotification(expoPushToken,title, body) {
     const responseData = await response.json();
     console.log('🔔 Push Notification Response:', responseData);
   } catch (error) {
-    console.error('❌ Error sending push notification:', error);
-  }
+    console.error('❌ Error sending push notification:', error);
+  }
 }
+
 function handleRegistrationError(errorMessage) {
   //alert(errorMessage);
   throw new Error(errorMessage);
 }
 
+/**
+ * Registers the device for push notifications
+ * @async
+ * @function registerForPushNotificationsAsync
+ * @returns {Promise<string>} The device's push token
+ * @throws {Error} If registration fails or permissions are denied
+ */
 export async function registerForPushNotificationsAsync() {
   if (Platform.OS === 'android') {
     Notifications.setNotificationChannelAsync('default', {
@@ -68,9 +104,9 @@ export async function registerForPushNotificationsAsync() {
       return;
     }
     const projectId =
-  Constants?.expoConfig?.extra?.eas?.projectId ??
-  Constants?.manifest?.extra?.eas?.projectId ??
-  '74d7d55b-5541-423c-bab5-acf88cf98489';
+      Constants?.expoConfig?.extra?.eas?.projectId ??
+      Constants?.manifest?.extra?.eas?.projectId ??
+      '74d7d55b-5541-423c-bab5-acf88cf98489';
     if (!projectId) {
       handleRegistrationError('Project ID not found');
     }
@@ -90,6 +126,11 @@ export async function registerForPushNotificationsAsync() {
   }
 }
 
+/**
+ * Main component for push notification testing and display
+ * @component
+ * @description Provides a UI for testing push notifications and displaying the device's push token
+ */
 export default function pushNatification() {
   const [expoPushToken, setExpoPushToken] = useState('');
   const [notification, setNotification] = useState('');
@@ -131,6 +172,6 @@ export default function pushNatification() {
           await sendPushNotification(expoPushToken);
         }}
       />
-    </View>
-  );
+    </View>
+  );
 }

@@ -23,6 +23,57 @@ import * as FileSystem from "expo-file-system";
 import HouseLoading from "../components/LoadingHouseSign";
 import GooglePlacesInput from "../components/GooglePlacesAPI";
 
+/**
+ * @module UploadApartmentForm
+ * @description Component for uploading and managing new apartment listings
+ * 
+ * Features:
+ * - Multiple apartment type support (Rental, Shared, Sublet)
+ * - Image upload and management
+ * - Form validation
+ * - Date range selection
+ * - Location selection with Google Places API
+ * - Property type categorization
+ * 
+ * @requires expo-image-picker
+ * @requires @react-native-community/datetimepicker
+ * @requires expo-file-system
+ * 
+ * State Management:
+ * @state {string|null} apartmentType - Type of apartment listing (0: Rental, 1: Shared, 2: Sublet)
+ * @state {string} location - Property location
+ * @state {string} price - Monthly rent
+ * @state {string} rooms - Number of rooms
+ * @state {string} description - Property description
+ * @state {string} floor - Floor number
+ * @state {string} parkingSpace - Number of parking spaces
+ * @state {string} contractLength - Length of contract (for rental)
+ * @state {string} numberOfRoommates - Number of roommates (for shared)
+ * @state {boolean} canCancelWithoutPenalty - Cancellation policy (for sublet)
+ * @state {boolean} isWholeProperty - Whole property flag (for sublet)
+ * @state {Array<string>} images - Array of image URIs
+ * @state {string} entryDate - Move-in date
+ * @state {string} exitDate - Move-out date
+ * 
+ * Property Features:
+ * @state {boolean} allowPet - Pet permission flag
+ * @state {boolean} allowSmoking - Smoking permission flag
+ * @state {boolean} gardenBalcony - Garden/Balcony availability
+ * @state {boolean} extensionPossible - Contract extension possibility
+ * 
+ * Functions:
+ * @function pickImage - Handles image selection from gallery
+ * @function takePhoto - Handles capturing new photos
+ * @function handleEntryDateChange - Manages entry date updates
+ * @function handleExitDateChange - Manages exit date updates
+ * @function handleSubmit - Processes form submission
+ * @function ClearFormFields - Resets all form fields
+ * 
+ * Context Usage:
+ * - ActiveApartmentContext for apartment list management
+ * - userInfoContext for user authentication
+ */
+
 export default function UploadApartmentForm() {
   const { allApartments, setAllApartments } = useContext(
     ActiveApartmentContext
@@ -123,9 +174,9 @@ export default function UploadApartmentForm() {
   };
 
   const handleExitDateChange = (event, selectedDate) => {
-    const currentDate = selectedDate || new Date(exitDate); // exitDate הוא string
+    const currentDate = selectedDate || new Date(exitDate); // exitDate is string
 
-    const entry = new Date(entryDate); // ממיר את התאריך שנשמר כ־string ל־Date
+    const entry = new Date(entryDate); // convert the saved date (string) to Date
     if (currentDate > entry) {
       setExitDate(currentDate.toISOString().split("T")[0]);
     } else {
@@ -373,7 +424,7 @@ export default function UploadApartmentForm() {
 
           {apartmentType !== null && (
             <>
-              {/* תמונות */}
+              {/* images */}
               <TouchableOpacity onPress={pickImage} style={styles.imageBox}>
                 {images.length === 0 ? (
                   <>
@@ -405,7 +456,7 @@ export default function UploadApartmentForm() {
                 <Text style={{ marginLeft: 8 }}>צלם תמונה</Text>
               </TouchableOpacity>
 
-              {/* שדות */}
+              {/* fields */}
               <View style={{ width: "100%" }}>
                 <GooglePlacesInput onLocationSelected={setLocation} />
               </View>
@@ -535,7 +586,7 @@ export default function UploadApartmentForm() {
                 </TouchableOpacity>
               </View>
 
-              {/* שדות ייחודיים */}
+              {/* unique fields */}
               {apartmentType === 0 && (
                 <>
                   <TextInput

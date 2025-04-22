@@ -23,6 +23,29 @@ import { Picker } from "@react-native-picker/picker";
 import UserProfile from "./UserProfile";
 import * as ImagePicker from "expo-image-picker";
 
+/**
+ * @component MyProfile
+ * @description User's personal profile management component with comprehensive profile
+ * information display and editing capabilities.
+ * 
+ * Features:
+ * - Profile information display
+ * - Profile editing
+ * - Profile picture management
+ * - Friends list management
+ * - Favorite apartments access
+ * - Phone number validation
+ * - Date picker integration
+ * - RTL (Right-to-Left) support
+ * 
+ * @param {Object} props
+ * @param {number} props.myId - User's ID
+ * 
+ * Dependencies:
+ * - expo-image-picker
+ * - @react-native-community/datetimepicker
+ * - @react-native-picker/picker
+ */
 
 const MyProfile = (props) => {
   const loginUserId = props.myId;
@@ -40,6 +63,15 @@ const MyProfile = (props) => {
   const [selectedFriendId, setFriendId] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showPhoneError, setShowPhoneError] = useState(false);
+
+  /**
+   * Profile data fetching effect
+   * @effect
+   * Handles:
+   * - Initial profile data loading
+   * - Error handling
+   * - Loading state management
+   */
   useEffect(() => {
     console.log("useinp  ", loginUserId);
     fetch(API + "User/GetUserById/" + loginUserId)
@@ -59,6 +91,13 @@ const MyProfile = (props) => {
       });
   }, [loginUserId]);
 
+  /**
+   * Friends list fetching effect
+   * @effect
+   * Handles:
+   * - Friends list loading
+   * - Friend status checking
+   */
   useEffect(() => {
     if (loginUserId) {
       fetch(API + "User/GetUserFriends/" + loginUserId)
@@ -71,6 +110,9 @@ const MyProfile = (props) => {
     }
   }, [loginUserId]);
 
+  /**
+   * Friend list management functions
+   */
   const removeFriend = (friendId) => {
     setFriends((prev) => prev.filter((f) => f.id !== friendId));
   };
@@ -81,6 +123,12 @@ const MyProfile = (props) => {
     });
   };
 
+  /**
+   * Profile update handler
+   * @async
+   * @function handleSave
+   * @returns {Promise<void>}
+   */
   const handleSave = async () => {
     const updatedUser = { ...updatedProfile, id: loginUserId };
     if(!updatedUser.token) {updatedUser.token = "";}
@@ -102,6 +150,13 @@ const MyProfile = (props) => {
       console.error("❌", err);
     }
   };
+
+  /**
+   * Image picker handler
+   * @async
+   * @function handleImagePick
+   * @returns {Promise<void>}
+   */
   const handleImagePick = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
@@ -121,13 +176,12 @@ const MyProfile = (props) => {
       });
     }
   };
-  const handleDateChange = (event, selectedDate) => {
-    setShowDatePicker(false);
-    if (selectedDate) {
-      setUpdatedProfile({ ...updatedProfile, birthDate: selectedDate });
-    }
-  };
 
+  /**
+   * Phone number validation handler
+   * @function HandlePhoneNumber
+   * @param {string} phoneNumber - Phone number to validate
+   */
   const HandlePhoneNumber = (phoneNumber) => {
     // Phone number validation
     const phoneRegex = /^[0-9]{10}$/;
@@ -136,6 +190,13 @@ const MyProfile = (props) => {
       return;
     } else {
       setShowPhoneError(false);
+    }
+  };
+
+  const handleDateChange = (event, selectedDate) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      setUpdatedProfile({ ...updatedProfile, birthDate: selectedDate });
     }
   };
 
@@ -458,6 +519,13 @@ const MyProfile = (props) => {
   );
 };
 
+/**
+ * Info card subcomponent
+ * @component InfoCard
+ * @param {Object} props
+ * @param {JSX.Element} props.icon - Icon element
+ * @param {string} props.value - Value to display
+ */
 const InfoCard = ({ icon, value }) => (
   <View
     style={{
@@ -471,6 +539,11 @@ const InfoCard = ({ icon, value }) => (
   </View>
 );
 
+/**
+ * Component styles
+ * @constant
+ * @type {Object}
+ */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f9f9f9" },
   headerBackground: {

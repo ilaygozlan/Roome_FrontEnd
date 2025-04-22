@@ -1,3 +1,31 @@
+/**
+ * @component SignUpScreen
+ * @description User registration screen component that handles new user sign-up
+ * through email/password and Google Sign-In methods.
+ * 
+ * Features:
+ * - Email/password registration
+ * - Google Sign-In integration
+ * - Password confirmation
+ * - Form validation
+ * - Error handling
+ * - Navigation flow management
+ * - Keyboard handling
+ * 
+ * Registration Methods:
+ * - Email/Password
+ * - Google OAuth
+ * 
+ * Validation Rules:
+ * - Required fields check
+ * - Password match verification
+ * - Minimum password length (6 characters)
+ * 
+ * @requires firebase/auth
+ * @requires expo-auth-session
+ * @requires expo-web-browser
+ */
+
 import { useState } from "react";
 import { View, TextInput, Text, StyleSheet, TouchableOpacity, Platform, KeyboardAvoidingView, ScrollView } from "react-native";
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithCredential } from "firebase/auth";
@@ -22,6 +50,12 @@ export default function SignUpScreen() {
     expoClientId: "182842175967-l3ihifvtioodbbkv4pgv99358ed2ih4u.apps.googleusercontent.com"
   });
 
+  /**
+   * Handles Google Sign-In process
+   * @async
+   * @function handleGoogleSignIn
+   * @returns {Promise<void>}
+   */
   const handleGoogleSignIn = async () => {
     try {
       const result = await promptAsync();
@@ -36,6 +70,18 @@ export default function SignUpScreen() {
     }
   };
 
+  /**
+   * Handles email/password registration
+   * @async
+   * @function handleSignUp
+   * @returns {Promise<void>}
+   * 
+   * Error Codes:
+   * - auth/email-already-in-use
+   * - auth/invalid-email
+   * - auth/operation-not-allowed
+   * - auth/weak-password
+   */
   const handleSignUp = async () => {
     if (!email || !password || !confirmPassword) {
       setError("Please fill in all required fields");
@@ -140,6 +186,11 @@ export default function SignUpScreen() {
   );
 }
 
+/**
+ * Component styles
+ * @constant
+ * @type {Object}
+ */
 const styles = StyleSheet.create({
   container: {
     flex: 1,

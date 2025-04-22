@@ -1,25 +1,53 @@
 import React, { useState, useRef } from 'react';
 import { View, ScrollView, Image, StyleSheet, Dimensions, Text } from 'react-native';
 
+/**
+ * @component ApartmentGallery
+ * @description Image gallery component for displaying apartment photos with pagination.
+ * Supports both local and remote images with automatic URL handling.
+ * 
+ * Features:
+ * - Horizontal scrolling gallery
+ * - Pagination dots indicator
+ * - Placeholder for no images
+ * - Automatic image URL handling
+ * - Responsive design
+ * 
+ * @param {Object} props
+ * @param {string} props.images - Comma-separated string of image URLs
+ */
+
 const { width } = Dimensions.get('window');
+const baseUrl = "https://roomebackend20250414140006.azurewebsites.net";
 
-export default function ApartmentGallery({ images }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const scrollRef = useRef();
-
-  const baseUrl = "https://roomebackend20250414140006.azurewebsites.net";
-
+/**
+ * Processes image URLs to ensure they are properly formatted
+ * @param {string} images - Comma-separated string of image URLs
+ * @returns {Array<string>} Array of properly formatted image URLs
+ */
+const GetImagesArr = (images)=>{
   const imageArray = images?.split(',').map((img) => {
     const trimmed = img.trim();
     return trimmed.startsWith('https') ? trimmed : `${baseUrl}${trimmed.startsWith('/') ? '' : '/'}${trimmed}`;
   }) || [];
-  
-  
-  const handleScroll = (event) => {
-    const x = event.nativeEvent.contentOffset.x;
-    const index = Math.round(x / width);
-    setCurrentIndex(index);
-  };
+  return imageArray;
+}
+
+
+/**
+ * Handles scroll events to update the current image index
+ * @param {Object} event - Scroll event object
+ */
+const handleScroll = (event) => {
+  const x = event.nativeEvent.contentOffset.x;
+  const index = Math.round(x / width);
+  setCurrentIndex(index);
+};
+
+export default function ApartmentGallery({ images }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const scrollRef = useRef();
+  const imageArray = GetImagesArr(images);
 
   // If no images, return a placeholder box
   if (imageArray.length === 0) {

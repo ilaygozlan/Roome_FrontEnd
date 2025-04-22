@@ -7,73 +7,53 @@ import {
   Dimensions,
 } from "react-native";
 
+/**
+ * @component UserProgressTrack
+ * @description Progress tracking component that displays a step-by-step progress indicator
+ * for user onboarding or multi-step processes.
+ * 
+ * Features:
+ * - Visual step progress tracking
+ * - Interactive step navigation
+ * - RTL (Right-to-Left) layout support
+ * - Progress line visualization
+ * - Current and completed step indicators
+ * 
+ * Steps:
+ * 1. User Settings
+ * 2. Looking For
+ * 3. Profile Picture
+ * 
+ * @param {Object} props
+ * @param {string} props.currentStep - Key of the current active step
+ * @param {Array<string>} props.completedSteps - Array of completed step keys
+ * @param {Function} props.onStepPress - Callback function when a step is pressed
+ */
+
+/**
+ * Configuration constants
+ * @constant
+ */
+const CIRCLE_SIZE = 50;
+const LINE_COLOR = "#2F74FF";
+const BG_COLOR = "#F0F0F0";
+
+/**
+ * Step definitions
+ * @constant
+ * @type {Array<Object>}
+ */
 const steps = [
   { key: "userSettings", label: "הגדרות משתמש" },
   { key: "lookingFor", label: "מה אני מחפש?" },
   { key: "profilePicture", label: "תמונת פרופיל" },
 ];
 
-const CIRCLE_SIZE = 50;
-const LINE_COLOR = "#2F74FF";
-const BG_COLOR = "#F0F0F0";
-
-export default function UserProgressTrack({
-  currentStep,
-  completedSteps,
-  onStepPress,
-}) {
-  return (
-    <View style={styles.container}>
-      <View style={styles.stepsRow}>
-        {/* Line behind the circles */}
-        <View style={styles.lineWrapper}>
-          <View style={styles.baseLine} />
-          <View
-            style={[
-              styles.progressLine,
-              {
-                width: `${(completedSteps.length / (steps.length - 1)) * 100}%`,
-              },
-            ]}
-          />
-        </View>
-
-        {steps.map((step, index) => {
-          const isCompleted = completedSteps.includes(step.key);
-          const isCurrent = currentStep === step.key;
-
-          return (
-            <TouchableOpacity
-              key={step.key}
-              style={styles.circleWrapper}
-              onPress={() => onStepPress(step.key)}
-              activeOpacity={0.8}
-            >
-              <View
-                style={[
-                  styles.circle,
-                  isCompleted && styles.completedCircle,
-                  isCurrent && styles.currentCircle,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.circleText,
-                    isCurrent && styles.currentCircleText,
-                  ]}
-                >
-                  {index + 1}
-                </Text>
-              </View>
-              <Text style={[styles.label, isCurrent && styles.currentCircleText]}>{step.label}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    </View>
-  );
-}
-
+/**
+ * Styles for the progress tracker
+ * @constant
+ * @type {Object}
+ */
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 30,
@@ -144,5 +124,61 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: LINE_COLOR,
   },
-  
 });
+
+export default function UserProgressTrack({
+  currentStep,
+  completedSteps,
+  onStepPress,
+}) {
+  return (
+    <View style={styles.container}>
+      <View style={styles.stepsRow}>
+        {/* Line behind the circles */}
+        <View style={styles.lineWrapper}>
+          <View style={styles.baseLine} />
+          <View
+            style={[
+              styles.progressLine,
+              {
+                width: `${(completedSteps.length / (steps.length - 1)) * 100}%`,
+              },
+            ]}
+          />
+        </View>
+
+        {steps.map((step, index) => {
+          const isCompleted = completedSteps.includes(step.key);
+          const isCurrent = currentStep === step.key;
+
+          return (
+            <TouchableOpacity
+              key={step.key}
+              style={styles.circleWrapper}
+              onPress={() => onStepPress(step.key)}
+              activeOpacity={0.8}
+            >
+              <View
+                style={[
+                  styles.circle,
+                  isCompleted && styles.completedCircle,
+                  isCurrent && styles.currentCircle,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.circleText,
+                    isCurrent && styles.currentCircleText,
+                  ]}
+                >
+                  {index + 1}
+                </Text>
+              </View>
+              <Text style={[styles.label, isCurrent && styles.currentCircleText]}>{step.label}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+}

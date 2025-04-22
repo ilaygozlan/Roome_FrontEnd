@@ -22,6 +22,31 @@ import ApartmentGallery from "./components/ApartmentGallery";
 
 const { width } = Dimensions.get("window");
 
+/**
+ * @component ApartmentDetails
+ * @description Detailed view component for apartment information.
+ * Displays comprehensive apartment details including images, roommate information,
+ * and type-specific details with interactive features.
+ * 
+ * Features:
+ * - Image gallery carousel
+ * - Apartment type-specific details
+ * - Roommate information carousel
+ * - Owner profile access
+ * - Reviews section
+ * - Animated pagination
+ * - RTL (Right-to-Left) support
+ * 
+ * @param {Object} props
+ * @param {Object} props.apt - Apartment data object
+ * @param {Function} props.onClose - Callback function to close the details view
+ * 
+ * Apartment Types:
+ * - 0: Rental
+ * - 1: Roommates
+ * - 2: Sublet
+ */
+
 export default function ApartmentDetails({ apt, onClose }) {
   const router = useRouter();
   const [activeSlide, setActiveSlide] = useState(0);
@@ -62,6 +87,12 @@ export default function ApartmentDetails({ apt, onClose }) {
     return () => clearInterval(interval);
   }, [activeSlide, apt]);
 
+  /**
+   * Gets display name for apartment type
+   * @function getTypeName
+   * @param {number} type - Apartment type code
+   * @returns {string} Display name in Hebrew
+   */
   const getTypeName = (type) => {
     switch (type) {
       case 0:
@@ -75,6 +106,12 @@ export default function ApartmentDetails({ apt, onClose }) {
     }
   };
 
+  /**
+   * Parses roommate information string into structured data
+   * @function parseRoommates
+   * @param {string} info - Roommate information string
+   * @returns {Array<Object>} Array of roommate detail objects
+   */
   const parseRoommates = (info) => {
     if (!info) return [];
     const roommateStrings = info
@@ -120,6 +157,11 @@ export default function ApartmentDetails({ apt, onClose }) {
     });
   };
 
+  /**
+   * Renders type-specific apartment details
+   * @function renderExtraDetails
+   * @returns {JSX.Element} Type-specific detail components
+   */
   const renderExtraDetails = () => {
     switch (apt.ApartmentType) {
       case 0:

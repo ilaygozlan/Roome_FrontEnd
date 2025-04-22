@@ -13,6 +13,27 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import API from "../../config";
 import { sendPushNotification } from "./pushNatification";
 
+/**
+ * @component OpenHouseButton
+ * @description Component for managing open house viewings for apartments.
+ * Handles registration, cancellation, and viewing of available open house slots.
+ * Includes push notification functionality for property owners.
+ * 
+ * Features:
+ * - Display available open house times
+ * - Registration for open house viewings
+ * - Cancellation of registrations
+ * - Real-time capacity tracking
+ * - Push notifications to property owners
+ * - Modal interface for viewing and managing registrations
+ * 
+ * @param {Object} props
+ * @param {number} props.apartmentId - ID of the apartment
+ * @param {number} props.userId - ID of the current user
+ * @param {string} props.location - Location of the apartment
+ * @param {number} props.userOwnerId - ID of the apartment owner
+ */
+
 export default function OpenHouseButton({
   apartmentId,
   userId,
@@ -29,6 +50,12 @@ export default function OpenHouseButton({
     }
   }, [modalVisible]);
 
+  /**
+   * Fetches open house listings for the specified apartment
+   * @async
+   * @function fetchOpenHouses
+   * @returns {Promise<void>}
+   */
   const fetchOpenHouses = async () => {
     try {
       const res = await fetch(
@@ -48,6 +75,13 @@ export default function OpenHouseButton({
     }
   };
 
+  /**
+   * Registers a user for an open house and sends notification to owner
+   * @async
+   * @function registerForOpenHouse
+   * @param {number} openHouseId - ID of the open house session
+   * @returns {Promise<void>}
+   */
   const registerForOpenHouse = async (openHouseId) => {
     try {
       // 1. Register the user for the open house
@@ -80,7 +114,7 @@ export default function OpenHouseButton({
 
         if (tokenResponse.ok) {
           const result = await tokenResponse.json();
-          const ownerPushToken = result.pushToken; // ← אם זה JSON, ולא טקסט
+          const ownerPushToken = result.pushToken; 
 
           console.log("📬 טוקן של בעל הדירה:", ownerPushToken);
 
@@ -283,6 +317,6 @@ const styles = StyleSheet.create({
     color: "red",
     fontWeight: "bold",
     textAlign: "center",
-    marginTop: 5,
-  },
+    marginTop: 5,
+  },
 });

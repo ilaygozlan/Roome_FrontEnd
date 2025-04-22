@@ -5,6 +5,24 @@ import API from "../../config";
 import { userInfoContext } from "../contex/userInfoContext";
 import { ActiveApartmentContext } from "../contex/ActiveApartmentContext";
 
+/**
+ * @component LikeButton
+ * @description Interactive like button component for apartments with real-time update functionality.
+ * Manages likes state and communicates with the backend API for persistence.
+ * 
+ * Features:
+ * - Toggle like/unlike state
+ * - Real-time like count update
+ * - API integration for persisting likes
+ * - Visual feedback with heart icon
+ * - Context-aware user state management
+ * 
+ * @param {Object} props
+ * @param {number} props.apartmentId - ID of the apartment
+ * @param {number} props.numOfLikes - Initial number of likes
+ * @param {boolean} props.isLikedByUser - Whether the current user has liked the apartment
+ */
+
 export default function LikeButton(props) {
   const [liked, setLiked] = useState(props.isLikedByUser);
   useEffect(()=>{
@@ -17,6 +35,11 @@ export default function LikeButton(props) {
     setAllApartments,
     triggerFavoritesRefresh,
   } = useContext(ActiveApartmentContext);
+
+  /**
+   * Helper function to update apartment like status in global context
+   * @param {number} id - Apartment ID to update
+   */
   const setApartmentLikedByUser = (id) => {
     const updatedApartments = allApartments.map((apt) => {
       if (apt.ApartmentID === id) {
@@ -29,6 +52,10 @@ export default function LikeButton(props) {
     triggerFavoritesRefresh();
   };
 
+  /**
+   * Helper function to update apartment unlike status in global context
+   * @param {number} id - Apartment ID to update
+   */
   const setApartmentUnLikedByUser = (id) => {
     const updatedApartments = allApartments.map((apt) => {
       if (apt.ApartmentID === id) {

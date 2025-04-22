@@ -18,6 +18,31 @@ if (Platform.OS === "android") {
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
+/**
+ * @component SearchFilters
+ * @description Advanced search filters component for apartment and roommate searching.
+ * Provides extensive filtering options including dates, gender preferences, amenities, and more.
+ * 
+ * Features:
+ * - Expandable/collapsible interface
+ * - Date range selection (entry/exit dates)
+ * - Gender preference filtering
+ * - Amenities checklist
+ * - Icon-based feature selection
+ * - Responsive layout with animations
+ * 
+ * Filter Categories:
+ * - Date Range
+ * - Gender Preferences
+ * - Roommate Preferences
+ * - Amenities
+ * - Property Features
+ * 
+ * @param {Object} props
+ * @param {Function} props.onSearch - Callback function that receives the filter selections
+ */
+
+// Constants
 const colors = {
   primary: "#E3965A",
   background: "#FDEAD7",
@@ -25,7 +50,18 @@ const colors = {
   border: "#ccc",
 };
 
+/**
+ * Available gender filter options
+ * @constant
+ * @type {Array<string>}
+ */
 const genderOptions = ["אין העדפה", "רק גברים", "רק נשים"];
+
+/**
+ * Available roommate filter options
+ * @constant
+ * @type {Array<string>}
+ */
 const roommateFilters = [
   "מאפשרים חיות מחמד",
   "חניה",
@@ -36,6 +72,11 @@ const roommateFilters = [
   "מרוהטת",
 ];
 
+/**
+ * Icon-based feature options
+ * @constant
+ * @type {Array<Object>}
+ */
 const iconOptions = [
   { id: "wifi", name: "wifi", label: "אינטרנט" },
   { id: "happy", name: "happy-outline", label: "חברתי" },

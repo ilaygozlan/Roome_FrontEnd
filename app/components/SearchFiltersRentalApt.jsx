@@ -9,6 +9,31 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 /*import DateTimePickerModal from "@react-native-community/datetimepicker";*/
 
+/**
+ * @component SearchFiltersRentalApt
+ * @description Advanced search filters component specifically for rental apartments.
+ * Provides filtering options for property types, features, and entry dates.
+ * 
+ * Features:
+ * - Expandable/collapsible interface
+ * - Property type selection
+ * - Feature checkboxes
+ * - Entry date selection
+ * - RTL (Right-to-Left) layout support
+ * - Responsive grid layout for property types
+ * 
+ * @param {Object} props
+ * @param {Function} props.onFilter - Callback function that receives the filter selections
+ * 
+ * Filter Categories:
+ * - Property Types (Apartment, Penthouse, Duplex, Garden Apt, Private House, Semi-Detached)
+ * - Features (Parking, Safe Room, Yard)
+ * - Entry Date
+ */
+
+/**
+ * Constants for styling and configuration
+ */
 const colors = {
   primary: "#E3965A",
   background: "#FDEAD7",
@@ -16,6 +41,11 @@ const colors = {
   border: "#ccc",
 };
 
+/**
+ * Available property types for filtering
+ * @constant
+ * @type {Array<string>}
+ */
 const propertyTypes = [
   "דירה",
   "פנטהאוז",
@@ -25,7 +55,23 @@ const propertyTypes = [
   "דו משפחתי",
 ];
 
+/**
+ * Available features for filtering
+ * @constant
+ * @type {Array<string>}
+ */
 const features = ["חניה", "ממ\"ד", "חצר"];
+
+/**
+ * Toggles a feature selection
+ * @function toggleFeature
+ * @param {number} index - Index of the feature to toggle
+ */
+const toggleFeature = (index) => {
+  const updated = [...selectedFeatures];
+  updated[index] = !updated[index];
+  setSelectedFeatures(updated);
+};
 
 export default function SearchFiltersRentalApt({ onFilter }) {
   const [expanded, setExpanded] = useState(false);
@@ -37,15 +83,11 @@ export default function SearchFiltersRentalApt({ onFilter }) {
 
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
-  const toggleFeature = (index) => {
-    const updated = [...selectedFeatures];
-    updated[index] = !updated[index];
-    setSelectedFeatures(updated);
-  };
+
 
   return (
     <View style={styles.container}>
-      {/* כפתור פתיחה וסגירה */}
+      {/* open/close button */}
       <TouchableOpacity
         style={styles.toggleButton}
         onPress={() => setExpanded(!expanded)}
@@ -57,7 +99,7 @@ export default function SearchFiltersRentalApt({ onFilter }) {
 
       {expanded && (
         <ScrollView contentContainerStyle={styles.content}>
-          {/* תאריך כניסה */}
+          {/* Entry Date */}
           <TouchableOpacity
             style={styles.dateBox}
             onPress={() => setDatePickerVisibility(true)}
@@ -68,7 +110,7 @@ export default function SearchFiltersRentalApt({ onFilter }) {
             </Text>
           </TouchableOpacity>
 
-          {/* סוג הנכס */}
+          {/* property type */}
           <Text style={styles.sectionTitle}>סוג הנכס</Text>
           <View style={styles.propertyGrid}>
             {propertyTypes.map((type, index) => (
@@ -96,7 +138,7 @@ export default function SearchFiltersRentalApt({ onFilter }) {
             ))}
           </View>
 
-          {/* תכונות */}
+          {/* features */}
           <View style={styles.featuresContainer}>
             {features.map((feature, index) => (
               <TouchableOpacity
@@ -116,7 +158,7 @@ export default function SearchFiltersRentalApt({ onFilter }) {
             ))}
           </View>
 
-          {/* כפתור חיפוש */}
+          {/* search button */}
           <TouchableOpacity
             style={styles.searchButton}
             onPress={() => {
@@ -137,7 +179,7 @@ export default function SearchFiltersRentalApt({ onFilter }) {
         </ScrollView>
       )}
 
-      {/* בוחר תאריכים */}
+      {/* date picker */}
       {/*<DateTimePickerModal
         isVisible={isDatePickerVisible}
         mode="date"
@@ -147,12 +189,17 @@ export default function SearchFiltersRentalApt({ onFilter }) {
         }}
         onCancel={() => setDatePickerVisibility(false)}
         locale="he-IL"
-        minimumDate={new Date()} // לא מאפשר לבחור תאריך בעבר
+        minimumDate={new Date()} //not allowed to choose a date in the past
       />*/}
     </View>
   );
 }
 
+/**
+ * Component styles
+ * @constant
+ * @type {Object}
+ */
 const styles = StyleSheet.create({
   container: {
     flex: 1,

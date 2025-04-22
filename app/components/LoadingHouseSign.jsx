@@ -4,6 +4,28 @@ import Svg, { Path, Defs, Mask, Rect } from "react-native-svg";
 
 const AnimatedRect = Animated.createAnimatedComponent(Rect);
 
+/**
+ * @component HouseLoading
+ * @description Animated loading indicator component featuring a house shape that fills up.
+ * Uses SVG and Animated API to create a smooth filling animation effect.
+ * 
+ * Features:
+ * - SVG-based house shape
+ * - Bottom-to-top fill animation
+ * - Continuous loop animation
+ * - Custom color scheme
+ * - Loading text indicator
+ * 
+ * Animation Details:
+ * - Duration: 4000ms
+ * - Fill Direction: Bottom to top
+ * - Animation Type: Linear easing
+ * - Colors: Gray background with orange fill
+ * 
+ * @example
+ * <HouseLoading />
+ */
+
 export default function HouseLoading() {
   const fillAnim = useRef(new Animated.Value(0)).current;
 
@@ -18,20 +40,20 @@ export default function HouseLoading() {
         }),
         Animated.timing(fillAnim, {
           toValue: 0,
-          duration: 0, // ← reset מיידי
+          duration: 0, // ← reset immediately
           useNativeDriver: false,
         }),
       ]).start(() => {
-        loopAnimation(); // ריקורסיה להמשך הלולאה
+        loopAnimation(); // recursion for the loop
       });
     };
 
-    loopAnimation(); // הפעלה ראשונה
+    loopAnimation(); // first activation
   }, []);
 
   const fillHeight = fillAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [600, 0], // ממלא מלמטה למעלה
+    outputRange: [600, 0], // fills from bottom to top
   });
 
   return (
@@ -46,13 +68,13 @@ export default function HouseLoading() {
           </Mask>
         </Defs>
 
-        {/* רקע אפור של הבית */}
+        {/* gray background of the house */}
         <Path
           fill="#ccc"
           d="M256 0L0 192h64v320h128V320h128v192h128V192h64z"
         />
 
-        {/* שכבת המילוי הכתומה שמתמלאת */}
+        {/* the orange filling that fills */}
         <AnimatedRect
           x="0"
           y={fillHeight}

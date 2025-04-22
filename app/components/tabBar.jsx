@@ -3,18 +3,48 @@ import { useLinkBuilder, useTheme } from '@react-navigation/native';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { Entypo, Feather,Ionicons, MaterialIcons } from '@expo/vector-icons';
 
+/**
+ * @component TabBar
+ * @description Custom navigation tab bar component for the application's bottom navigation.
+ * Provides a styled tab bar with icons and labels for main navigation routes.
+ * 
+ * Features:
+ * - Custom styled tab bar with shadow and rounded corners
+ * - Icon-based navigation
+ * - Active/inactive state styling
+ * - Accessibility support
+ * - Deep linking support through href building
+ * 
+ * Navigation Routes:
+ * - Home (index)
+ * - Profile (ProfilePage)
+ * - For You (ForYou)
+ * - Maps (maps)
+ * - Edit (Edit)
+ * 
+ * @param {Object} props
+ * @param {Object} props.state - Navigation state
+ * @param {Object} props.descriptors - Route descriptors
+ * @param {Object} props.navigation - Navigation object
+ */
+
 const TabBar = ({ state, descriptors, navigation }) => {
 
   const { colors } = useTheme();
   const { buildHref } = useLinkBuilder();
-  const icons = {
-    index: (props)=> <AntDesign name="home" size={24} color={colors.primary} {...props} />,
-    ProfilePage: (props)=> <Ionicons name="person-outline" size={24} color={colors.primary} {...props} />,
-    ForYou: (props)=> <Ionicons name="fast-food-outline" size={24} color={colors.primary} {...props} />,
-    maps: (props)=> <Ionicons name="map-outline" size={24} color={colors.primary} {...props} />,
 
-    Edit: (props)=> <Entypo name="add-to-list" size={24} color={colors.primary} {...props} />
-  }
+  /**
+   * Icon mapping for different routes
+   * @constant
+   * @type {Object.<string, Function>}
+   */
+  const icons = {
+    index: (props) => <AntDesign name="home" size={24} {...props} />,
+    ProfilePage: (props) => <Ionicons name="person-outline" size={24} {...props} />,
+    ForYou: (props) => <Ionicons name="fast-food-outline" size={24} {...props} />,
+    maps: (props) => <Ionicons name="map-outline" size={24} {...props} />,
+    Edit: (props) => <Entypo name="add-to-list" size={24} {...props} />
+  };
 
   return (
     <View style={styles.tabbar}>
@@ -74,6 +104,11 @@ const TabBar = ({ state, descriptors, navigation }) => {
   )
 }
 
+/**
+ * Styles for the tab bar and its items
+ * @constant
+ * @type {Object}
+ */
 const styles = StyleSheet.create({
   tabbar : {
     position : 'absolute',

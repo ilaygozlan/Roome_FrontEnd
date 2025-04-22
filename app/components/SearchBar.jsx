@@ -18,6 +18,29 @@ import { useRouter } from "expo-router";
 import { Keyboard, TouchableWithoutFeedback } from "react-native";
 import GooglePlacesInput from "./GooglePlacesAPI";
 
+/**
+ * @component SearchBar
+ * @description Advanced search component for apartment filtering with expandable interface.
+ * Provides functionality for filtering apartments by type, location, and price range.
+ * 
+ * Features:
+ * - Expandable search interface
+ * - Category selection (Rental, Roommates, Sublet)
+ * - Price range slider
+ * - Location selection
+ * - Map view navigation
+ * - Search filters integration
+ * 
+ * @param {Object} props
+ * @param {number|null} props.selectedType - Currently selected apartment type
+ * @param {Function} props.setSelectedType - Function to update selected type
+ * @param {string} props.selectedLocation - Currently selected location
+ * @param {Function} props.setSelectedLocation - Function to update selected location
+ * @param {Array<number>} props.priceRange - Current price range [min, max]
+ * @param {Function} props.setPriceRange - Function to update price range
+ * @param {Function} props.SearchApartments - Function to trigger apartment search
+ */
+
 const colors = {
   primary: "#E3965A",
   background: "#FDEAD7",
@@ -95,7 +118,7 @@ export default function SearchBar({
               <GooglePlacesInput onLocationSelected={setSelectedLocation} />
             </View>*/}
 
-          {/* מיקומים נפוצים */}
+          {/* most common locations*/}
           {/*
            <Text style={[styles.label, { marginTop: 0 }]}>בחר מיקום:</Text>
 
@@ -138,7 +161,7 @@ export default function SearchBar({
               }}
             />
             */}
-          {/* קטגוריות דירה */}
+          {/* apartment categories */}
           <Text style={[styles.label, { marginTop: 25 }]}>בחר קטגוריה:</Text>
           <View style={styles.categories}>
             {categories.map((cat) => (
@@ -189,7 +212,6 @@ export default function SearchBar({
             <TouchableOpacity
               style={styles.searchButton}
               onPress={() => {
-                // כאן אתה יכול לבצע ניווט או סינון
                 console.log("מיקום שנבחר:", selectedLocation);
                 console.log("סוג דירה שנבחר:", selectedType);
                 console.log(

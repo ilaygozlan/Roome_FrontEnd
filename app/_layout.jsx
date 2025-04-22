@@ -8,6 +8,31 @@ import { ActiveApartmentProvider } from "./contex/ActiveApartmentContext";
 import { UserInfoProvider } from "./contex/userInfoContext";
 import AuthStack from "./AuthStack";
 
+/**
+ * @component RootLayout
+ * @description Root layout component that handles application-wide layout and authentication state.
+ * Serves as the main wrapper for the entire application, managing authentication flow and context providers.
+ * 
+ * Features:
+ * - Firebase authentication state management
+ * - Loading state handling
+ * - Navigation stack configuration
+ * - Context providers setup
+ * - New user flow handling
+ * 
+ * Context Providers:
+ * - ActiveApartmentProvider
+ * - UserInfoProvider
+ * 
+ * Navigation:
+ * - Conditional rendering based on authentication state
+ * - New user vs existing user routing
+ * - Stack navigation configuration
+ * 
+ * @requires expo-router
+ * @requires firebase/auth
+ * @requires react-native-get-random-values
+ */
 
 export default function RootLayout() {
   const [user, setUser] = useState(null);
@@ -16,6 +41,14 @@ export default function RootLayout() {
   const [isNewUser, setIsNewUser] = useState(null);
   const router = useRouter();
 
+  /**
+   * Authentication state management effect
+   * @effect
+   * Handles:
+   * - User authentication state changes
+   * - User data management
+   * - Loading state
+   */
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
       console.log("Auth state changed:", u);
@@ -41,6 +74,13 @@ export default function RootLayout() {
     );
   }
 
+  /**
+   * App Stack component for authenticated users
+   * @component
+   * @param {Object} props
+   * @param {boolean} props.isNewUser - Whether the user is new
+   * @param {string} props.userId - User's ID
+   */
   const AppStack = ({ isNewUser, userId }) => (
     <Stack screenOptions={{ headerShown: false }}>
       {isNewUser ? (
@@ -60,5 +100,5 @@ export default function RootLayout() {
        <AuthStack/>
     </UserInfoProvider>
     </ActiveApartmentProvider>
-  );
+  );
 }

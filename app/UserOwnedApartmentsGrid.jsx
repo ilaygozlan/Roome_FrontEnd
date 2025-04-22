@@ -14,6 +14,27 @@ import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import API from "../config";
 
+/**
+ * @component UserOwnedApartmentsGrid
+ * @description Grid display of apartments owned by a user with open house management functionality.
+ * Allows apartment owners to create and manage open house events for their properties.
+ * 
+ * Features:
+ * - Display owned apartments in a grid
+ * - Create open house events
+ * - Apartment type categorization
+ * - Image gallery integration
+ * - RTL (Right-to-Left) support
+ * - Date and time picker integration
+ * 
+ * @param {Object} props
+ * @param {number} props.userId - ID of the user whose apartments to display
+ * @param {boolean} props.isMyProfile - Whether the apartments belong to the current user
+ * 
+ * Context:
+ * - ActiveApartmentContext for apartment data
+ */
+
 const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
   const { allApartments } = useContext(ActiveApartmentContext);
 
@@ -29,6 +50,12 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
 
   const ownedApartments = allApartments.filter((apt) => apt.UserID === userId);
 
+  /**
+   * Helper function to determine border color based on apartment type
+   * @function getBorderColor
+   * @param {number} type - Apartment type (0: Rental, 1: Roommates, 2: Sublet)
+   * @returns {string} Color code
+   */
   const getBorderColor = (type) => {
     switch (type) {
       case 0:
@@ -42,6 +69,12 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
     }
   };
 
+  /**
+   * Helper function to get display name for apartment type
+   * @function getTypeName
+   * @param {number} type - Apartment type (0: Rental, 1: Roommates, 2: Sublet)
+   * @returns {string} Display name
+   */
   const getTypeName = (type) => {
     switch (type) {
       case 0:
@@ -60,6 +93,17 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
     setOpenHouseModalVisible(true);
   };
 
+  /**
+   * Creates a new open house event
+   * @async
+   * @function submitOpenHouse
+   * @returns {Promise<void>}
+   * 
+   * Handles:
+   * - Data validation
+   * - API communication
+   * - Success/error feedback
+   */
   const submitOpenHouse = async () => {
     if (!startTime || !endTime || !peopleCount || !openHouseDate) {
       alert("אנא מלא את כל שדות הבית הפתוח לפני השליחה");
@@ -98,6 +142,12 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
     }
   };
 
+  /**
+   * Formats date object to YYYY-MM-DD string
+   * @function formatDateOnly
+   * @param {Date} dateObj - Date to format
+   * @returns {string} Formatted date string
+   */
   const formatDateOnly = (dateObj) => {
     const year = dateObj.getFullYear();
     const month = String(dateObj.getMonth() + 1).padStart(2, "0");
@@ -243,6 +293,11 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
   );
 };
 
+/**
+ * Component styles
+ * @constant
+ * @type {Object}
+ */
 const styles = StyleSheet.create({
   wrapper: {
     marginVertical: 20,

@@ -19,6 +19,70 @@ import { userInfoContext } from "./contex/userInfoContext";
 import LogoutButton from "./components/LogoutButton";
 import { useLocalSearchParams } from "expo-router";
 
+/**
+ * @module UserProfile
+ * @description Component for displaying user profile information and managing user relationships
+ * 
+ * Features:
+ * - Profile information display
+ * - Friend management (add/remove friends)
+ * - Profile editing capabilities
+ * - User apartment listings
+ * - Friends list with horizontal scrolling
+ * - Profile image handling
+ * 
+ * @requires expo-router
+ * @requires @expo/vector-icons
+ * 
+ * State Management:
+ * @state {Object} userProfile - User's profile data
+ * @state {boolean} loading - Loading state indicator
+ * @state {Object} error - Error state
+ * @state {boolean} modalVisible - Edit modal visibility
+ * @state {Object} updatedProfile - Temporary profile data for editing
+ * @state {Array} friends - User's friends list
+ * @state {boolean} isFriend - Friendship status with viewed profile
+ * 
+ * Props:
+ * @prop {string} userId - User ID to display (optional)
+ * @prop {Function} onClose - Callback for closing profile view
+ * @prop {Function} onAddFriend - Callback when adding friend
+ * @prop {Function} onRemoveFriend - Callback when removing friend
+ * 
+ * Components:
+ * @component InfoCard - Displays individual profile information fields
+ * 
+ * API Integration:
+ * - User profile fetching
+ * - Friend list management
+ * - Profile updates
+ * 
+ * Context Usage:
+ * - userInfoContext for authentication
+ * 
+ * Features:
+ * 1. Profile Information Display:
+ *    - Profile picture
+ *    - Basic user information
+ *    - Contact details
+ *    - Personal preferences (smoking, pets)
+ * 
+ * 2. Friend Management:
+ *    - Add/Remove friends
+ *    - View friends list
+ *    - Navigate to friend profiles
+ * 
+ * 3. Profile Editing:
+ *    - Edit personal information
+ *    - Update profile picture
+ *    - Save profile changes
+ * 
+ * 4. Responsive Layout:
+ *    - Scrollable content
+ *    - Horizontal scrolling friends list
+ *    - Modal forms for editing
+ */
+
 const UserProfile = (props) => {
   const { loginUserId } = useContext(userInfoContext);
   const { userId } = useLocalSearchParams();

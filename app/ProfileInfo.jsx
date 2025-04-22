@@ -7,6 +7,36 @@ import { auth } from './firebase';
 import { useRouter } from 'expo-router';
 import API from '../config';
 
+/**
+ * @component ProfileInfo
+ * @description User profile creation and editing component.
+ * Handles initial profile setup and subsequent profile updates with comprehensive form validation.
+ * 
+ * Features:
+ * - Profile photo upload (camera/gallery)
+ * - Personal information input
+ * - Date picker for birthdate
+ * - Gender selection
+ * - Toggle switches for preferences
+ * - Form validation
+ * - API integration
+ * - Loading states
+ * 
+ * @requires expo-image-picker
+ * @requires @react-native-community/datetimepicker
+ * @requires @react-native-picker/picker
+ * 
+ * Form Fields:
+ * - Full Name
+ * - Phone Number
+ * - Job Status
+ * - Gender
+ * - Birthdate
+ * - Pet Ownership
+ * - Smoking Status
+ * - Profile Picture
+ */
+
 export default function ProfileInfo() {
   const [fullName, setFullName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -26,6 +56,11 @@ export default function ProfileInfo() {
     setBirthdate(selectedDate);
   };
 
+  /**
+   * Image source selection handler
+   * @function selectImageSource
+   * Shows alert dialog for choosing between camera and gallery
+   */
   const selectImageSource = () => {
     Alert.alert(
       "בחר מקור תמונה",
@@ -39,6 +74,12 @@ export default function ProfileInfo() {
     );
   };
 
+  /**
+   * Camera photo capture handler
+   * @async
+   * @function takePhoto
+   * @returns {Promise<void>}
+   */
   const takePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
@@ -58,6 +99,12 @@ export default function ProfileInfo() {
   };
   
 
+  /**
+   * Date formatting utility
+   * @function formatDate
+   * @param {Date} date - Date to format
+   * @returns {string} Formatted date string (YYYY-MM-DD)
+   */
   const formatDate = (date) => {
     const day = date.getDate().toString().padStart(2, '0');
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -66,6 +113,12 @@ export default function ProfileInfo() {
   };
   
 
+  /**
+   * Gallery image selection handler
+   * @async
+   * @function pickImage
+   * @returns {Promise<void>}
+   */
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -85,6 +138,17 @@ export default function ProfileInfo() {
     }
   };
 
+  /**
+   * Profile data submission handler
+   * @async
+   * @function handleSave
+   * @returns {Promise<void>}
+   * 
+   * Validates:
+   * - Required fields
+   * - Phone number format
+   * - User authentication
+   */
   const handleSave = async () => {
     // Validate all required fields
     if (!fullName || !phoneNumber || !jobStatus) {
@@ -255,6 +319,11 @@ export default function ProfileInfo() {
   );
 }
 
+/**
+ * Component styles
+ * @constant
+ * @type {Object}
+ */
 const styles = StyleSheet.create({
   container: {
     flex: 1,

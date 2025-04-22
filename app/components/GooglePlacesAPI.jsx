@@ -3,6 +3,34 @@ import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplet
 import { View, StyleSheet } from 'react-native';
 import { v4 as uuidv4 } from 'uuid';
 
+/**
+ * @component GooglePlacesInput
+ * @description Google Places Autocomplete integration component for location selection.
+ * Provides address search and autocomplete functionality specifically for Israel locations.
+ * 
+ * Features:
+ * - Address autocomplete
+ * - Geocoding (converts address to coordinates)
+ * - Hebrew language support
+ * - Israel-specific results
+ * - Custom styling for RTL support
+ * 
+ * @param {Object} props
+ * @param {Function} props.onLocationSelected - Callback function that receives the selected location data
+ * 
+ * @example
+ * // Selected location data format:
+ * {
+ *   address: string,
+ *   latitude: number,
+ *   longitude: number
+ * }
+ * 
+ * @security_note
+ * TODO: The Google Places API key should be moved to environment variables
+ * or a secure configuration management system.
+ */
+
 export default function GooglePlacesInput({ onLocationSelected }) {
   return (
     <View style={{ zIndex: 1000 }}> 
@@ -40,6 +68,10 @@ export default function GooglePlacesInput({ onLocationSelected }) {
   );
 }
 
+/**
+ * Styles for the autocomplete component
+ * Includes RTL support and custom styling for the input field
+ */
 const autocompleteStyles = StyleSheet.create({
   textInput: {
     height: 48,
