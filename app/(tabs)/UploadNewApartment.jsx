@@ -162,6 +162,9 @@ export default function UploadApartmentForm() {
   };
 
   const handleSubmit = () => {
+
+    let imageLinks = [];
+
     if (!location || !price || !rooms || apartmentType === null) {
       Alert.alert("שגיאה", "אנא מלא את כל השדות");
       return;
@@ -298,13 +301,14 @@ export default function UploadApartmentForm() {
             .then((uploadResult) => {
               console.log("📸 תמונות הועלו:", uploadResult);
 
-              const imageLinks = images.map((uri) => {
+              imageLinks = images.map((uri) => {
                 const fileName = uri.split("/").pop();
                 return `/uploadedFiles/${fileName}`;
               });
 
               apartmentData.Images = imageLinks.join(",");
               apartmentData.Location = JSON.parse(apartmentData.location).address;
+              apartmentData.ApartmentType = apartmentType;
               const updatedAllApartments = [...allApartments, apartmentData];
               setAllApartments(updatedAllApartments);
               console.log(apartmentData.Images, apartmentData);
