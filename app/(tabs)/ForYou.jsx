@@ -177,9 +177,14 @@ export default function ForYou() {
 
   // Helper function to get valid image URL
   const getValidImageUrl = (urls) => {
-    if (!urls) return null;
+    if (!urls) {
+      console.log('No images provided');
+      return null;
+    }
     
     try {
+      console.log('Processing image URLs:', urls);
+      
       // Split all images into an array
       const urlArray = urls.split(',')
         .map(u => u.trim())
@@ -188,12 +193,16 @@ export default function ForYou() {
                     !u.includes('null') && 
                     !u.includes('encrypted-tbn0.gstatic.com'));
       
+      console.log('Filtered URLs:', urlArray);
+      
       // Find a valid image
       for (const url of urlArray) {
         try {
           // If it's a relative path
           if (url.startsWith('/')) {
-            return `${API}${url}`;
+            const fullUrl = `${API}${url}`;
+            console.log('Created full URL for relative path:', fullUrl);
+            return fullUrl;
           }
           
           // Check if it's a valid URL
@@ -202,10 +211,11 @@ export default function ForYou() {
           // Check image extension
           const validExtensions = /\.(jpeg|jpg|gif|png|webp|bmp)$/i;
           if (validExtensions.test(url)) {
-            // Test if the URL is accessible
+            console.log('Found valid image URL:', url);
             return url;
           }
         } catch (e) {
+          console.log('Error processing URL:', url, e);
           continue;
         }
       }
@@ -213,6 +223,7 @@ export default function ForYou() {
       console.error('Error parsing image URLs:', e);
     }
     
+    console.log('No valid image URL found');
     return null;
   };
 
@@ -304,7 +315,7 @@ export default function ForYou() {
       
       if (!res.ok) {
         console.error("Failed to like apartment:", apartmentId);
-        Alert.alert("שגיאה", "לא הצלחנו לשמור את הדירה במועדפים");
+        Alert.alert("שגיאה", "לא הצלחנו לשמור את הדירה");
         return false;
       }
 
@@ -372,6 +383,18 @@ export default function ForYou() {
     const imageUrl = getValidImageUrl(card.Images);
     const hasImageError = imageErrors[card.ApartmentID];
     
+    // Safely parse location
+    let locationAddress = 'מיקום לא ידוע';
+    try {
+      if (card.Location) {
+        const locationData = JSON.parse(card.Location);
+        locationAddress = locationData.address || 'מיקום לא ידוע';
+      }
+    } catch (error) {
+      console.log('Error parsing location:', error);
+      locationAddress = card.Location || 'מיקום לא ידוע';
+    }
+    
     return (
       <View style={styles.card}>
         <View style={[styles.image, { backgroundColor: colors.lightGray }]}>
@@ -398,7 +421,7 @@ export default function ForYou() {
         <View style={[styles.overlay, { backgroundColor: imageUrl && !hasImageError ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.7)' }]}>
           <View style={styles.textContainer}>
             <Text style={styles.title} numberOfLines={1}>
-              {card.Location ? JSON.parse(card.Location).address : 'מיקום לא ידוע'}
+              {locationAddress}
             </Text>
             <Text style={styles.price}>
               {card.Price ? `${card.Price} ₪` : 'מחיר לא ידוע'}
