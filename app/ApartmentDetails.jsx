@@ -1,4 +1,4 @@
-import React, { useContext,useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,11 +8,8 @@ import {
   ScrollView,
   Dimensions,
   Animated,
-  Modal,
-  
+  Modal
 } from "react-native";
-import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
-
 import Constants from "expo-constants";
 import ApartmentReview from "./components/apartmentReview";
 import { FontAwesome5, MaterialIcons } from "@expo/vector-icons";
@@ -21,7 +18,7 @@ import API from "../config";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import UserProfile from "./UserProfile"; 
-import { useOpenHouse, fetchOpenHouses } from "./contex/OpenHouseContext";
+import ApartmentGallery from "./components/ApartmentGallery";
 
 const { width } = Dimensions.get("window");
 
@@ -33,7 +30,6 @@ export default function ApartmentDetails({ apt, onClose }) {
   const [showUserProfile, setShowUserProfile] = useState(false);
   const navigation = useNavigation();
   const [userInfo, setUserInfo] = useState(null);
-  const { loginUserId } = useContext(ActiveApartmentContext);
 
   useEffect(() => {
     console.log("APT CHANGED:", apt.ApartmentID);
@@ -246,15 +242,6 @@ export default function ApartmentDetails({ apt, onClose }) {
         return null;
     }
   };
-  const {openHouses, fetchAndSetOpenHouse, loading}= useOpenHouse();
-  useEffect(()=>{
-    if(apt?.ApartmentID && apt.userId){
-      console.log("APT ID:", apt.ApartmentID);
-      console.log("USER ID:", apt.userId);
-      fetchAndSetOpenHouse(apt.ApartmentID, apt.userId);
-    }
-  }, [apt.ApartmentID, apt.userId]);
-  
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -266,10 +253,7 @@ export default function ApartmentDetails({ apt, onClose }) {
             </TouchableOpacity>
             <Text style={styles.headerTitle}></Text>
           </View>
-          <Image
-            source={{ uri: apt.Images?.split(",")[0] }}
-            style={styles.image}
-          />
+          <ApartmentGallery images={apt.Images} />
 
           <Text style={styles.title}>{apt.Location}</Text>
           <Text style={styles.price}>{apt.Price} ש"ח</Text>
@@ -327,26 +311,6 @@ export default function ApartmentDetails({ apt, onClose }) {
           )}
 
           {renderExtraDetails()}
-
-          <Text style={styles.sectionTitle}>🏡 סיורים בדירה:</Text>
-          {openHouses.length > 0 ? (
-            openHouses.map((item) => (
-              <View key={item.openHouseId} style={styles.openHouseItem}>
-                <Text style={styles.openHouseText}>
-                  {item.date} - {item.time}
-                </Text>
-                <Text style={styles.openHouseLocation}>{item.location}</Text>
-                <TouchableOpacity
-                  style={styles.registerButton}
-                  onPress={() => alert(`נרשמת לסיור בתאריך ${item.date}`)}
-                >
-                  <Text style={styles.registerText}>להרשמה</Text>
-                </TouchableOpacity>
-              </View>
-            ))
-          ) : (
-            <Text style={styles.noOpenHouses}>אין סיורים זמינים כרגע</Text>
-          )}
 
           {userInfo && (
             <TouchableOpacity
