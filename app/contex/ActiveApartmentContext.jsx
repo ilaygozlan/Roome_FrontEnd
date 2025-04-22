@@ -34,6 +34,9 @@ export const ActiveApartmentProvider = ({ children }) => {
 
   useEffect(() => {
     if (loginUserId) {
+      console.log("=== Fetching Apartments ===");
+      console.log("Requesting apartments for userId:", loginUserId);
+      
       fetch(`${API}Apartment/GetAllActiveApartments/${loginUserId}`)
         .then((response) => response.json())
         .then((data) => {
@@ -56,7 +59,6 @@ export const ActiveApartmentProvider = ({ children }) => {
         })
         .catch((error) => console.error("Error fetching apartments:", error));
     }
-    console.log("apt login ", loginUserId)
   }, [loginUserId]);
 
   return (
