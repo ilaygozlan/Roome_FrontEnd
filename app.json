@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "shoppingListApp",
+    "name": "roome",
     "slug": "roome",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,6 +8,7 @@
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "permissions": ["NOTIFICATIONS"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.galaxies.firebase",
