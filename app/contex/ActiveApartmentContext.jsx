@@ -33,12 +33,24 @@ export const ActiveApartmentProvider = ({ children }) => {
 
   useEffect(() => {
     if (loginUserId) {
+      console.log("=== Fetching Apartments ===");
+      console.log("Requesting apartments for userId:", loginUserId);
+      
       fetch(`${API}Apartment/GetAllActiveApartments/${loginUserId}`)
-        .then((response) => response.json())
-        .then((data) => setAllApartments(data))
-        .catch((error) => console.error("Error fetching apartments:", error));
+        .then((response) => {
+          console.log("Server response status:", response.status);
+          return response.json();
+        })
+        .then((data) => {
+          console.log("Received apartments:", data.length);
+          console.log("First apartment sample:", data[0]);
+          setAllApartments(data);
+        })
+        .catch((error) => {
+          console.error("Error fetching apartments:", error);
+          console.error("Full error details:", JSON.stringify(error));
+        });
     }
-    console.log("apt login ", loginUserId)
   }, [loginUserId]);
 
   return (
