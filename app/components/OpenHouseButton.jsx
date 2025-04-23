@@ -119,7 +119,7 @@ export default function OpenHouseButton({
           console.log("📬 טוקן של בעל הדירה:", ownerPushToken);
 
           // 3. Send the push notification to the property owner
-          await sendPushNotification(ownerPushToken);
+          await sendPushNotification(ownerPushToken,"נרשמו לבית פתוח שלך","נרשמו לבית פתוח שלך");
 
           console.log(" שלחתי את ההתראה לבעל הדירה");
         } else {

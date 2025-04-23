@@ -219,15 +219,15 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
               {isMyProfile && (
                 <>
                   {(openHousesMap[apt.ApartmentID] || []).map((item, idx) => (
-                     <View key={idx} style={styles.openHouseItem}>
-                     <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                   
-                       <Text style={styles.openHouseButtonText}>
-                         {new Date(item.date).toLocaleDateString("he-IL")} | {item.startTime} - {item.endTime} | נרשמו: {item.amountOfPeoples} / {item.totalRegistrations}
-                       </Text>
-                       <MaterialCommunityIcons name="calendar-outline" size={20} color="white" style={{ marginLeft: 6 }} />
-                     </View>
-                   </View>
+                  <View key={idx} style={styles.openHouseItem}>
+                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+                
+                    <Text style={styles.openHouseButtonText}>
+                      {new Date(item.date).toLocaleDateString("he-IL")} | {item.startTime} - {item.endTime} | נרשמו: {item.amountOfPeoples} / {item.totalRegistrations}
+                    </Text>
+                    <MaterialCommunityIcons name="calendar-outline" size={20} color="white" style={{ marginLeft: 6 }} />
+                  </View>
+                </View>
                   ))}
 
                   <TouchableOpacity
