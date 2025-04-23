@@ -47,6 +47,17 @@ import * as ImagePicker from "expo-image-picker";
  * - @react-native-picker/picker
  */
 
+const baseUrl = "https://roomebackend20250414140006.azurewebsites.net";
+
+const GetImageUrl = (image) => {
+  if (!image) return "";
+
+  const trimmed = image.trim();
+  return trimmed.startsWith("https")
+    ? trimmed
+    : `${baseUrl}${trimmed.startsWith("/") ? "" : "/"}${trimmed}`;
+};
+
 const MyProfile = (props) => {
   const loginUserId = props.myId;
   const router = useRouter();
@@ -235,7 +246,7 @@ const MyProfile = (props) => {
           <Image
             source={
               userProfile.profilePicture
-                ? { uri: userProfile.profilePicture }
+                ? { uri: GetImageUrl(userProfile.profilePicture) }
                 : { uri: "https://www.w3schools.com/howto/img_avatar.png" }
             }
             style={styles.profileImage}
