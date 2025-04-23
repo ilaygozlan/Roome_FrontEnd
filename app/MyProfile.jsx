@@ -101,15 +101,23 @@ const MyProfile = (props) => {
   useEffect(() => {
     if (loginUserId) {
       fetch(API + "User/GetUserFriends/" + loginUserId)
-        .then((res) => res.json())
-        .then((data) => {
-          setFriends(data);
-          setIsFriend(data.some((f) => f.id === loginUserId));
+        .then(async (res) => {
+          const contentType = res.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            const data = await res.json();
+            const friendsList = Array.isArray(data) ? data : [];
+            setFriends(friendsList);
+            setIsFriend(friendsList.some((f) => f.id === loginUserId));
+          } else {
+            console.warn("השרת החזיר תגובה לא JSON:", await res.text());
+            setFriends([]);
+            setIsFriend(false);
+          }
         })
         .catch((err) => console.error("שגיאה בטעינת חברים", err));
     }
   }, [loginUserId]);
-
+  
   /**
    * Friend list management functions
    */
