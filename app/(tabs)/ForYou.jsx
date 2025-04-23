@@ -187,10 +187,13 @@ export default function ForYou() {
   const isValidImageUrl = (url) => {
     if (!url) return false;
     
+   
     const urls = url.split(',').map(u => u.trim()).filter(u => u !== '');
     
+   
     if (urls.length === 0) return false;
     
+  
     return urls.some(singleUrl => {
       if (!singleUrl) return false;
       if (singleUrl.includes('undefined') || singleUrl.includes('null')) return false;
