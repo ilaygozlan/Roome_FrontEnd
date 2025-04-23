@@ -353,7 +353,7 @@ const MyProfile = (props) => {
               onRemoveFriend={removeFriend}
               onAddFriend={addFriend}
             />
-              
+            
           </Modal>
         )}
         <Modal
