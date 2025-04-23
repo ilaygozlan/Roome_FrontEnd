@@ -187,14 +187,9 @@ export default function ForYou() {
   const isValidImageUrl = (url) => {
     if (!url) return false;
     
-    // מפצל את כל התמונות לרשימה
     const urls = url.split(',').map(u => u.trim()).filter(u => u !== '');
-    
-    // אם אין תמונות בכלל
-    if (urls.length === 0) return false;
-    
-    // מחפש לפחות תמונה אחת תקינה
-    return urls.some(singleUrl => {
+        if (urls.length === 0) return false;
+        return urls.some(singleUrl => {
       if (!singleUrl) return false;
       if (singleUrl.includes('undefined') || singleUrl.includes('null')) return false;
       if (singleUrl.includes('encrypted-tbn0.gstatic.com')) return false;
