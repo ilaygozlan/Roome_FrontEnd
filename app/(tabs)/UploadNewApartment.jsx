@@ -358,6 +358,7 @@ export default function UploadApartmentForm() {
               });
 
               apartmentData.Images = imageLinks.join(",");
+              apartmentData.Price = price;
               apartmentData.Location = JSON.parse(apartmentData.location).address;
               apartmentData.ApartmentType = apartmentType;
               const updatedAllApartments = [...allApartments, apartmentData];
