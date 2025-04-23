@@ -5,6 +5,9 @@ import {
   TouchableOpacity,
   ScrollView,
   Modal,
+  Share,
+  Linking,
+  Platform,
 } from "react-native";
 import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useState, useEffect, useContext } from "react";
@@ -16,23 +19,6 @@ import ApartmentGallery from "./ApartmentGallery";
 import { ActiveApartmentContext } from "../contex/ActiveApartmentContext";
 import ApartmentDetails from "../ApartmentDetails";
 import { userInfoContext } from "../contex/userInfoContext";
-
-/**
- * @component Apartment
- * @description Main component for displaying apartment listings. It handles the display of apartment cards,
- * including their images, details, and interactive elements like likes and sharing.
- * 
- * Features:
- * - Displays apartment cards with images, location, price, and description
- * - Filtering functionality for apartment types and price ranges
- * - Like button integration
- * - Share functionality
- * - Open house button integration
- * - Modal view for detailed apartment information
- * 
- * @param {Object} props
- * @param {boolean} props.hideIcons - Optional prop to hide interaction icons
- */
 
 export default function Apartment(props) {
   const { allApartments, setAllApartments } = useContext(
@@ -48,11 +34,23 @@ export default function Apartment(props) {
   const [selectedLocation, setSelectedLocation] = useState("");
   const [priceRange, setPriceRange] = useState([100, 10000]);
 
-  /**
-   * Helper function to determine border color based on apartment type
-   * @param {number} type - Apartment type (0: Rental, 1: Roommates, 2: Sublet)
-   * @returns {string} Color code for the border
-   */
+  // Share via WhatsApp
+  const handleShareApartment = async (apt) => {
+    const message = `דירה שווה שמצאתי באפליקציה:\n\nמיקום: ${apt.Location}\nמחיר: ${apt.Price} ש\"ח\n\n${apt.Description}`;
+    const whatsappUrl = `whatsapp://send?text=${encodeURIComponent(message)}`;
+
+    try {
+      const supported = await Linking.canOpenURL(whatsappUrl);
+      if (supported) {
+        await Linking.openURL(whatsappUrl);
+      } else {
+        alert("WhatsApp is not installed or not supported on this device.");
+      }
+    } catch (error) {
+      console.error("Error sharing via WhatsApp:", error);
+    }
+  };
+
   const getBorderColor = (type) => {
     switch (type) {
       case 0:
@@ -66,11 +64,6 @@ export default function Apartment(props) {
     }
   };
 
-  /**
-   * Helper function to convert apartment type number to display name
-   * @param {number} type - Apartment type (0: Rental, 1: Roommates, 2: Sublet)
-   * @returns {string} Display name for the apartment type
-   */
   const getTypeName = (type) => {
     switch (type) {
       case 0:
@@ -128,7 +121,7 @@ export default function Apartment(props) {
                 isLikedByUser={apt.IsLikedByUser == 1}
               />
             </TouchableOpacity>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => handleShareApartment(apt)}>
               <MaterialCommunityIcons
                 name="share-outline"
                 size={24}
@@ -140,7 +133,7 @@ export default function Apartment(props) {
               userId={loginUserId}
               location={apt.Location}
               userOwnerId={apt.UserID}
-            /> 
+            />
           </View>
         )}
       </View>
@@ -177,7 +170,6 @@ export default function Apartment(props) {
         <View style={styles.container}>{renderApartments()}</View>
       </ScrollView>
 
-      {/* Modal for selected apartment */}
       <Modal
         visible={showApartmentDetails}
         animationType="slide"
