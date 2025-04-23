@@ -106,7 +106,7 @@ export async function registerForPushNotificationsAsync() {
     const projectId =
       Constants?.expoConfig?.extra?.eas?.projectId ??
       Constants?.manifest?.extra?.eas?.projectId ??
-      '74d7d55b-5541-423c-bab5-acf88cf98489';
+      'af0169bc-0ef6-44a6-b018-fa2467edd1b2';
     if (!projectId) {
       handleRegistrationError('Project ID not found');
     }
