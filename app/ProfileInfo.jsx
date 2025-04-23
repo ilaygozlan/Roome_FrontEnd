@@ -94,7 +94,7 @@ export default function ProfileInfo() {
     });
   
     if (!result.canceled && result.assets.length > 0) {
-      setProfilePhoto(result.assets[0].uri); // שמירה של תמונה אחת בלבד
+      setProfilePhoto(result.assets[0].uri); 
     }
   };
   
