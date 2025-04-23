@@ -187,7 +187,7 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
   return (
     <View style={styles.wrapper}>
       <Text style={styles.title}>
-        {isMyProfile ? "הדירות שלי" : "הדירות שפרסם/ה"}
+        {isMyProfile ? "הדירות שלי" : ""}
       </Text>
       <ScrollView contentContainerStyle={styles.container}>
         {ownedApartments.map((apt) => (
