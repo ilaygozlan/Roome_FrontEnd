@@ -43,12 +43,12 @@ Notifications.setNotificationHandler({
  * @param {string} body - Notification body content
  * @returns {Promise<void>}
  */
-export async function sendPushNotification(expoPushToken, title, body) {
+export async function sendPushNotification(expoPushToken) {
   const message = {
     to: expoPushToken,
     sound: 'default',
-    title: title,
-    body: body,
+    title: "נרשמו לבית הפתוח שלך",
+    body: "נרשמו לבית הפתוח שלך",
     data: { someData: 'goes here' },
   };
 
