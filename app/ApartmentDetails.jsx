@@ -10,6 +10,7 @@ import {
   Animated,
   Modal
 } from "react-native";
+import { FlatList } from "react-native";
 import Constants from "expo-constants";
 import ApartmentReview from "./components/apartmentReview";
 import { FontAwesome5, MaterialIcons } from "@expo/vector-icons";
@@ -285,9 +286,11 @@ export default function ApartmentDetails({ apt, onClose }) {
     }
   };
 
-  return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <ScrollView>
+return (
+  <SafeAreaView style={{ flex: 1 }}>
+    <FlatList
+      data={[]}
+      ListHeaderComponent={
         <View style={styles.container}>
           <View style={styles.header}>
             <TouchableOpacity onPress={onClose} style={styles.backButton}>
@@ -295,6 +298,7 @@ export default function ApartmentDetails({ apt, onClose }) {
             </TouchableOpacity>
             <Text style={styles.headerTitle}></Text>
           </View>
+
           <ApartmentGallery images={apt.Images} />
 
           <Text style={styles.title}>{apt.Location}</Text>
@@ -309,6 +313,7 @@ export default function ApartmentDetails({ apt, onClose }) {
             <MaterialIcons name="meeting-room" size={16} color="#E3965A" />
             <Text style={styles.detail}>חדרים: {apt.AmountOfRooms}</Text>
           </View>
+
           <View style={styles.detailRow}>
             <MaterialIcons
               name="pets"
@@ -319,6 +324,7 @@ export default function ApartmentDetails({ apt, onClose }) {
               חיות מחמד: {apt.AllowPet ? "מותר" : "אסור"}
             </Text>
           </View>
+
           <View style={styles.detailRow}>
             <MaterialIcons
               name="smoking-rooms"
@@ -329,6 +335,7 @@ export default function ApartmentDetails({ apt, onClose }) {
               עישון: {apt.AllowSmoking ? "מותר" : "אסור"}
             </Text>
           </View>
+
           <View style={styles.detailRow}>
             <MaterialIcons
               name="local-parking"
@@ -337,12 +344,14 @@ export default function ApartmentDetails({ apt, onClose }) {
             />
             <Text style={styles.detail}>חניה: {apt.ParkingSpace}</Text>
           </View>
+
           <View style={styles.detailRow}>
             <MaterialIcons name="event-available" size={16} color="#E3965A" />
             <Text style={styles.detail}>
               תאריך כניסה: {apt.EntryDate?.split("T")[0]}
             </Text>
           </View>
+
           {apt.ExitDate && (
             <View style={styles.detailRow}>
               <MaterialIcons name="event-busy" size={16} color="#E3965A" />
@@ -372,21 +381,24 @@ export default function ApartmentDetails({ apt, onClose }) {
               </Text>
             </TouchableOpacity>
           )}
+
           <ApartmentReview apartmentId={apt.ApartmentID} />
         </View>
-      </ScrollView>
-      <Modal
-        visible={showUserProfile}
-        animationType="slide"
-        onRequestClose={() => setShowUserProfile(false)}
-      >
-        <UserProfile
-          userId={apt.UserID}
-          onClose={() => setShowUserProfile(false)}
-        />
-      </Modal>
-    </SafeAreaView>
-  );
+      }
+    />
+
+    <Modal
+      visible={showUserProfile}
+      animationType="slide"
+      onRequestClose={() => setShowUserProfile(false)}
+    >
+      <UserProfile
+        userId={apt.UserID}
+        onClose={() => setShowUserProfile(false)}
+      />
+    </Modal>
+  </SafeAreaView>
+);
 }
 
 const styles = StyleSheet.create({
