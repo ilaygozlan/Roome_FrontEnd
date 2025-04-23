@@ -1,23 +1,30 @@
-import React, { useState, useRef } from 'react';
-import { View, ScrollView, Image, StyleSheet, Dimensions, Text } from 'react-native';
+import React, { useState, useRef } from "react";
+import {
+  View,
+  ScrollView,
+  Image,
+  StyleSheet,
+  Dimensions,
+  Text,
+} from "react-native";
 
 /**
  * @component ApartmentGallery
  * @description Image gallery component for displaying apartment photos with pagination.
  * Supports both local and remote images with automatic URL handling.
- * 
+ *
  * Features:
  * - Horizontal scrolling gallery
  * - Pagination dots indicator
  * - Placeholder for no images
  * - Automatic image URL handling
  * - Responsive design
- * 
+ *
  * @param {Object} props
  * @param {string} props.images - Comma-separated string of image URLs
  */
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 const baseUrl = "https://roomebackend20250414140006.azurewebsites.net";
 
 /**
@@ -25,29 +32,31 @@ const baseUrl = "https://roomebackend20250414140006.azurewebsites.net";
  * @param {string} images - Comma-separated string of image URLs
  * @returns {Array<string>} Array of properly formatted image URLs
  */
-const GetImagesArr = (images)=>{
-  const imageArray = images?.split(',').map((img) => {
-    const trimmed = img.trim();
-    return trimmed.startsWith('https') ? trimmed : `${baseUrl}${trimmed.startsWith('/') ? '' : '/'}${trimmed}`;
-  }) || [];
+const GetImagesArr = (images) => {
+  const imageArray =
+    images?.split(",").map((img) => {
+      const trimmed = img.trim();
+      return trimmed.startsWith("https")
+        ? trimmed
+        : `${baseUrl}${trimmed.startsWith("/") ? "" : "/"}${trimmed}`;
+    }) || [];
   return imageArray;
-}
-
-
-/**
- * Handles scroll events to update the current image index
- * @param {Object} event - Scroll event object
- */
-const handleScroll = (event) => {
-  const x = event.nativeEvent.contentOffset.x;
-  const index = Math.round(x / width);
-  setCurrentIndex(index);
 };
 
 export default function ApartmentGallery({ images }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollRef = useRef();
   const imageArray = GetImagesArr(images);
+
+  /**
+   * Handles scroll events to update the current image index
+   * @param {Object} event - Scroll event object
+   */
+  const handleScroll = (event) => {
+    const x = event.nativeEvent.contentOffset.x;
+    const index = Math.round(x / width);
+    setCurrentIndex(index);
+  };
 
   // If no images, return a placeholder box
   if (imageArray.length === 0) {
@@ -79,10 +88,7 @@ export default function ApartmentGallery({ images }) {
           {imageArray.map((_, index) => (
             <View
               key={index}
-              style={[
-                styles.dot,
-                index === currentIndex && styles.activeDot,
-              ]}
+              style={[styles.dot, index === currentIndex && styles.activeDot]}
             />
           ))}
         </View>
@@ -94,37 +100,38 @@ export default function ApartmentGallery({ images }) {
 const styles = StyleSheet.create({
   scrollView: {
     height: 200,
+    width: width
   },
   image: {
     width: width,
     height: 200,
-    resizeMode: 'cover',
+    resizeMode: "cover",
   },
   placeholder: {
     width: width,
     height: 150,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
   },
   placeholderText: {
-    color: '#777',
+    color: "#777",
     fontSize: 16,
-    fontStyle: 'italic',
+    fontStyle: "italic",
   },
   dotsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     marginTop: 8,
   },
   dot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#ccc',
+    backgroundColor: "#ccc",
     marginHorizontal: 4,
   },
   activeDot: {
-    backgroundColor: '#E3965A',
+    backgroundColor: "#E3965A",
   },
 });
