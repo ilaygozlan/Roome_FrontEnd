@@ -415,7 +415,7 @@ const MyProfile = (props) => {
                 <Text style={{ color: "red", textAlign: "right" }}>
                   Please enter a valid phone number
                 </Text>
-              )}{" "}
+              )}
               <TextInput
                 style={[styles.input, { textAlign: "right" }]}
                 placeholder="סטטוס תעסוקה"
