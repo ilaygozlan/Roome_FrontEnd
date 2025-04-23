@@ -246,7 +246,7 @@ const MyProfile = (props) => {
           <Image
             source={
               userProfile.profilePicture
-                ? { uri: GetImageUrl(userProfile.profilePicture) }
+                ? { uri:(userProfile.profilePicture) }
                 : { uri: "https://www.w3schools.com/howto/img_avatar.png" }
             }
             style={styles.profileImage}
