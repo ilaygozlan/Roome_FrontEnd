@@ -93,16 +93,22 @@ export default function ForYou() {
   // Add useEffect for initial loading
   useEffect(() => {
     const initializeComponent = async () => {
-      setIsLoading(true);
-      try {
-        await loadInteracted();
-        setStorageReady(true);
-      } catch (error) {
-        console.error('Error initializing component:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    setIsLoading(true);
+    try {
+      const res = await fetch(`${API}User/GetRecommendedApartments/${userId}`);
+      const recommended = res.ok ? await res.json() : [];
+
+      setAllApartments(recommended); 
+      await loadInteracted();
+      setStorageReady(true);
+    } catch (error) {
+      console.error('Error initializing component:', error);
+      Alert.alert('שגיאה', 'לא ניתן לטעון המלצות כרגע');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
     initializeComponent();
   }, []);
