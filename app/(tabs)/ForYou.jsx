@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useMemo,useContext } from "react";
+import React, { useRef, useState, useEffect, useMemo, useContext } from "react";
 import { View, Text, StyleSheet, Dimensions, ActivityIndicator, Image, Alert } from "react-native";
 import { userInfoContext } from "../contex/userInfoContext";
 import API from "../../config";
@@ -10,12 +10,13 @@ const CARD_WIDTH = SCREEN_WIDTH * 0.9;
 const CARD_HEIGHT = 500;
 
 const colors = {
-  orange: '#FF8C00',
-  blue: '#0066CC',
+  primary: '#E3965A',
+  background:'#ffffff',
   white: '#ffffff',
   gray: '#424242',
   lightGray: '#86888A'
 };
+
 
 export default function ForYou() {
   const { loginUserId } = useContext(userInfoContext);
@@ -46,49 +47,46 @@ export default function ForYou() {
 
   const swipeableApartments = useMemo(() => {
     return apartments.filter(apt =>
-      apt?.id && !interactedIds.includes(apt.id)
+      apt?.ApartmentID && !interactedIds.includes(apt.ApartmentID)
     );
   }, [apartments, interactedIds]);
 
   const handleSwipe = async (cardIndex, direction) => {
     const apartment = swipeableApartments[cardIndex];
-    if (!apartment?.id) return;
+    if (!apartment?.ApartmentID) return;
 
-    setInteractedIds(prev => [...prev, apartment.id]);
+    setInteractedIds(prev => [...prev, apartment.ApartmentID]);
 
     if (direction === 'right') {
-      await fetch(`${API}User/LikeApartment/${userId}/${apartment.id}`, { method: "POST" });
+      await fetch(`${API}User/LikeApartment/${userId}/${apartment.ApartmentID}`, { method: "POST" });
     }
   };
 
   const renderCard = (card) => {
-    if (!card || !card.id) return null;
+    if (!card || !card.ApartmentID) return null;
 
-    // Parse location correctly:
     let locationAddress = 'מיקום לא ידוע';
     try {
-      const loc = JSON.parse(card.location);
+      const loc = JSON.parse(card.Location);
       locationAddress = loc.address || 'מיקום לא ידוע';
     } catch {
-      locationAddress = card.location || 'מיקום לא ידוע';
+      locationAddress = card.Location || 'מיקום לא ידוע';
     }
 
-    // Try to get image:
-    let imageUrl = null;
-    if (card.images) {
-      imageUrl = card.images;  // במידה בעתיד יהיה לך שדה תמונה מהשרת
-    } else {
-      imageUrl = "https://via.placeholder.com/500x300?text=No+Image";
+    let imageUrl = "https://via.placeholder.com/500x300?text=No+Image";
+    if (card.Images) {
+      const imagesArray = card.Images.split(',').map(s => s.trim());
+      if (imagesArray.length > 0) imageUrl = imagesArray[0];
     }
 
     return (
       <View style={styles.card}>
         <View style={styles.image}>
-          {!imageErrors[card.id] ? (
+          {!imageErrors[card.ApartmentID] ? (
             <Image
               source={{ uri: imageUrl }}
               style={{ width: '100%', height: '100%' }}
-              onError={() => setImageErrors(prev => ({ ...prev, [card.id]: true }))}
+              onError={() => setImageErrors(prev => ({ ...prev, [card.ApartmentID]: true }))}
             />
           ) : (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -99,15 +97,15 @@ export default function ForYou() {
         </View>
         <View style={styles.overlay}>
           <Text style={styles.title}>{locationAddress}</Text>
-          <Text style={styles.price}>{card.price ? `${card.price} ₪` : 'מחיר לא ידוע'}</Text>
-          <Text style={styles.description}>{card.description || 'אין תיאור'}</Text>
+          <Text style={styles.price}>{card.Price ? `${card.Price} ₪` : 'מחיר לא ידוע'}</Text>
+          <Text style={styles.description}>{card.Description || 'אין תיאור'}</Text>
         </View>
       </View>
     );
   };
 
   if (isLoading) {
-    return <ActivityIndicator size="large" color="#999" style={{ marginTop: 100 }} />;
+    return <ActivityIndicator size="large" color="#E3965A" style={{ marginTop: 100 }} />;
   }
 
   return (
@@ -128,7 +126,9 @@ export default function ForYou() {
           verticalSwipe={false}
           cardStyle={styles.card}
           containerStyle={{ flex: 1 }}
+           backgroundColor={colors.background}
           swipeAnimationDuration={350}
+
         />
       ) : (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -141,11 +141,11 @@ export default function ForYou() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.white },
-  card: { width: CARD_WIDTH, height: CARD_HEIGHT, borderRadius: 20, overflow: "hidden" },
-  image: { width: "100%", height: "100%", backgroundColor: colors.lightGray },
-  overlay: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 15, backgroundColor: 'rgba(0,0,0,0.5)' },
-  title: { fontSize: 24, color: colors.white, fontWeight: "bold" },
-  price: { fontSize: 20, color: colors.white, marginVertical: 5 },
-  description: { fontSize: 16, color: colors.white }
+  container: { flex: 1, backgroundColor: colors.background },
+  card: { width: CARD_WIDTH, height: CARD_HEIGHT, borderRadius: 20, overflow: "hidden", backgroundColor: colors.background },
+  image: { width: "100%", height: "100%", backgroundColor: colors.background },
+  overlay: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 15, backgroundColor: 'rgba(166, 142, 142, 0.5)' },
+  title: { fontSize: 24, color: colors.background, fontWeight: "bold" },
+  price: { fontSize: 20, color: colors.background, marginVertical: 5 },
+  description: { fontSize: 16, color: colors.background }
 });
