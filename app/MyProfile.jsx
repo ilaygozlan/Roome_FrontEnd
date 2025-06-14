@@ -22,12 +22,13 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import UserProfile from "./UserProfile";
 import * as ImagePicker from "expo-image-picker";
+import RoommatePreferencesForm from "./components/RoommatePreferencesForm";
 
 /**
  * @component MyProfile
  * @description User's personal profile management component with comprehensive profile
  * information display and editing capabilities.
- * 
+ *
  * Features:
  * - Profile information display
  * - Profile editing
@@ -37,10 +38,10 @@ import * as ImagePicker from "expo-image-picker";
  * - Phone number validation
  * - Date picker integration
  * - RTL (Right-to-Left) support
- * 
+ *
  * @param {Object} props
  * @param {number} props.myId - User's ID
- * 
+ *
  * Dependencies:
  * - expo-image-picker
  * - @react-native-community/datetimepicker
@@ -63,6 +64,7 @@ const MyProfile = (props) => {
   const [selectedFriendId, setFriendId] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showPhoneError, setShowPhoneError] = useState(false);
+  const [showPreferences, setShowPreferences] = useState(false);
 
   /**
    * Profile data fetching effect
@@ -117,7 +119,7 @@ const MyProfile = (props) => {
         .catch((err) => console.error("שגיאה בטעינת חברים", err));
     }
   }, [loginUserId]);
-  
+
   /**
    * Friend list management functions
    */
@@ -139,7 +141,9 @@ const MyProfile = (props) => {
    */
   const handleSave = async () => {
     const updatedUser = { ...updatedProfile, id: loginUserId };
-    if(!updatedUser.token) {updatedUser.token = "";}
+    if (!updatedUser.token) {
+      updatedUser.token = "";
+    }
 
     try {
       const res = await fetch(API + "User/UpdateUserDetails", {
@@ -293,6 +297,14 @@ const MyProfile = (props) => {
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <Text style={styles.buttonText}>דירות שאהבתי</Text>
               </View>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.buttonsContainer}>
+            <TouchableOpacity
+              style={styles.smallButton}
+              onPress={() => setShowPreferences(true)}
+            >
+              <Text style={styles.buttonText}>מצא את השותפים המושלמים עבורך</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -506,6 +518,13 @@ const MyProfile = (props) => {
             </View>
           </View>
         </Modal>
+        <Modal
+          visible={showPreferences}
+          animationType="slide"
+          onRequestClose={() => setShowPreferences(false)}
+        >
+          <RoommatePreferencesForm onClose={() => setShowPreferences(false)} />
+        </Modal>
 
         <View
           style={{
@@ -517,12 +536,11 @@ const MyProfile = (props) => {
         >
           <UserOwnedApartmentsGrid userId={loginUserId} isMyProfile={true} />
         </View>
-              
+
         <View style={styles.logoutContainer}>
           <LogoutButton />
         </View>
       </ScrollView>
-      
     </View>
   );
 };
@@ -555,12 +573,12 @@ const InfoCard = ({ icon, value }) => (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f7fa", // רקע בהיר מאוד ונעים
+    backgroundColor: "#f5f7fa", 
   },
   headerBackground: {
     width: "100%",
     height: 220,
-    backgroundColor: "#4A90E2", // כחול מודרני וטבעי
+    backgroundColor: "#4A90E2", 
     position: "absolute",
     top: 0,
     borderBottomLeftRadius: 30,

@@ -6,6 +6,6 @@ export default API;
 const isDev = true;
 */
 const isDev = true
-const API = 'http://192.168.68.110:5000/api/';
+const API = 'http://172.20.10.14:5000/api/';
 export default API;
 
