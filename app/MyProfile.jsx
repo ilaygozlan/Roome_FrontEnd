@@ -65,6 +65,8 @@ const MyProfile = (props) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showPhoneError, setShowPhoneError] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
+  const [matches, setMatches] = useState([]);
+  const [showMatchesModal, setShowMatchesModal] = useState(false);
 
   /**
    * Profile data fetching effect
@@ -304,7 +306,9 @@ const MyProfile = (props) => {
               style={styles.smallButton}
               onPress={() => setShowPreferences(true)}
             >
-              <Text style={styles.buttonText}>מצא את השותפים המושלמים עבורך</Text>
+              <Text style={styles.buttonText}>
+                מצא את השותפים המושלמים עבורך
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -523,8 +527,55 @@ const MyProfile = (props) => {
           animationType="slide"
           onRequestClose={() => setShowPreferences(false)}
         >
-          <RoommatePreferencesForm onClose={() => setShowPreferences(false)} />
+          <RoommatePreferencesForm
+            onClose={() => setShowPreferences(false)}
+            onMatchesFound={(foundMatches) => {
+              setMatches(foundMatches);
+              setShowPreferences(false);
+              setShowMatchesModal(true);
+            }}
+          />
         </Modal>
+        <Modal
+  visible={showMatchesModal}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setShowMatchesModal(false)}
+>
+  <View style={styles.modalContainer}>
+    <View style={styles.resultCard}>
+      <Text style={styles.resultTitle}>השותפים שנמצאו עבורך:</Text>
+      <ScrollView horizontal>
+        {matches.map((user) => (
+          <TouchableOpacity
+            key={user.id}
+            style={styles.userCard}
+            onPress={() => {
+              setShowMatchesModal(false);
+              router.push({ pathname: "ChatRoom", params: { recipientId: user.id } });
+            }}
+          >
+            <Image
+              source={{
+                uri: user.profilePicture || "https://www.w3schools.com/howto/img_avatar.png",
+              }}
+              style={styles.avatar}
+            />
+            <Text style={styles.userName}>{user.fullName}</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      <TouchableOpacity
+        style={styles.closeResultBtn}
+        onPress={() => setShowMatchesModal(false)}
+      >
+        <Text style={{ color: "white", fontSize: 18 }}>סגור</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
 
         <View
           style={{
@@ -573,12 +624,12 @@ const InfoCard = ({ icon, value }) => (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f7fa", 
+    backgroundColor: "#f5f7fa",
   },
   headerBackground: {
     width: "100%",
     height: 220,
-    backgroundColor: "#4A90E2", 
+    backgroundColor: "#4A90E2",
     position: "absolute",
     top: 0,
     borderBottomLeftRadius: 30,
@@ -852,6 +903,38 @@ const styles = StyleSheet.create({
     marginTop: 30,
     marginBottom: 40,
   },
+  resultCard: {
+  backgroundColor: "#fff",
+  borderRadius: 15,
+  padding: 20,
+  width: "85%",
+  alignItems: "center",
+},
+resultTitle: {
+  fontSize: 22,
+  fontWeight: "bold",
+  marginBottom: 15,
+},
+userCard: {
+  alignItems: "center",
+  marginHorizontal: 10,
+},
+avatar: {
+  width: 80,
+  height: 80,
+  borderRadius: 40,
+  marginBottom: 8,
+},
+userName: {
+  fontSize: 16,
+  fontWeight: "500",
+},
+closeResultBtn: {
+  backgroundColor: "#4A90E2",
+  padding: 15,
+  borderRadius: 10,
+  marginTop: 15,
+}
 });
 
 export default MyProfile;

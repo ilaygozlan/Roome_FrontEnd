@@ -1,6 +1,7 @@
 import { View, Text } from "react-native";
 import React from "react";
-import { Stack, useRouter } from "expo-router";
+import { Stack } from "expo-router";
+import ChatRoom from "./ChatRoom";
 
 const AuthStack = () => {
   return (
