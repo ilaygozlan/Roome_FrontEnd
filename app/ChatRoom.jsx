@@ -47,6 +47,26 @@ const ChatRoom = () => {
       });
   }, []);
 
+  // טעינת היסטוריית הצ'אט
+  useEffect(() => {
+    fetch(`${API}Chat/GetMessages/${loginUserId}/${recipient}`)
+      .then((res) => res.json())
+      .then((data) => {
+        const loadedMessages = data.map((m) => ({
+          from: m.fromUserId,
+          text: m.content,
+          time: new Date(m.sentAt).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        }));
+        setMessages(loadedMessages);
+      })
+      .catch((err) => {
+        console.error("Error loading chat history:", err);
+      });
+  }, []);
+
   useEffect(() => {
     SignalRService.startConnection(loginUserId);
     SignalRService.onReceiveMessage((senderId, message) => {
@@ -84,6 +104,20 @@ const ChatRoom = () => {
 
     SignalRService.sendMessage(recipient.toString(), input);
     setMessages((prev) => [...prev, myMsg]);
+
+    // שמירה בשרת
+    fetch(`${API}Chat/SaveMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fromUserId: loginUserId,
+        toUserId: recipient,
+        content: input,
+      }),
+    }).catch((err) => {
+      console.error("Failed to save message:", err);
+    });
+
     setInput("");
   };
 
@@ -97,7 +131,16 @@ const ChatRoom = () => {
         behavior={Platform.OS === "ios" ? "padding" : null}
       >
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={() => {
+              if (navigation.canGoBack()) {
+                navigation.goBack();
+              } else {
+                navigation.navigate("ChatRoomListScreen");
+              }
+            }}
+            style={styles.backButton}
+          >
             <Ionicons
               name="arrow-back"
               size={26}

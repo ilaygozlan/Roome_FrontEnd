@@ -86,7 +86,7 @@ import { useLocalSearchParams } from "expo-router";
 const UserProfile = (props) => {
   const { loginUserId } = useContext(userInfoContext);
   const { userId } = useLocalSearchParams();
-  const finalUserId = userId ?? props.userId;
+  const finalUserId = props.userId ?? userId;
   const isMyProfile = finalUserId == loginUserId;
   const router = useRouter();
   const [showFriendProfile, setFriendProfile] = useState(false);
@@ -228,6 +228,17 @@ const UserProfile = (props) => {
                 />
               </TouchableOpacity>
               <TouchableOpacity
+                style={styles.chatButton}
+                onPress={() =>
+                  router.push({
+                    pathname: "ChatRoom",
+                    params: { recipientId: finalUserId },
+                  })
+                }
+              >
+                <FontAwesome5 name="comments" size={18} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity
                 style={styles.backButton}
                 onPress={() => props.onClose()}
               >
@@ -340,7 +351,7 @@ const UserProfile = (props) => {
 
           </Modal>
         )}
-        
+
         <View
           style={{
             flex: 1,
@@ -663,7 +674,19 @@ const styles = StyleSheet.create({
     marginTop: 30,
     marginBottom: 40,
   },
+  chatButton: {
+    position: "absolute",
+    top: 25,
+    right: 70,
+    backgroundColor: "#4A90E2",
+    padding: 8,
+    borderRadius: 25,
+    zIndex: 10,
+    shadowColor: "#4A90E2",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+  },
 });
-
 
 export default UserProfile;
