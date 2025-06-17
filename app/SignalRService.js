@@ -6,9 +6,9 @@ class SignalRService {
     this.connection = null;
   }
 startConnection(userId) {
-  const baseUrl = API.replace('/api/', '').replace(/\/$/, ''); // נוודא שאין סלאש כפול
+  const baseUrl = API.replace('/api/', '').replace(/\/$/, ''); 
   this.connection = new signalR.HubConnectionBuilder()
-    .withUrl(`${baseUrl}/chatHub?userId=${userId}`) // הוספנו את הסלאש לפני chatHub
+    .withUrl(`${baseUrl}/chatHub?userId=${userId}`) 
     .withAutomaticReconnect()
     .configureLogging(signalR.LogLevel.Information)
     .build();

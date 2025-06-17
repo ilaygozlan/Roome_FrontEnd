@@ -22,7 +22,7 @@ import { useLocalSearchParams } from "expo-router";
 /**
  * @module UserProfile
  * @description Component for displaying user profile information and managing user relationships
- * 
+ *
  * Features:
  * - Profile information display
  * - Friend management (add/remove friends)
@@ -30,10 +30,10 @@ import { useLocalSearchParams } from "expo-router";
  * - User apartment listings
  * - Friends list with horizontal scrolling
  * - Profile image handling
- * 
+ *
  * @requires expo-router
  * @requires @expo/vector-icons
- * 
+ *
  * State Management:
  * @state {Object} userProfile - User's profile data
  * @state {boolean} loading - Loading state indicator
@@ -42,41 +42,41 @@ import { useLocalSearchParams } from "expo-router";
  * @state {Object} updatedProfile - Temporary profile data for editing
  * @state {Array} friends - User's friends list
  * @state {boolean} isFriend - Friendship status with viewed profile
- * 
+ *
  * Props:
  * @prop {string} userId - User ID to display (optional)
  * @prop {Function} onClose - Callback for closing profile view
  * @prop {Function} onAddFriend - Callback when adding friend
  * @prop {Function} onRemoveFriend - Callback when removing friend
- * 
+ *
  * Components:
  * @component InfoCard - Displays individual profile information fields
- * 
+ *
  * API Integration:
  * - User profile fetching
  * - Friend list management
  * - Profile updates
- * 
+ *
  * Context Usage:
  * - userInfoContext for authentication
- * 
+ *
  * Features:
  * 1. Profile Information Display:
  *    - Profile picture
  *    - Basic user information
  *    - Contact details
  *    - Personal preferences (smoking, pets)
- * 
+ *
  * 2. Friend Management:
  *    - Add/Remove friends
  *    - View friends list
  *    - Navigate to friend profiles
- * 
+ *
  * 3. Profile Editing:
  *    - Edit personal information
  *    - Update profile picture
  *    - Save profile changes
- * 
+ *
  * 4. Responsive Layout:
  *    - Scrollable content
  *    - Horizontal scrolling friends list
@@ -195,8 +195,6 @@ const UserProfile = (props) => {
 
   return (
     <View style={{ flex: 1 }}>
-    
-
       <ScrollView style={styles.container}>
         <View style={styles.headerBackground} />
         <View style={styles.profileContainer}>
@@ -230,11 +228,23 @@ const UserProfile = (props) => {
                 />
               </TouchableOpacity>
               <TouchableOpacity
+                style={styles.chatButton}
+                onPress={() =>
+                  router.push({
+                    pathname: "ChatRoom",
+                    params: { recipientId: finalUserId },
+                  })
+                }
+              >
+                <FontAwesome5 name="comments" size={18} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity
                 style={styles.backButton}
                 onPress={() => props.onClose()}
               >
                 <Feather name="arrow-left" size={24} color="#fff" />
               </TouchableOpacity>
+              
             </>
           )}
 
@@ -277,8 +287,6 @@ const UserProfile = (props) => {
             />
           </View>
         </View>
-
-       
 
         <View style={styles.friendsSection}>
           <Text style={styles.sectionTitle}>
@@ -340,7 +348,7 @@ const UserProfile = (props) => {
             />
           </Modal>
         )}
-        
+
         <View
           style={{
             flex: 1,
@@ -772,6 +780,5 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
 });
-
 
 export default UserProfile;
