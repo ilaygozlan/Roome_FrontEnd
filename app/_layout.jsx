@@ -90,6 +90,7 @@ export default function RootLayout() {
       )}
       <Stack.Screen name="ApartmentDetails"/>
       <Stack.Screen name="UserProfile"/>
+        <Stack.Screen name="ChatRoom" />
     </Stack>
   );
 

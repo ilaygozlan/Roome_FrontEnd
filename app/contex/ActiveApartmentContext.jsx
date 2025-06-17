@@ -116,3 +116,4 @@ export const ActiveApartmentProvider = ({ children }) => {
     </ActiveApartmentContext.Provider>
   );
 };
+export default ActiveApartmentProvider;
