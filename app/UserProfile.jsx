@@ -86,7 +86,7 @@ import { useLocalSearchParams } from "expo-router";
 const UserProfile = (props) => {
   const { loginUserId } = useContext(userInfoContext);
   const { userId } = useLocalSearchParams();
-  const finalUserId = userId ?? props.userId;
+  const finalUserId = props.userId ?? userId;
   const isMyProfile = finalUserId == loginUserId;
   const router = useRouter();
   const [showFriendProfile, setFriendProfile] = useState(false);
@@ -244,7 +244,6 @@ const UserProfile = (props) => {
               >
                 <Feather name="arrow-left" size={24} color="#fff" />
               </TouchableOpacity>
-              
             </>
           )}
 
@@ -778,6 +777,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginTop: 30,
     marginBottom: 40,
+  },
+  chatButton: {
+    position: "absolute",
+    top: 25,
+    right: 70,
+    backgroundColor: "#4A90E2",
+    padding: 8,
+    borderRadius: 25,
+    zIndex: 10,
+    shadowColor: "#4A90E2",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
   },
 });
 
