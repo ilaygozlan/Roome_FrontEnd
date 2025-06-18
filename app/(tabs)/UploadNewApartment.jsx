@@ -105,6 +105,74 @@ export default function UploadApartmentForm() {
   const [showExitPicker, setShowExitPicker] = useState(false);
   const [propertyTypeID, setPropertyTypeID] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const detectLabelsFromImages = async () => {
+  if (images.length === 0) {
+    Alert.alert("שגיאה", "יש להעלות תמונה לפני זיהוי תוויות");
+    return;
+  }
+
+  const formData = new FormData();
+  images.forEach((uri) => {
+    const fileName = uri.split("/").pop();
+    const fileType = fileName.split(".").pop();
+    const mimeType = fileType === "png" ? "image/png" : "image/jpeg";
+
+    formData.append("files", {
+      uri,
+      name: fileName,
+      type: mimeType,
+    });
+  });
+
+  try {
+    const res = await fetch(`${API}UploadImage/detectLabelsFromImages`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) throw new Error("כשל בזיהוי");
+
+    const labels = await res.json();
+    setSubmittedApartmentData((prev) => ({
+      ...prev,
+      detectedLabels: labels,
+    }));
+    Alert.alert("הצלחה", "התוויות זוהו בהצלחה!");
+  } catch (err) {
+    console.error("זיהוי נכשל:", err);
+    Alert.alert("שגיאה", "זיהוי התוויות נכשל");
+  }
+};
+
+const handleDetectLabels = () => {
+  const apartmentId = submittedApartmentData?.ApartmentID;
+  if (!apartmentId) {
+    Alert.alert("שגיאה", "לא ניתן לזהות תוויות – הדירה לא קיימת");
+    return;
+  }
+
+  fetch(`${API}UploadImage/detectLabelsForApartment/${apartmentId}`, {
+    method: "GET",
+  })
+    .then((res) => {
+      if (!res.ok) throw new Error("כשל בזיהוי התוויות");
+      return res.json();
+    })
+    .then((labels) => {
+      console.log("Detected Labels:", labels);
+
+      setSubmittedApartmentData((prev) => ({
+        ...prev,
+        detectedLabels: labels,
+      }));
+
+      Alert.alert("הצלחה", "התוויות זוהו בהצלחה!");
+    })
+    .catch((err) => {
+      console.error("שגיאה בזיהוי:", err);
+      Alert.alert("שגיאה", "אירעה שגיאה בעת זיהוי התוויות");
+    });
+};
 
   const categories = [
     { id: 0, name: "השכרה", icon: "home" },
@@ -394,7 +462,23 @@ export default function UploadApartmentForm() {
                   <>
                     <Ionicons name="image-outline" size={60} color="gray" />
                     <Text>הוסף תמונות מהגלריה</Text>
+                    {submittedApartmentData && (
+  <TouchableOpacity
+    onPress={handleDetectLabels}
+    style={{
+      backgroundColor: "#E3965A",
+      padding: 10,
+      borderRadius: 10,
+      marginTop: 10,
+      alignSelf: "flex-start",
+    }}
+  >
+    <Text style={{ color: "white", fontWeight: "bold" }}>זיהוי תוויות</Text>
+  </TouchableOpacity>
+)}
+
                   </>
+                  
                 ) : (
                   <ScrollView horizontal>
                     {images.map((uri, idx) => (
@@ -419,6 +503,51 @@ export default function UploadApartmentForm() {
                 <Ionicons name="camera-outline" size={24} color="#333" />
                 <Text style={{ marginLeft: 8 }}>צלם תמונה</Text>
               </TouchableOpacity>
+<TouchableOpacity
+  onPress={detectLabelsFromImages}
+  style={{
+    marginBottom: 10,
+    backgroundColor: "#f4f4f4",
+    padding: 10,
+    borderRadius: 10,
+    alignSelf: "flex-start",
+  }}
+>
+  <Text>🔍 הוסף תוויות</Text>
+</TouchableOpacity>
+
+
+{/* Labels display with edit/delete */}
+{submittedApartmentData?.detectedLabels?.length > 0 && (
+  <View style={{ marginBottom: 10, alignSelf: "flex-start" }}>
+    <Text style={{ fontWeight: "bold" }}>התוויות שזוהו:</Text>
+    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+      {submittedApartmentData.detectedLabels.map((label, idx) => (
+        <View
+          key={idx}
+          style={{
+            backgroundColor: "#FDEAD7",
+            paddingHorizontal: 10,
+            paddingVertical: 4,
+            borderRadius: 10,
+            marginTop: 5,
+            marginRight: 5,
+            flexDirection: "row",
+            alignItems: "center",
+          }}
+        >
+          <Text style={{ fontSize: 14 }}>{label}</Text>
+          <TouchableOpacity
+            onPress={() => handleDeleteLabel(label)}
+            style={{ marginLeft: 8 }}
+          >
+            <Text style={{ color: "red", fontWeight: "bold" }}>✕</Text>
+          </TouchableOpacity>
+        </View>
+      ))}
+    </View>
+  </View>
+)}
 
               {/* fields */}
               <View style={{ width: "100%" }}>

@@ -14,7 +14,7 @@ const { width } = Dimensions.get("window");
 // Get the correct base URL depending on environment
 const getBaseUrl = () => {
   if (__DEV__) {
-    return "http://192.168.1.111:5000"; // development
+    return "https://192.168.68.113:5000"; // development
   } else {
     return "https://roomebackend20250414140006.azurewebsites.net"; // production
   }
@@ -23,15 +23,19 @@ const getBaseUrl = () => {
 const baseUrl = getBaseUrl();
 
 // Convert image paths (array or comma-separated string) into full URLs
-const GetImagesArr = (images) => {
-  const ts = Date.now(); // new timestamp
-  if (!images) return [];
-  if (Array.isArray(images)) {
-    return images.map(img => `${baseUrl}${img.trim()}?ts=${ts}`);
-  }
-  return images.split(",").map(img => `${baseUrl}${img.trim()}?ts=${ts}`);
-};
 
+const GetImagesArr = (images) => {
+    const ts = Date.now(); // new timestamp
+
+  const imageArray =
+    images?.split(",").map((img) => {
+      const trimmed = img.trim();
+      return trimmed.startsWith("https")
+        ? trimmed
+        : `${baseUrl}${trimmed.startsWith("/") ? "" : "/"}${trimmed}`;
+    }) || [];
+  return imageArray;
+};
 
 export default function ApartmentGallery({ images }) {
   const [currentIndex, setCurrentIndex] = useState(0);
