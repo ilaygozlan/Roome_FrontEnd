@@ -602,7 +602,7 @@ const MyProfile = (props) => {
             paddingTop: 50,
           }}
         >
-          <UserOwnedApartmentsGrid userId={loginUserId} isMyProfile={true} />
+          <UserOwnedApartmentsGrid userId={loginUserId} isMyProfile={true}loginUserId={loginUserId} />
         </View>
 
         <View style={styles.logoutContainer}>

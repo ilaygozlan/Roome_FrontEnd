@@ -15,10 +15,10 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import API from "../config";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import ApartmentLabelsPopup from "./components/ApartmentLabelsPopup";
+import OpenHouseButton from "./components/OpenHouseButton";
 
-const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
+const UserOwnedApartmentsGrid = ({ userId, isMyProfile,loginUserId }) => {
   const { allApartments } = useContext(ActiveApartmentContext);
-
   const [openHouseModalVisible, setOpenHouseModalVisible] = useState(false);
   const [selectedApartmentId, setSelectedApartmentId] = useState(null);
   const [openHouseDate, setOpenHouseDate] = useState(new Date());
@@ -26,7 +26,7 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [visibleLabelsPopupId, setVisibleLabelsPopupId] = useState(null);
-
+  const [expandedApartmentId, setExpandedApartmentId] = useState(null);
   const [startDateObj, setStartDateObj] = useState(new Date());
   const [endDateObj, setEndDateObj] = useState(new Date());
   const [startTime, setStartTime] = useState("");
@@ -37,7 +37,9 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
   useEffect(() => {
     if (!userId) return;
 
-    const filtered = allApartments.filter((apt) => apt.UserID === userId);
+    const filtered = allApartments.filter(
+      (apt) => apt.UserID === Number(userId)
+    );
     setOwnedApartments(filtered);
   }, [allApartments, userId]);
 
@@ -49,6 +51,11 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
     });
   }, [ownedApartments]);
 
+  const toggleExpand = (apartmentId) => {
+    setExpandedApartmentId((prev) =>
+      prev === apartmentId ? null : apartmentId
+    );
+  };
   const getBorderColor = (type) => {
     switch (type) {
       case 0:
@@ -198,12 +205,14 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
               { borderColor: getBorderColor(apt.ApartmentType) },
             ]}
           >
-            <TouchableOpacity
-              style={styles.aiButton}
-              onPress={() => setVisibleLabelsPopupId(apt.ApartmentID)}
-            >
-              <Text style={styles.aiButtonText}>שדרג את המודעה עם AI</Text>
-            </TouchableOpacity>
+            {isMyProfile && (
+              <TouchableOpacity
+                style={styles.aiButton}
+                onPress={() => setVisibleLabelsPopupId(apt.ApartmentID)}
+              >
+                <Text style={styles.aiButtonText}>שדרג את המודעה עם AI</Text>
+              </TouchableOpacity>
+            )}
 
             <View
               style={[
@@ -225,38 +234,62 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
 
               {isMyProfile && (
                 <>
-                  {(openHousesMap[apt.ApartmentID] || []).map((item, idx) => (
-                    <View key={idx} style={styles.openHouseItem}>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <Text style={styles.openHouseButtonText}>
-                          {new Date(item.date).toLocaleDateString("he-IL")} |{" "}
-                          {item.startTime} - {item.endTime} | נרשמו:{" "}
-                          {item.amountOfPeoples} / {item.totalRegistrations}
-                        </Text>
-                        <MaterialCommunityIcons
-                          name="calendar-outline"
-                          size={20}
-                          color="white"
-                          style={{ marginLeft: 6 }}
-                        />
-                      </View>
-                    </View>
-                  ))}
-
                   <TouchableOpacity
                     style={styles.openHouseCreateButton}
                     onPress={() => handleCreateOpenHouse(apt.ApartmentID)}
                   >
                     <Text style={styles.openHouseButtonText}>צור בית פתוח</Text>
                   </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => toggleExpand(apt.ApartmentID)}
+                  >
+                    <Text
+                      style={{
+                        color: "#2661A1",
+                        marginTop: 6,
+                        textAlign: "center",
+                      }}
+                    >
+                      {expandedApartmentId === apt.ApartmentID
+                        ? "הסתר בתים פתוחים ▲"
+                        : "הצג בתים פתוחים ▼"}
+                    </Text>
+                  </TouchableOpacity>
                 </>
               )}
+              {!isMyProfile && (
+                <OpenHouseButton
+                  apartmentId={apt.ApartmentID}
+                  userId={loginUserId}
+                  location={apt.Location}
+                  userOwnerId={apt.UserID}
+                />
+              )}
+
+              {expandedApartmentId === apt.ApartmentID &&
+                (openHousesMap[apt.ApartmentID] || []).map((item, idx) => (
+                  <View key={idx} style={styles.openHouseItem}>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Text style={styles.openHouseButtonText}>
+                        {new Date(item.date).toLocaleDateString("he-IL")} |{" "}
+                        {item.startTime} - {item.endTime} | נרשמו:{" "}
+                        {item.amountOfPeoples} / {item.totalRegistrations}
+                      </Text>
+                      <MaterialCommunityIcons
+                        name="calendar-outline"
+                        size={20}
+                        color="white"
+                        style={{ marginLeft: 6 }}
+                      />
+                    </View>
+                  </View>
+                ))}
             </View>
 
             {visibleLabelsPopupId === apt.ApartmentID && (
