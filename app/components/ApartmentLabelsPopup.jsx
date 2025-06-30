@@ -1,90 +1,152 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Modal,
   View,
   Text,
-  TouchableOpacity,
+  Modal,
   StyleSheet,
-  ActivityIndicator,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-
+import NewLoadingSign from './NewLoadingSign';
 const labelToIcon = {
-  "couch": <FontAwesome5 name="couch" size={30} />,
-  "sofa": <FontAwesome5 name="couch" size={30} />,
-  "armchair": <MaterialCommunityIcons name="seat" size={30} />,
-  "chair": <MaterialIcons name="chair" size={30} />,
-  "bench": <MaterialCommunityIcons name="bench-back" size={30} />,
-  "table": <MaterialIcons name="table-restaurant" size={30} />,
-  "coffee table": <MaterialCommunityIcons name="coffee" size={30} />,
-  "dining table": <MaterialIcons name="table-restaurant" size={30} />,
-  "desk": <MaterialCommunityIcons name="desk" size={30} />,
-  "nightstand": <MaterialCommunityIcons name="bedside-table" size={30} />,
-  "bed": <FontAwesome5 name="bed" size={30} />,
-  "bunk bed": <MaterialCommunityIcons name="bunk-bed" size={30} />,
-  "mattress": <MaterialCommunityIcons name="bed-king" size={30} />,
-  "dresser": <MaterialCommunityIcons name="dresser" size={30} />,
-  "wardrobe": <MaterialCommunityIcons name="wardrobe" size={30} />,
-  "closet": <MaterialCommunityIcons name="wardrobe-outline" size={30} />,
-  "tv": <MaterialIcons name="tv" size={30} />,
-  "television": <MaterialIcons name="tv" size={30} />,
-  "tv stand": <MaterialCommunityIcons name="tv-box" size={30} />,
-  "entertainment unit": <MaterialCommunityIcons name="tv-box" size={30} />,
-  "lamp": <MaterialIcons name="emoji-objects" size={30} />,
-  "chandelier": <MaterialCommunityIcons name="chandelier" size={30} />,
-  "light fixture": <MaterialCommunityIcons name="ceiling-light" size={30} />,
-  "bookshelf": <MaterialCommunityIcons name="bookshelf" size={30} />,
-  "bookcase": <MaterialCommunityIcons name="bookshelf" size={30} />,
-  "shelf": <MaterialCommunityIcons name="shelf" size={30} />,
-  "cabinet": <MaterialCommunityIcons name="cabinet" size={30} />,
-  "drawer": <MaterialCommunityIcons name="drawer" size={30} />,
-  "mirror": <MaterialCommunityIcons name="mirror" size={30} />,
-  "rug": <MaterialCommunityIcons name="rug" size={30} />,
-  "carpet": <MaterialCommunityIcons name="rug" size={30} />,
-  "curtain": <MaterialCommunityIcons name="curtains" size={30} />,
-  "blinds": <MaterialCommunityIcons name="blinds" size={30} />,
-  "balcony": <MaterialCommunityIcons name="balcony" size={30} />,
-  "patio furniture": <MaterialCommunityIcons name="table-chair" size={30} />,
-  "outdoor chair": <MaterialIcons name="chair-alt" size={30} />,
-  "outdoor table": <MaterialIcons name="table-restaurant" size={30} />,
-  "bar stool": <MaterialCommunityIcons name="stool" size={30} />,
-  "vanity": <MaterialCommunityIcons name="vanity-light" size={30} />,
-  "ottoman": <MaterialCommunityIcons name="stool-outline" size={30} />,
-  "bean bag": <MaterialCommunityIcons name="stool" size={30} />,
-  "recliner": <MaterialCommunityIcons name="sofa-single" size={30} />,
-  "sideboard": <MaterialCommunityIcons name="sofa-outline" size={30} />,
-  "console table": <MaterialCommunityIcons name="table-furniture" size={30} />,
-  "shoe rack": <MaterialCommunityIcons name="shoe-formal" size={30} />,
-  "air conditioner": <MaterialCommunityIcons name="air-conditioner" size={30} />,
-  "ac": <MaterialCommunityIcons name="air-conditioner" size={30} />,
-  "shower": <MaterialIcons name="shower" size={30} />,
-  "washing machine": <MaterialCommunityIcons name="washing-machine" size={30} />,
-  "dryer": <MaterialCommunityIcons name="tumble-dryer" size={30} />,
-  "swimming pool": <MaterialCommunityIcons name="pool" size={30} />,
-  "pool": <MaterialCommunityIcons name="pool" size={30} />,
-  "garden": <MaterialCommunityIcons name="flower" size={30} />,
-  "yard": <MaterialCommunityIcons name="grass" size={30} />,
-  "terrace": <MaterialCommunityIcons name="terrace" size={30} />,
-  "elevator": <MaterialCommunityIcons name="elevator" size={30} />,
-  "parking": <MaterialIcons name="local-parking" size={30} />,
-  "garage": <MaterialCommunityIcons name="garage" size={30} />,
-  "dishwasher": <MaterialCommunityIcons name="dishwasher" size={30} />,
-  "microwave": <MaterialCommunityIcons name="microwave" size={30} />,
-  "oven": <MaterialCommunityIcons name="oven" size={30} />,
-  "fridge": <MaterialCommunityIcons name="fridge-outline" size={30} />,
-  "refrigerator": <MaterialCommunityIcons name="fridge-outline" size={30} />,
-  "stove": <MaterialCommunityIcons name="stove" size={30} />,
-  "security camera": <MaterialCommunityIcons name="security" size={30} />,
-  "intercom": <MaterialCommunityIcons name="home-account" size={30} />,
-  "jacuzzi": <MaterialCommunityIcons name="hot-tub" size={30} />
+  "couch": <FontAwesome5 name="couch" size={24} />,
+  "sofa": <FontAwesome5 name="couch" size={24} />,
+  "armchair": <MaterialCommunityIcons name="seat" size={24} />,
+  "chair": <MaterialIcons name="chair" size={24} />,
+  "table": <MaterialIcons name="table-restaurant" size={24} />,
+  "coffee table": <MaterialCommunityIcons name="coffee" size={24} />,
+  "dining table": <MaterialIcons name="table-restaurant" size={24} />,
+  "desk": <MaterialCommunityIcons name="desk" size={24} />,
+  "bed": <FontAwesome5 name="bed" size={24} />,
+  "bunk bed": <MaterialCommunityIcons name="bunk-bed" size={24} />,
+  "mattress": <MaterialCommunityIcons name="bed-king" size={24} />,
+  "dresser": <MaterialCommunityIcons name="dresser" size={24} />,
+  "wardrobe": <MaterialCommunityIcons name="wardrobe" size={24} />,
+  "tv": <MaterialIcons name="tv" size={24} />,
+  "television": <MaterialIcons name="tv" size={24} />,
+  "lamp": <MaterialIcons name="emoji-objects" size={24} />,
+  "chandelier": <MaterialCommunityIcons name="chandelier" size={24} />,
+  "light fixture": <MaterialCommunityIcons name="ceiling-light" size={24} />,
+  "bookshelf": <MaterialCommunityIcons name="bookshelf" size={24} />,
+  "mirror": <MaterialCommunityIcons name="mirror" size={24} />,
+  "rug": <MaterialCommunityIcons name="rug" size={24} />,
+  "curtain": <MaterialCommunityIcons name="curtains" size={24} />,
+  "blinds": <MaterialCommunityIcons name="blinds" size={24} />,
+  "balcony": <MaterialCommunityIcons name="balcony" size={24} />,
+  "patio furniture": <MaterialCommunityIcons name="table-chair" size={24} />,
+  "outdoor chair": <MaterialIcons name="chair-alt" size={24} />,
+  "outdoor table": <MaterialIcons name="table-restaurant" size={24} />,
+  "bar stool": <MaterialCommunityIcons name="stool" size={24} />,
+  "vanity": <MaterialCommunityIcons name="vanity-light" size={24} />,
+  "ottoman": <MaterialCommunityIcons name="stool-outline" size={24} />,
+  "bean bag": <MaterialCommunityIcons name="stool" size={24} />,
+  "sideboard": <MaterialCommunityIcons name="sofa-outline" size={24} />,
+  "console table": <MaterialCommunityIcons name="table-furniture" size={24} />,
+  "shoe rack": <MaterialCommunityIcons name="shoe-formal" size={24} />,
+  "air conditioner": <MaterialCommunityIcons name="air-conditioner" size={24} />,
+  "shower": <MaterialIcons name="shower" size={24} />,
+  "washing machine": <MaterialCommunityIcons name="washing-machine" size={24} />,
+  "dryer": <MaterialCommunityIcons name="tumble-dryer" size={24} />,
+  "swimming pool": <MaterialCommunityIcons name="pool" size={24} />,
+  "garden": <MaterialCommunityIcons name="flower" size={24} />,
+  "yard": <MaterialCommunityIcons name="grass" size={24} />,
+  "elevator": <MaterialCommunityIcons name="elevator" size={24} />,
+  "parking": <MaterialIcons name="local-parking" size={24} />,
+  "garage": <MaterialCommunityIcons name="garage" size={24} />,
+  "dishwasher": <MaterialCommunityIcons name="dishwasher" size={24} />,
+  "microwave": <MaterialCommunityIcons name="microwave" size={24} />,
+  "oven": <MaterialCommunityIcons name="stove" size={24} />,
+  "fridge": <MaterialCommunityIcons name="fridge-outline" size={24} />,
+  "refrigerator": <MaterialCommunityIcons name="fridge-outline" size={24} />,
+  "stove": <MaterialCommunityIcons name="stove" size={24} />,
+  "security camera": <MaterialCommunityIcons name="security" size={24} />,
+  "intercom": <MaterialCommunityIcons name="home-account" size={24} />,
+  "jacuzzi": <MaterialCommunityIcons name="hot-tub" size={24} />,
 };
 
-const ApartmentLabelsPopup = ({ apartmentId }) => {
-  const [modalVisible, setModalVisible] = useState(false);
+
+const labelTranslations = {
+  "couch": "ספה",
+  "sofa": "ספה",
+  "armchair": "כורסה",
+  "chair": "כיסא",
+  "bench": "ספסל",
+  "table": "שולחן",
+  "coffee table": "שולחן קפה",
+  "dining table": "שולחן אוכל",
+  "desk": "שולחן כתיבה",
+  "nightstand": "שידה ליד המיטה",
+  "bed": "מיטה",
+  "bunk bed": "מיטת קומותיים",
+  "mattress": "מזרן",
+  "dresser": "שידה",
+  "wardrobe": "ארון בגדים",
+  "closet": "ארון",
+  "tv": "טלוויזיה",
+  "television": "טלוויזיה",
+  "tv stand": "שידת טלוויזיה",
+  "entertainment unit": "מערכת בידור",
+  "lamp": "מנורה",
+  "chandelier": "נברשת",
+  "light fixture": "גוף תאורה",
+  "bookshelf": "כוורת ספרים",
+  "bookcase": "כוורת ספרים",
+  "shelf": "מדף",
+  "cabinet": "ארונית",
+  "drawer": "מגירה",
+  "mirror": "מראה",
+  "rug": "שטיח",
+  "carpet": "שטיח",
+  "curtain": "וילון",
+  "blinds": "תריסים",
+  "balcony": "מרפסת",
+  "patio furniture": "ריהוט חוץ",
+  "outdoor chair": "כיסא חוץ",
+  "outdoor table": "שולחן חוץ",
+  "bar stool": "שרפרף בר",
+  "vanity": "שידת איפור",
+  "ottoman": "הדום",
+  "bean bag": "פוף",
+  "recliner": "כורסה נפתחת",
+  "sideboard": "שידת צד",
+  "console table": "קונסולה",
+  "shoe rack": "מתקן לנעליים",
+  "air conditioner": "מזגן",
+  "ac": "מזגן",
+  "shower": "מקלחת",
+  "washing machine": "מכונת כביסה",
+  "dryer": "מייבש כביסה",
+  "swimming pool": "בריכה",
+  "pool": "בריכה",
+  "garden": "גן",
+  "yard": "חצר",
+  "terrace": "טרסה",
+  "elevator": "מעלית",
+  "parking": "חניה",
+  "garage": "מוסך",
+  "dishwasher": "מדיח כלים",
+  "microwave": "מיקרוגל",
+  "oven": "תנור אפייה",
+  "fridge": "מקרר",
+  "refrigerator": "מקרר",
+  "stove": "כיריים",
+  "security camera": "מצלמת אבטחה",
+  "intercom": "אינטרקום",
+  "jacuzzi": "ג׳קוזי",
+};
+
+
+
+const ApartmentLabelsPopup = ({ apartmentId, onClose }) => {
   const [labels, setLabels] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [selectedLabels, setSelectedLabels] = useState([]);
+
+  useEffect(() => {
+    fetchLabels();
+  }, []);
 
   const fetchLabels = async () => {
     setLoading(true);
@@ -94,72 +156,92 @@ const ApartmentLabelsPopup = ({ apartmentId }) => {
         { method: 'POST' }
       );
       const data = await res.json();
-      setLabels(Array.from(data.labels));
+      const detected = Array.from(data.labels).map(l => l.toLowerCase());
+      setLabels(detected);
+      setSelectedLabels(detected);
     } catch (err) {
       console.error('Error fetching labels:', err);
     }
     setLoading(false);
   };
 
-  const openModal = () => {
-    setModalVisible(true);
-    fetchLabels();
+  const allLabels = Object.keys(labelToIcon);
+
+  const toggleLabel = (label) => {
+    setSelectedLabels((prev) =>
+      prev.includes(label)
+        ? prev.filter((l) => l !== label)
+        : [...prev, label]
+    );
   };
 
-  return (
-    <>
-      <TouchableOpacity onPress={openModal} style={styles.openButton}>
-        <Text style={styles.buttonText}>גלה אילו רהיטים יש</Text>
-      </TouchableOpacity>
+  const handleAdd = () => {
+    console.log("User selected labels:", selectedLabels);
+    onClose();
+  };
+if (loading) {
+  return <NewLoadingSign />;
+}
+return (
+  <Modal
+    visible={true}
+    transparent
+    animationType="slide"
+    onRequestClose={onClose}
+  >
+    <View style={styles.overlay}>
+      <View style={styles.popup}>
+        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+          <Text style={styles.closeText}>✕</Text>
+        </TouchableOpacity>
 
-      <Modal
-        visible={modalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.overlay}>
-          <View style={styles.popup}>
-            <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.closeButton}>
-              <Text style={styles.closeText}>✕</Text>
-            </TouchableOpacity>
+        <Text style={styles.title}>בחר רהיטים:</Text>
 
-            <Text style={styles.title}>רהיטים שזוהו:</Text>
-            {loading ? (
-              <ActivityIndicator size="large" color="#333" />
-            ) : (
-              <ScrollView contentContainerStyle={styles.iconGrid}>
-                {labels.length === 0 ? (
-                  <Text>לא זוהו פריטים</Text>
-                ) : (
-                  labels.map((label, i) => (
-                    <View key={i} style={styles.iconItem}>
-                      {labelToIcon[label.toLowerCase()] || <MaterialIcons name="category" size={30} />}
-                      <Text style={styles.labelText}>{label}</Text>
-                    </View>
-                  ))
-                )}
-              </ScrollView>
-            )}
-          </View>
-        </View>
-      </Modal>
-    </>
-  );
+        <>
+          <ScrollView contentContainerStyle={styles.iconGrid}>
+            {allLabels.map((label, i) => {
+              const isSelected = selectedLabels.includes(label);
+              return (
+                <TouchableOpacity
+                  key={i}
+                  style={styles.iconItem}
+                  onPress={() => toggleLabel(label)}
+                >
+                  <View style={{ opacity: isSelected ? 1 : 0.3 }}>
+                    {React.cloneElement(
+                      labelToIcon[label],
+                      { color: isSelected ? 'orange' : '#666' }
+                    )}
+                  </View>
+                  <Text
+                    style={[
+                      styles.labelText,
+                      { color: isSelected ? 'orange' : '#666' },
+                    ]}
+                  >
+                   {labelTranslations[label] || label}
+
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={handleAdd}
+          >
+            <Text style={styles.addButtonText}>הוסף</Text>
+          </TouchableOpacity>
+        </>
+      </View>
+    </View>
+  </Modal>
+);
+
 };
 
 const styles = StyleSheet.create({
-  openButton: {
-    padding: 12,
-    backgroundColor: '#333',
-    borderRadius: 10,
-    alignSelf: 'center',
-    marginTop: 20,
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.4)',
@@ -167,12 +249,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   popup: {
-    width: '85%',
-    maxHeight: '70%',
+    width: '90%',
+    maxHeight: '85%',
     backgroundColor: '#fff',
     borderRadius: 15,
     padding: 20,
-    elevation: 5,
   },
   closeButton: {
     alignSelf: 'flex-end',
@@ -189,17 +270,28 @@ const styles = StyleSheet.create({
   iconGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
   },
   iconItem: {
     alignItems: 'center',
-    margin: 10,
-    width: 70,
+    margin: 6,
+    width: '18%',
   },
   labelText: {
-    fontSize: 12,
+    fontSize: 10,
     textAlign: 'center',
-    marginTop: 5,
+    marginTop: 3,
+  },
+  addButton: {
+    marginTop: 20,
+    backgroundColor: '#E3965A',
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  addButtonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
 });
 

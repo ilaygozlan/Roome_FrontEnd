@@ -102,7 +102,7 @@ export default function OpenHouseButton({
         );
      
         console.log(" נרשמת בהצלחה לסיור, מנסה לשלוח התראה לבעל הדירה");
-
+        console.log(userOwnerId)
         // 2. Retrieve the push token for the property owner using the ownerId
         const tokenResponse = await fetch(
           API + `User/GetPushToken/${userOwnerId}`,
