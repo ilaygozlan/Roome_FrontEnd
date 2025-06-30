@@ -16,7 +16,6 @@ import API from "../config";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import ApartmentLabelsPopup from "./components/ApartmentLabelsPopup";
 
-
 const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
   const { allApartments } = useContext(ActiveApartmentContext);
 
@@ -460,7 +459,7 @@ const styles = StyleSheet.create({
     color: "gray",
     textAlign: "right",
   },
-    aiButton: {
+  aiButton: {
     position: "absolute",
     top: 5,
     right: 5,
