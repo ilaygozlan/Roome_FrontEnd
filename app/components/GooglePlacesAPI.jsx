@@ -33,7 +33,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export default function GooglePlacesInput({ onLocationSelected }) {
   return (
-    <View style={{ zIndex: 1000 }}> 
+<View style={{ zIndex: 1000, flex: 0 }}>
       <GooglePlacesAutocomplete
         placeholder="הקלד מיקום..."
         onPress={(data, details = null) => {
@@ -83,5 +83,13 @@ const autocompleteStyles = StyleSheet.create({
     marginBottom: 15,
     textAlign: 'right',
     backgroundColor: 'white',
+  },
+  listView: {
+    position: 'absolute',
+    top: 50,
+    zIndex: 1000,
+    elevation: 5, // for Android
+    backgroundColor: 'white',
+    width: '100%',
   },
 });

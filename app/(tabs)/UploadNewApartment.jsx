@@ -10,6 +10,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  FlatList 
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -391,271 +392,227 @@ export default function UploadApartmentForm() {
     return <HouseLoading />;
   }
 
-  return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
-        style={{ flex: 1 }}
-      >
-        <ScrollView
-          contentContainerStyle={styles.container}
-          keyboardShouldPersistTaps="handled"
-        >
-          <Text style={styles.title}>בחר סוג דירה:</Text>
-          <View style={styles.typeRow}>
-            {categories.map((cat) => (
-              <TouchableOpacity
-                key={cat.id}
-                onPress={() => setApartmentType(cat.id)}
-                style={[
-                  styles.typeOption,
-                  apartmentType === cat.id && styles.selectedType,
-                ]}
-              >
-                <AntDesign
-                  name={cat.icon}
-                  size={24}
-                  color={apartmentType === cat.id ? "#E3965A" : "#aaa"}
-                  style={{ marginBottom: 4 }}
-                />
-                <Text>{cat.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {apartmentType !== null && (
-            <>
-              {/* images */}
-              <TouchableOpacity onPress={pickImage} style={styles.imageBox}>
-                {images.length === 0 ? (
-                  <>
-                    <Ionicons name="image-outline" size={60} color="gray" />
-                    <Text>הוסף תמונות מהגלריה</Text>
-                  </>
-                ) : (
-                  <ScrollView horizontal>
-                    {images.map((uri, idx) => (
-                      <View
-                        key={idx}
-                        style={{ position: "relative", marginRight: 10 }}
-                      >
-                        <Image source={{ uri }} style={styles.previewImage} />
-                        <TouchableOpacity
-                          style={styles.removeButton}
-                          onPress={() => removeImage(uri)}
-                        >
-                          <Text style={{ color: "white" }}>✕</Text>
-                        </TouchableOpacity>
-                      </View>
-                    ))}
-                  </ScrollView>
-                )}
-              </TouchableOpacity>
-
-              <TouchableOpacity onPress={takePhoto} style={styles.cameraButton}>
-                <Ionicons name="camera-outline" size={24} color="#333" />
-                <Text style={{ marginLeft: 8 }}>צלם תמונה</Text>
-              </TouchableOpacity>
-
-              {/* fields */}
-              <View style={{ width: "100%" }}>
-                <GooglePlacesInput onLocationSelected={setLocation} />
-              </View>
-
-              <TextInput
-                style={styles.input}
-                placeholder="מחיר"
-                keyboardType="numeric"
-                value={price}
-                onChangeText={setPrice}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="חדרים"
-                keyboardType="numeric"
-                value={rooms}
-                onChangeText={setRooms}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="תיאור"
-                value={description}
-                onChangeText={setDescription}
-                multiline
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="קומה"
-                keyboardType="numeric"
-                value={floor}
-                onChangeText={setFloor}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="חניה"
-                keyboardType="numeric"
-                value={parkingSpace}
-                onChangeText={setParkingSpace}
-              />
-              <Text
-                style={{
-                  alignSelf: "flex-start",
-                  marginBottom: 5,
-                  textAlign: "right",
-                  width: "100%",
-                }}
-              >
-                סוג הנכס:
-              </Text>
-              <View style={styles.propertyTypeList}>
-                {propertyTypes.map((type) => (
-                  <TouchableOpacity
-                    key={type.id}
-                    onPress={() => setPropertyTypeID(type.id)}
-                    style={[
-                      styles.propertyTypeButton,
-                      propertyTypeID === type.id && styles.selectedPropertyType,
-                    ]}
-                  >
-                    <Text>{type.name}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              <TouchableOpacity
-                onPress={() => setShowEntryPicker(true)}
-                style={styles.input}
-              >
-                <Text>תאריך כניסה: {entryDate}</Text>
-              </TouchableOpacity>
-              {showEntryPicker && (
-                <DateTimePicker
-                  value={new Date(entryDate)}
-                  mode="date"
-                  minimumDate={new Date()}
-                  onChange={handleEntryDateChange}
-                />
-              )}
-
-              <TouchableOpacity
-                onPress={() => setShowExitPicker(true)}
-                style={styles.input}
-              >
-                <Text>תאריך יציאה: {exitDate}</Text>
-              </TouchableOpacity>
-              {showExitPicker && (
-                <DateTimePicker
-                  value={new Date(exitDate)}
-                  mode="date"
-                  minimumDate={
-                    new Date(new Date(entryDate).getTime() + 86400000)
-                  }
-                  onChange={handleExitDateChange}
-                />
-              )}
-
-              <View style={styles.booleanRow}>
+return (
+  <SafeAreaView style={{ flex: 1 }}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
+      style={{ flex: 1 }}
+    >
+      <FlatList
+        ListHeaderComponent={
+          <View style={styles.container}>
+            <Text style={styles.title}>בחר סוג דירה:</Text>
+            <View style={styles.typeRow}>
+              {categories.map((cat) => (
                 <TouchableOpacity
-                  onPress={() => toggleIcon(allowPet, setAllowPet)}
+                  key={cat.id}
+                  onPress={() => setApartmentType(cat.id)}
+                  style={[
+                    styles.typeOption,
+                    apartmentType === cat.id && styles.selectedType,
+                  ]}
                 >
-                  <MaterialIcons
-                    name="pets"
-                    size={30}
-                    color={allowPet ? "#E3965A" : "#ccc"}
+                  <AntDesign
+                    name={cat.icon}
+                    size={24}
+                    color={apartmentType === cat.id ? "#E3965A" : "#aaa"}
+                    style={{ marginBottom: 4 }}
                   />
-                  <Text>חיות</Text>
+                  <Text>{cat.name}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => toggleIcon(allowSmoking, setAllowSmoking)}
-                >
-                  <MaterialIcons
-                    name="smoking-rooms"
-                    size={30}
-                    color={allowSmoking ? "#E3965A" : "#ccc"}
-                  />
-                  <Text>עישון</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => toggleIcon(gardenBalcony, setGardenBalcony)}
-                >
-                  <FontAwesome5
-                    name="tree"
-                    size={30}
-                    color={gardenBalcony ? "#E3965A" : "#ccc"}
-                  />
-                  <Text>מרפסת</Text>
-                </TouchableOpacity>
-              </View>
+              ))}
+            </View>
 
-              {/* unique fields */}
-              {apartmentType === 0 && (
-                <>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="משך חוזה (חודשים)"
-                    keyboardType="numeric"
-                    value={contractLength}
-                    onChangeText={setContractLength}
-                  />
-                  <TouchableOpacity
-                    onPress={() =>
-                      toggleIcon(extensionPossible, setExtensionPossible)
-                    }
-                  >
-                    <Text>
-                      אפשרות להארכה: {extensionPossible ? "✔️" : "❌"}
-                    </Text>
-                  </TouchableOpacity>
-                </>
-              )}
-              {apartmentType === 1 && (
+            {apartmentType !== null && (
+              <>
+                {/* Image gallery from library */}
+                <TouchableOpacity onPress={pickImage} style={styles.imageBox}>
+                  {images.length === 0 ? (
+                    <>
+                      <Ionicons name="image-outline" size={60} color="gray" />
+                      <Text>הוסף תמונות מהגלריה</Text>
+                    </>
+                  ) : (
+                    <FlatList
+                      data={images}
+                      horizontal
+                      keyExtractor={(item, index) => index.toString()}
+                      renderItem={({ item }) => (
+                        <View style={{ position: "relative", marginRight: 10 }}>
+                          <Image source={{ uri: item }} style={styles.previewImage} />
+                          <TouchableOpacity
+                            style={styles.removeButton}
+                            onPress={() => removeImage(item)}
+                          >
+                            <Text style={{ color: "white" }}>✕</Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                    />
+                  )}
+                </TouchableOpacity>
+
+                {/* Take photo */}
+                <TouchableOpacity onPress={takePhoto} style={styles.cameraButton}>
+                  <Ionicons name="camera-outline" size={24} color="#333" />
+                  <Text style={{ marginLeft: 8 }}>צלם תמונה</Text>
+                </TouchableOpacity>
+
+                {/* Main form fields */}
+                <View style={{ width: "100%" }}>
+                  <GooglePlacesInput onLocationSelected={setLocation} />
+                </View>
+
                 <TextInput
                   style={styles.input}
-                  placeholder="מספר שותפים"
+                  placeholder="מחיר"
                   keyboardType="numeric"
-                  value={numberOfRoommates}
-                  onChangeText={setNumberOfRoommates}
+                  value={price}
+                  onChangeText={setPrice}
                 />
-              )}
-              {apartmentType === 2 && (
-                <>
-                  <TouchableOpacity
-                    onPress={() =>
-                      toggleIcon(
-                        canCancelWithoutPenalty,
-                        setCanCancelWithoutPenalty
-                      )
-                    }
-                  >
-                    <Text>
-                      ביטול ללא קנס: {canCancelWithoutPenalty ? "✔️" : "❌"}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() =>
-                      toggleIcon(isWholeProperty, setIsWholeProperty)
-                    }
-                  >
-                    <Text>כל הדירה: {isWholeProperty ? "✔️" : "❌"}</Text>
-                  </TouchableOpacity>
-                </>
-              )}
+                <TextInput
+                  style={styles.input}
+                  placeholder="חדרים"
+                  keyboardType="numeric"
+                  value={rooms}
+                  onChangeText={setRooms}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="תיאור"
+                  value={description}
+                  onChangeText={setDescription}
+                  multiline
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="קומה"
+                  keyboardType="numeric"
+                  value={floor}
+                  onChangeText={setFloor}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="חניה"
+                  keyboardType="numeric"
+                  value={parkingSpace}
+                  onChangeText={setParkingSpace}
+                />
 
-              <TouchableOpacity
-                style={styles.submitButton}
-                onPress={handleSubmit}
-              >
-                <Text style={{ color: "white", fontWeight: "bold" }}>
-                  שיתוף הדירה
+                <Text style={{ alignSelf: "flex-start", marginBottom: 5, textAlign: "right", width: "100%" }}>
+                  סוג הנכס:
                 </Text>
-              </TouchableOpacity>
-            </>
-          )}
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
-  );
+                <View style={styles.propertyTypeList}>
+                  {propertyTypes.map((type) => (
+                    <TouchableOpacity
+                      key={type.id}
+                      onPress={() => setPropertyTypeID(type.id)}
+                      style={[
+                        styles.propertyTypeButton,
+                        propertyTypeID === type.id && styles.selectedPropertyType,
+                      ]}
+                    >
+                      <Text>{type.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                {/* Entry Date */}
+                <TouchableOpacity onPress={() => setShowEntryPicker(true)} style={styles.input}>
+                  <Text>תאריך כניסה: {entryDate}</Text>
+                </TouchableOpacity>
+                {showEntryPicker && (
+                  <DateTimePicker
+                    value={new Date(entryDate)}
+                    mode="date"
+                    minimumDate={new Date()}
+                    onChange={handleEntryDateChange}
+                  />
+                )}
+
+                {/* Exit Date */}
+                <TouchableOpacity onPress={() => setShowExitPicker(true)} style={styles.input}>
+                  <Text>תאריך יציאה: {exitDate}</Text>
+                </TouchableOpacity>
+                {showExitPicker && (
+                  <DateTimePicker
+                    value={new Date(exitDate)}
+                    mode="date"
+                    minimumDate={new Date(new Date(entryDate).getTime() + 86400000)}
+                    onChange={handleExitDateChange}
+                  />
+                )}
+
+                {/* Boolean options */}
+                <View style={styles.booleanRow}>
+                  <TouchableOpacity onPress={() => toggleIcon(allowPet, setAllowPet)}>
+                    <MaterialIcons name="pets" size={30} color={allowPet ? "#E3965A" : "#ccc"} />
+                    <Text>חיות</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => toggleIcon(allowSmoking, setAllowSmoking)}>
+                    <MaterialIcons name="smoking-rooms" size={30} color={allowSmoking ? "#E3965A" : "#ccc"} />
+                    <Text>עישון</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => toggleIcon(gardenBalcony, setGardenBalcony)}>
+                    <FontAwesome5 name="tree" size={30} color={gardenBalcony ? "#E3965A" : "#ccc"} />
+                    <Text>מרפסת</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Unique fields per apartment type */}
+                {apartmentType === 0 && (
+                  <>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="משך חוזה (חודשים)"
+                      keyboardType="numeric"
+                      value={contractLength}
+                      onChangeText={setContractLength}
+                    />
+                    <TouchableOpacity onPress={() => toggleIcon(extensionPossible, setExtensionPossible)}>
+                      <Text>אפשרות להארכה: {extensionPossible ? "✔️" : "❌"}</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+                {apartmentType === 1 && (
+                  <TextInput
+                    style={styles.input}
+                    placeholder="מספר שותפים"
+                    keyboardType="numeric"
+                    value={numberOfRoommates}
+                    onChangeText={setNumberOfRoommates}
+                  />
+                )}
+                {apartmentType === 2 && (
+                  <>
+                    <TouchableOpacity
+                      onPress={() => toggleIcon(canCancelWithoutPenalty, setCanCancelWithoutPenalty)}
+                    >
+                      <Text>ביטול ללא קנס: {canCancelWithoutPenalty ? "✔️" : "❌"}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => toggleIcon(isWholeProperty, setIsWholeProperty)}>
+                      <Text>כל הדירה: {isWholeProperty ? "✔️" : "❌"}</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+
+                {/* Submit button */}
+                <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+                  <Text style={{ color: "white", fontWeight: "bold" }}>שיתוף הדירה</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        }
+        data={[]} // empty data, we only use the header
+        renderItem={null}
+        keyboardShouldPersistTaps="handled"
+      />
+    </KeyboardAvoidingView>
+  </SafeAreaView>
+);
+
 }
 
 const styles = StyleSheet.create({
