@@ -22,12 +22,13 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import UserProfile from "./UserProfile";
 import * as ImagePicker from "expo-image-picker";
+import RoommatePreferencesForm from "./components/RoommatePreferencesForm";
 
 /**
  * @component MyProfile
  * @description User's personal profile management component with comprehensive profile
  * information display and editing capabilities.
- * 
+ *
  * Features:
  * - Profile information display
  * - Profile editing
@@ -37,10 +38,10 @@ import * as ImagePicker from "expo-image-picker";
  * - Phone number validation
  * - Date picker integration
  * - RTL (Right-to-Left) support
- * 
+ *
  * @param {Object} props
  * @param {number} props.myId - User's ID
- * 
+ *
  * Dependencies:
  * - expo-image-picker
  * - @react-native-community/datetimepicker
@@ -74,6 +75,9 @@ const MyProfile = (props) => {
   const [selectedFriendId, setFriendId] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showPhoneError, setShowPhoneError] = useState(false);
+  const [showPreferences, setShowPreferences] = useState(false);
+  const [matches, setMatches] = useState([]);
+  const [showMatchesModal, setShowMatchesModal] = useState(false);
 
   /**
    * Profile data fetching effect
@@ -128,7 +132,7 @@ const MyProfile = (props) => {
         .catch((err) => console.error("שגיאה בטעינת חברים", err));
     }
   }, [loginUserId]);
-  
+
   /**
    * Friend list management functions
    */
@@ -150,7 +154,9 @@ const MyProfile = (props) => {
    */
   const handleSave = async () => {
     const updatedUser = { ...updatedProfile, id: loginUserId };
-    if(!updatedUser.token) {updatedUser.token = "";}
+    if (!updatedUser.token) {
+      updatedUser.token = "";
+    }
 
     try {
       const res = await fetch(API + "User/UpdateUserDetails", {
@@ -306,6 +312,16 @@ const MyProfile = (props) => {
               </View>
             </TouchableOpacity>
           </View>
+          <View style={styles.buttonsContainer}>
+            <TouchableOpacity
+              style={styles.smallButton}
+              onPress={() => setShowPreferences(true)}
+            >
+              <Text style={styles.buttonText}>
+                מצא את השותפים המושלמים עבורך
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.friendsSection}>
@@ -332,8 +348,10 @@ const MyProfile = (props) => {
                     key={friend.id}
                     style={styles.friendCard}
                     onPress={() => {
-                      setFriendProfile(true);
-                      setFriendId(friend.id);
+                      router.push({
+                        pathname: "UserProfile",
+                        params: { userId: friend.id },
+                      });
                     }}
                   >
                     <Image
@@ -517,6 +535,64 @@ const MyProfile = (props) => {
             </View>
           </View>
         </Modal>
+        <Modal
+          visible={showPreferences}
+          animationType="slide"
+          onRequestClose={() => setShowPreferences(false)}
+        >
+          <RoommatePreferencesForm
+            onClose={() => setShowPreferences(false)}
+            onMatchesFound={(foundMatches) => {
+              setMatches(foundMatches);
+              setShowPreferences(false);
+              setShowMatchesModal(true);
+            }}
+          />
+        </Modal>
+        <Modal
+          visible={showMatchesModal}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowMatchesModal(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.resultCard}>
+              <Text style={styles.resultTitle}>השותפים שנמצאו עבורך:</Text>
+              <ScrollView horizontal>
+                {matches.map((user) => (
+                  <TouchableOpacity
+                    key={user.id}
+                    style={styles.userCard}
+                    onPress={() => {
+                      setShowMatchesModal(false);
+                      router.push({
+                        pathname: "ChatRoom",
+                        params: { recipientId: user.id },
+                      });
+                    }}
+                  >
+                    <Image
+                      source={{
+                        uri:
+                          user.profilePicture ||
+                          "https://www.w3schools.com/howto/img_avatar.png",
+                      }}
+                      style={styles.avatar}
+                    />
+                    <Text style={styles.userName}>{user.fullName}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              <TouchableOpacity
+                style={styles.closeResultBtn}
+                onPress={() => setShowMatchesModal(false)}
+              >
+                <Text style={{ color: "white", fontSize: 18 }}>סגור</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
 
         <View
           style={{
@@ -528,12 +604,11 @@ const MyProfile = (props) => {
         >
           <UserOwnedApartmentsGrid userId={loginUserId} isMyProfile={true} />
         </View>
-              
+
         <View style={styles.logoutContainer}>
           <LogoutButton />
         </View>
       </ScrollView>
-      
     </View>
   );
 };
@@ -564,80 +639,109 @@ const InfoCard = ({ icon, value }) => (
  * @type {Object}
  */
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f9f9f9" },
+  container: {
+    flex: 1,
+    backgroundColor: "#f5f7fa",
+  },
   headerBackground: {
     width: "100%",
-    height: 200,
-    backgroundColor: "#2661A1",
+    height: 220,
+    backgroundColor: "#4A90E2",
     position: "absolute",
     top: 0,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 7,
   },
   profileContainer: {
-    marginTop: 120,
-    backgroundColor: "white",
+    marginTop: 140,
+    backgroundColor: "#fff",
     marginHorizontal: 20,
-    borderRadius: 25,
-    padding: 20,
-    elevation: 5,
+    borderRadius: 20,
+    padding: 25,
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
   closeButton: {
     position: "absolute",
-    top: 10,
-    left: 10,
+    top: 15,
+    left: 15,
     padding: 8,
     zIndex: 10,
   },
   profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 110,
+    height: 110,
+    borderRadius: 55,
     alignSelf: "center",
-    marginTop: -80,
-    borderWidth: 4,
-    borderColor: "white",
+    marginTop: -85,
+    borderWidth: 5,
+    borderColor: "#fff",
+    backgroundColor: "#eee",
   },
   editIcon: {
     position: "absolute",
-    top: 20,
-    right: 20,
-    backgroundColor: "#2661A1",
-    padding: 5,
-    borderRadius: 20,
+    top: 25,
+    right: 25,
+    backgroundColor: "#4A90E2",
+    padding: 7,
+    borderRadius: 25,
+    shadowColor: "#4A90E2",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
   },
   profileName: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#2661A1",
+    fontSize: 26,
+    fontWeight: "700",
+    color: "#2c3e50",
     textAlign: "center",
-    marginTop: 10,
+    marginTop: 15,
+    letterSpacing: 0.5,
   },
-  infoGrid: { marginTop: 20 },
+  infoGrid: {
+    marginTop: 25,
+    gap: 15,
+  },
   buttonsContainer: {
     flexDirection: "row-reverse",
     justifyContent: "flex-start",
     alignItems: "center",
-    marginTop: 20,
+    marginTop: 25,
   },
-
   smallButton: {
-    alignItems: "center",
-    backgroundColor: "#2661A1",
-    paddingVertical: 8,
-    paddingHorizontal: 8,
-    borderRadius: 5,
+    backgroundColor: "#4A90E2",
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+    shadowColor: "#4A90E2",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 7,
   },
   buttonText: {
     color: "#fff",
+    fontWeight: "600",
+    fontSize: 16,
     textAlign: "center",
-    marginTop: 5,
-    justifyContent: "center",
   },
-  friendsSection: { marginHorizontal: 20 },
+  friendsSection: {
+    marginHorizontal: 20,
+    marginTop: 35,
+  },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10,
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 15,
     textAlign: "right",
+    color: "#34495e",
   },
   friendsGrid: {
     flexDirection: "row-reverse",
@@ -646,141 +750,208 @@ const styles = StyleSheet.create({
   friendCard: {
     alignItems: "center",
     marginLeft: 15,
-    backgroundColor: "#f9f9f9",
-    padding: 10,
-    borderRadius: 10,
-    elevation: 2,
+    backgroundColor: "#fff",
+    padding: 15,
+    borderRadius: 15,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    width: 85,
   },
-  friendCardImage: { width: 60, height: 60, borderRadius: 30 },
-  friendCardName: { marginTop: 5, fontSize: 14 },
+  friendCardImage: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+  },
+  friendCardName: {
+    marginTop: 8,
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#2c3e50",
+    textAlign: "center",
+  },
   modalContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: "rgba(0,0,0,0.35)",
   },
   modalContent: {
     backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 20,
-    width: "80%",
+    borderRadius: 20,
+    padding: 25,
+    width: "85%",
     direction: "rtl",
-    textAlign: "right",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 15,
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 20,
+    fontSize: 22,
+    fontWeight: "700",
+    marginBottom: 25,
     textAlign: "right",
-    paddingRight: 10,
-    alignSelf: "flex-start",
-    width: "100%",
+    color: "#34495e",
   },
   input: {
     borderBottomWidth: 1,
     borderColor: "#ccc",
-    marginBottom: 15,
-    padding: 5,
+    marginBottom: 20,
+    paddingVertical: 8,
+    fontSize: 16,
+    color: "#34495e",
   },
   inputDisabled: {
-    backgroundColor: "#eee",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 15,
+    backgroundColor: "#f0f0f0",
+    paddingVertical: 14,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    marginBottom: 20,
+    color: "#999",
+    fontSize: 16,
     textAlign: "right",
-    color: "#888",
   },
   saveButton: {
-    backgroundColor: "#2661A1",
-    padding: 10,
-    borderRadius: 10,
-    marginTop: 10,
+    backgroundColor: "#4A90E2",
+    paddingVertical: 14,
+    borderRadius: 14,
+    marginTop: 15,
+    shadowColor: "#4A90E2",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
   },
   backButton: {
     position: "absolute",
-    top: 20,
-    left: 20,
-    backgroundColor: "#2661A1",
-    padding: 6,
-    borderRadius: 20,
+    top: 25,
+    left: 25,
+    backgroundColor: "#4A90E2",
+    padding: 8,
+    borderRadius: 25,
     zIndex: 10,
+    shadowColor: "#4A90E2",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
   },
-
   photoContainer: {
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 25,
   },
   profilePhoto: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    backgroundColor: "#eee",
   },
   photoPlaceholder: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: "#ddd",
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    backgroundColor: "#d9d9d9",
     justifyContent: "center",
     alignItems: "center",
   },
   photoText: {
     color: "#666",
+    fontWeight: "500",
   },
   label: {
     fontSize: 16,
-    marginBottom: 5,
+    marginBottom: 8,
     textAlign: "right",
-    margin: "auto",
-    fontWeight: "bold",
+    fontWeight: "600",
+    color: "#34495e",
   },
   picker: {
     borderWidth: 1,
     borderColor: "#ccc",
-    marginBottom: 15,
+    borderRadius: 12,
+    marginBottom: 20,
+    paddingHorizontal: 10,
+    fontSize: 16,
+    color: "#34495e",
   },
   dateButton: {
     borderWidth: 1,
     borderColor: "#ccc",
+    borderRadius: 12,
     padding: 15,
-    borderRadius: 8,
-    marginBottom: 15,
+    marginBottom: 20,
+    backgroundColor: "#fff",
   },
   dateButtonText: {
     textAlign: "right",
     fontSize: 16,
+    color: "#34495e",
   },
   toggleContainer: {
     flexDirection: "row-reverse",
     justifyContent: "space-around",
-    marginBottom: 20,
+    marginBottom: 30,
   },
   toggleButton: {
-    padding: 10,
-    borderRadius: 8,
+    paddingVertical: 12,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: "#ccc",
     width: "45%",
     alignItems: "center",
+    backgroundColor: "#fff",
   },
   toggleButtonActive: {
-    backgroundColor: "#007AFF",
-    borderColor: "#007AFF",
+    backgroundColor: "#4A90E2",
+    borderColor: "#4A90E2",
   },
   toggleText: {
     fontSize: 16,
-    color: "#333",
+    color: "#34495e",
   },
   toggleTextActive: {
     color: "#fff",
+    fontWeight: "700",
   },
   logoutContainer: {
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 20,
-    marginBottom: 30
-  }
-  
-  
+    marginTop: 30,
+    marginBottom: 40,
+  },
+  resultCard: {
+    backgroundColor: "#fff",
+    borderRadius: 15,
+    padding: 20,
+    width: "85%",
+    alignItems: "center",
+  },
+  resultTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 15,
+  },
+  userCard: {
+    alignItems: "center",
+    marginHorizontal: 10,
+  },
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginBottom: 8,
+  },
+  userName: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  closeResultBtn: {
+    backgroundColor: "#4A90E2",
+    padding: 15,
+    borderRadius: 10,
+    marginTop: 15,
+  },
 });
 
 export default MyProfile;

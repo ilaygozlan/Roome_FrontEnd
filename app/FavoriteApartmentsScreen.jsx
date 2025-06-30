@@ -5,64 +5,34 @@ import {
   StyleSheet,
   TouchableOpacity,
   Text,
-  Modal
+  Modal,
+  Alert,
 } from "react-native";
-import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Constants from "expo-constants";
 import ApartmentGallery from "./components/ApartmentGallery";
 import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
 import ApartmentDetails from "./ApartmentDetails";
-
-/**
- * @component FavoriteApartmentsScreen
- * @description Screen component for displaying user's favorite/liked apartments.
- * Shows a list of apartments that the user has marked as favorites with detailed information.
- * 
- * Features:
- * - Favorite apartments list
- * - Apartment type categorization
- * - Image gallery integration
- * - Detailed view modal
- * - RTL (Right-to-Left) support
- * - Safe area handling
- * - Pull to refresh functionality
- * 
- * @param {Object} props
- * @param {Function} props.onClose - Callback function to close the screen
- * 
- * Context:
- * - ActiveApartmentContext for apartment data and favorites management
- */
+import { FontAwesome } from "@expo/vector-icons";
+import { userInfoContext } from "./contex/userInfoContext";
+import API from "../config";
 
 export default function FavoriteApartmentsScreen({ onClose }) {
+  const { loginUserId } = useContext(userInfoContext);
+
   const [showApartmentDetails, setShowApartmentDetails] = useState(false);
   const [selectedApartment, setSelectedApartment] = useState(null);
-  const router = useRouter();
 
-  const {
-    allApartments,
-    refreshFavorites
-  } = useContext(ActiveApartmentContext);
-
+  const { allApartments, setAllApartments, refreshFavorites, triggerFavoritesRefresh } = useContext(ActiveApartmentContext);
   const [favoriteApartments, setFavoriteApartments] = useState([]);
 
-  /**
-   * Favorites filtering effect
-   * @effect
-   * Filters and sets favorite apartments from all apartments
-   */
+  // Filter apartments liked by user from all apartments
   useEffect(() => {
     const liked = allApartments.filter((apt) => apt.IsLikedByUser === true);
     setFavoriteApartments(liked);
-  }, [allApartments, refreshFavorites]); 
-  
-  /**
-   * Gets border color based on apartment type
-   * @function getBorderColor
-   * @param {number} type - Apartment type (0: Rental, 1: Roommates, 2: Sublet)
-   * @returns {string} Color code
-   */
+  }, [allApartments, refreshFavorites]);
+
+  // Returns border color based on apartment type
   const getBorderColor = (type) => {
     switch (type) {
       case 0:
@@ -76,12 +46,7 @@ export default function FavoriteApartmentsScreen({ onClose }) {
     }
   };
 
-  /**
-   * Gets display name for apartment type
-   * @function getTypeName
-   * @param {number} type - Apartment type (0: Rental, 1: Roommates, 2: Sublet)
-   * @returns {string} Display name
-   */
+  // Returns display name for apartment type
   const getTypeName = (type) => {
     switch (type) {
       case 0:
@@ -95,15 +60,56 @@ export default function FavoriteApartmentsScreen({ onClose }) {
     }
   };
 
+  // Update the global allApartments array to mark apartment as unliked
+  const setApartmentUnLikedByUser = (id) => {
+    const updatedApartments = allApartments.map((apt) => {
+      if (apt.ApartmentID === id) {
+        return { ...apt, IsLikedByUser: false };
+      }
+      return apt;
+    });
+    setAllApartments(updatedApartments);
+    triggerFavoritesRefresh();
+  };
+
+  // Handle unlike action: call API and update local state and global context
+  const handleUnlike = async (apartmentId) => {
+    try {
+      const response = await fetch(
+        `${API}User/RemoveLikeApartment/${loginUserId}/${apartmentId}`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      if (!response.ok) throw new Error("Failed to unlike apartment");
+
+      // Remove apartment from local favorites list
+      setFavoriteApartments((prev) =>
+        prev.filter((apt) => apt.ApartmentID !== apartmentId)
+      );
+      // Update global apartments state
+      setApartmentUnLikedByUser(apartmentId);
+    } catch (error) {
+      Alert.alert("Error", "Failed to remove like. Please try again.");
+      console.error(error);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeContainer} edges={["top"]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={onClose} style={styles.backButton}>
           <Text style={styles.backText}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>הדירות שאהבתי</Text>
+        <Text style={styles.headerTitle}>Favorite Apartments</Text>
       </View>
+
       <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {favoriteApartments.length === 0 && (
+          <Text style={styles.emptyText}>No saved apartments yet 💔</Text>
+        )}
+
         {favoriteApartments.map((apt) => (
           <View
             key={apt.ApartmentID}
@@ -118,34 +124,38 @@ export default function FavoriteApartmentsScreen({ onClose }) {
                 { backgroundColor: getBorderColor(apt.ApartmentType) },
               ]}
             >
-              <Text style={styles.typeText}>
-                {getTypeName(apt.ApartmentType)}
-              </Text>
+              <Text style={styles.typeText}>{getTypeName(apt.ApartmentType)}</Text>
             </View>
-            <View style={styles.cardContent}>
-              <ApartmentGallery images={apt.Images} />
 
+            <ApartmentGallery images={apt.Images} />
+
+            <View style={styles.cardContent}>
               <TouchableOpacity
+                style={{ flex: 1 }}
                 onPress={() => {
                   setSelectedApartment(apt);
                   setShowApartmentDetails(true);
                 }}
               >
                 <View style={styles.details}>
-                  <Text style={styles.title}>דירה ברחוב {apt.Location}</Text>
+                  <Text style={styles.title}>Apartment on {apt.Location}</Text>
                   <Text style={styles.description}>{apt.Description}</Text>
-                  <Text style={styles.price}>{apt.Price} ש"ח</Text>
+                  <Text style={styles.price}>{apt.Price} ₪</Text>
                 </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => handleUnlike(apt.ApartmentID)}
+                style={styles.likeButton}
+              >
+                <FontAwesome name="heart" size={28} color="#E3965A" />
               </TouchableOpacity>
             </View>
           </View>
         ))}
-        {favoriteApartments.length === 0 && (
-          <Text style={styles.emptyText}>אין דירות שמורות כרגע 💔</Text>
-        )}
       </ScrollView>
-      
-      {/* Modal for selected apartment */}
+
+      {/* Modal for apartment details */}
       <Modal
         visible={showApartmentDetails}
         animationType="slide"
@@ -169,13 +179,8 @@ export default function FavoriteApartmentsScreen({ onClose }) {
   );
 }
 
-/**
- * Component styles
- * @constant
- * @type {Object}
- */
 const styles = StyleSheet.create({
-  safeContainer: { flex: 1, backgroundColor: "white" },
+  safeContainer: { flex: 1, backgroundColor: "#f5f7fa" },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -183,47 +188,92 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingTop: Constants.statusBarHeight,
     backgroundColor: "#2661A1",
+    borderBottomLeftRadius: 25,
+    borderBottomRightRadius: 25,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 7,
   },
-  backButton: { padding: 5, marginRight: 10 },
-  backText: { color: "white", fontSize: 18 },
-  headerTitle: { color: "white", fontSize: 18, fontWeight: "bold" },
-  scrollContainer: { padding: 10, paddingBottom: 100 },
+  backButton: { padding: 8, marginRight: 10 },
+  backText: { color: "white", fontSize: 20, fontWeight: "600" },
+  headerTitle: { color: "white", fontSize: 20, fontWeight: "700" },
+  scrollContainer: {
+    padding: 15,
+    paddingBottom: 100,
+  },
   card: {
     alignSelf: "center",
     width: 350,
-    backgroundColor: "white",
-    borderRadius: 10,
+    backgroundColor: "#fff",
+    borderRadius: 20,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
     borderWidth: 3,
-    shadowRadius: 5,
-    elevation: 3,
-    margin: 10,
-  },
-  details: { padding: 10 },
-  title: { fontSize: 16, fontWeight: "bold", textAlign: "right" },
-  description: { fontSize: 14, color: "gray", textAlign: "right" },
-  price: { fontSize: 16, fontWeight: "bold", marginTop: 5, textAlign: "right" },
-  typeText: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "black",
-    textTransform: "uppercase",
+    marginVertical: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 5,
   },
   typeLabel: {
     position: "absolute",
     zIndex: 2,
-    top: 5,
-    left: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 5,
+    top: 10,
+    left: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  typeText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#222",
+    textTransform: "uppercase",
+  },
+  cardContent: {
+    padding: 15,
+    flexDirection: "row-reverse",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  details: {
+    flex: 1,
+    marginLeft: 15,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "700",
+    textAlign: "right",
+    color: "#2c3e50",
+  },
+  description: {
+    fontSize: 15,
+    color: "#666",
+    textAlign: "right",
+    marginTop: 8,
+    lineHeight: 22,
+  },
+  price: {
+    fontSize: 18,
+    fontWeight: "700",
+    marginTop: 10,
+    textAlign: "right",
+    color: "#27ae60",
   },
   emptyText: {
     textAlign: "center",
-    marginTop: 40,
-    fontSize: 16,
+    marginTop: 60,
+    fontSize: 18,
     color: "#777",
+  },
+  likeButton: {
+    padding: 6,
+    marginLeft: 10,
   },
 });

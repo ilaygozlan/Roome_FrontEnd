@@ -477,12 +477,20 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "bold",
   },
-  openHouseCreateButton: {
-    backgroundColor: "#FFA500",
-    padding: 10,
-    borderRadius: 5,
-    marginTop: 10,
-  },
+openHouseCreateButton: {
+  backgroundColor: "#FF9F3D",
+  padding: 10,
+  borderRadius: 5,
+  marginTop: 10,
+  shadowColor: "#FF9F3D",
+  shadowOpacity: 0.4,
+  shadowRadius: 6,
+  shadowOffset: { width: 0, height: 3 },
+},
+
+openHouseCreateButtonPressed: {
+  backgroundColor: "#E68A2B", 
+},
   openHouseItem: {
     backgroundColor: "#e68400",
     padding: 10,

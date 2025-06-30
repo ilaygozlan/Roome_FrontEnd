@@ -86,7 +86,7 @@ import { useLocalSearchParams } from "expo-router";
 const UserProfile = (props) => {
   const { loginUserId } = useContext(userInfoContext);
   const { userId } = useLocalSearchParams();
-  const finalUserId = userId ?? props.userId;
+  const finalUserId = props.userId ?? userId;
   const isMyProfile = finalUserId == loginUserId;
   const router = useRouter();
   const [showFriendProfile, setFriendProfile] = useState(false);
@@ -210,7 +210,9 @@ const UserProfile = (props) => {
             <TouchableOpacity
               style={styles.backButton}
               onPress={() => {
-                props.onClose();
+            
+                  router.back();
+          
               }}
             >
               <Feather name="arrow-left" size={24} color="#fff" />
@@ -228,8 +230,19 @@ const UserProfile = (props) => {
                 />
               </TouchableOpacity>
               <TouchableOpacity
+                style={styles.chatButton}
+                onPress={() =>
+                  router.push({
+                    pathname: "ChatRoom",
+                    params: { recipientId: finalUserId },
+                  })
+                }
+              >
+                <FontAwesome5 name="comments" size={18} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity
                 style={styles.backButton}
-                onPress={() => props.onClose()}
+                 onPress={() => router.back()}
               >
                 <Feather name="arrow-left" size={24} color="#fff" />
               </TouchableOpacity>
@@ -340,7 +353,7 @@ const UserProfile = (props) => {
 
           </Modal>
         )}
-        
+
         <View
           style={{
             flex: 1,
@@ -383,73 +396,109 @@ const InfoCard = ({ icon, value }) => (
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f9f9f9" },
+  container: {
+    flex: 1,
+    backgroundColor: "#f5f7fa",
+  },
   headerBackground: {
     width: "100%",
-    height: 200,
-    backgroundColor: "#2661A1",
+    height: 220,
+    backgroundColor: "#4A90E2",
     position: "absolute",
     top: 0,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 7,
   },
   profileContainer: {
-    marginTop: 120,
-    backgroundColor: "white",
+    marginTop: 140,
+    backgroundColor: "#fff",
     marginHorizontal: 20,
-    borderRadius: 25,
-    padding: 20,
-    elevation: 5,
+    borderRadius: 20,
+    padding: 25,
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
   closeButton: {
     position: "absolute",
-    top: 10,
-    left: 10,
+    top: 15,
+    left: 15,
     padding: 8,
     zIndex: 10,
   },
   profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 110,
+    height: 110,
+    borderRadius: 55,
     alignSelf: "center",
-    marginTop: -80,
-    borderWidth: 4,
-    borderColor: "white",
+    marginTop: -85,
+    borderWidth: 5,
+    borderColor: "#fff",
+    backgroundColor: "#eee",
   },
   editIcon: {
     position: "absolute",
-    top: 20,
-    right: 20,
-    backgroundColor: "#2661A1",
-    padding: 5,
-    borderRadius: 20,
+    top: 25,
+    right: 25,
+    backgroundColor: "#4A90E2",
+    padding: 7,
+    borderRadius: 25,
+    shadowColor: "#4A90E2",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
   },
   profileName: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#2661A1",
+    fontSize: 26,
+    fontWeight: "700",
+    color: "#2c3e50",
     textAlign: "center",
-    marginTop: 10,
+    marginTop: 15,
+    letterSpacing: 0.5,
   },
-  infoGrid: { marginTop: 20 },
+  infoGrid: {
+    marginTop: 25,
+    gap: 15,
+  },
   buttonsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginVertical: 20,
+    flexDirection: "row-reverse",
+    justifyContent: "flex-start",
+    alignItems: "center",
+    marginTop: 25,
   },
   smallButton: {
-    alignItems: "center",
-    backgroundColor: "#2661A1",
-    padding: 10,
+    backgroundColor: "#4A90E2",
+    paddingVertical: 12,
+    paddingHorizontal: 15,
     borderRadius: 10,
-    width: 140,
+    shadowColor: "#4A90E2",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 7,
   },
-  buttonText: { color: "#fff", textAlign: "center", marginTop: 5 },
-  friendsSection: { marginHorizontal: 20 },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 16,
+    textAlign: "center",
+  },
+  friendsSection: {
+    marginHorizontal: 20,
+    marginTop: 35,
+  },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10,
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 15,
     textAlign: "right",
+    color: "#34495e",
   },
   friendsGrid: {
     flexDirection: "row-reverse",
@@ -459,45 +508,187 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginLeft: 15,
     backgroundColor: "#fff",
-    padding: 10,
-    borderRadius: 10,
-    elevation: 2,
+    padding: 15,
+    borderRadius: 15,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    width: 85,
   },
-  friendCardImage: { width: 60, height: 60, borderRadius: 30 },
-  friendCardName: { marginTop: 5, fontSize: 14 },
+  friendCardImage: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+  },
+  friendCardName: {
+    marginTop: 8,
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#2c3e50",
+    textAlign: "center",
+  },
   modalContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: "rgba(0,0,0,0.35)",
   },
   modalContent: {
     backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 20,
-    width: "80%",
+    borderRadius: 20,
+    padding: 25,
+    width: "85%",
+    direction: "rtl",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 15,
   },
-  modalTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 20 },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    marginBottom: 25,
+    textAlign: "right",
+    color: "#34495e",
+  },
   input: {
     borderBottomWidth: 1,
     borderColor: "#ccc",
-    marginBottom: 15,
-    padding: 5,
+    marginBottom: 20,
+    paddingVertical: 8,
+    fontSize: 16,
+    color: "#34495e",
+  },
+  inputDisabled: {
+    backgroundColor: "#f0f0f0",
+    paddingVertical: 14,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    marginBottom: 20,
+    color: "#999",
+    fontSize: 16,
+    textAlign: "right",
   },
   saveButton: {
-    backgroundColor: "#2661A1",
-    padding: 10,
-    borderRadius: 10,
-    marginTop: 10,
+    backgroundColor: "#4A90E2",
+    paddingVertical: 14,
+    borderRadius: 14,
+    marginTop: 15,
+    shadowColor: "#4A90E2",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
   },
   backButton: {
     position: "absolute",
-    top: 20,
-    left: 20,
-    backgroundColor: "#2661A1",
-    padding: 6,
-    borderRadius: 20,
+    top: 25,
+    left: 25,
+    backgroundColor: "#4A90E2",
+    padding: 8,
+    borderRadius: 25,
     zIndex: 10,
+    shadowColor: "#4A90E2",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+  },
+  photoContainer: {
+    alignItems: "center",
+    marginBottom: 25,
+  },
+  profilePhoto: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    backgroundColor: "#eee",
+  },
+  photoPlaceholder: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    backgroundColor: "#d9d9d9",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  photoText: {
+    color: "#666",
+    fontWeight: "500",
+  },
+  label: {
+    fontSize: 16,
+    marginBottom: 8,
+    textAlign: "right",
+    fontWeight: "600",
+    color: "#34495e",
+  },
+  picker: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 12,
+    marginBottom: 20,
+    paddingHorizontal: 10,
+    fontSize: 16,
+    color: "#34495e",
+  },
+  dateButton: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 20,
+    backgroundColor: "#fff",
+  },
+  dateButtonText: {
+    textAlign: "right",
+    fontSize: 16,
+    color: "#34495e",
+  },
+  toggleContainer: {
+    flexDirection: "row-reverse",
+    justifyContent: "space-around",
+    marginBottom: 30,
+  },
+  toggleButton: {
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    width: "45%",
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
+  toggleButtonActive: {
+    backgroundColor: "#4A90E2",
+    borderColor: "#4A90E2",
+  },
+  toggleText: {
+    fontSize: 16,
+    color: "#34495e",
+  },
+  toggleTextActive: {
+    color: "#fff",
+    fontWeight: "700",
+  },
+  logoutContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 30,
+    marginBottom: 40,
+  },
+  chatButton: {
+    position: "absolute",
+    top: 25,
+    right: 70,
+    backgroundColor: "#4A90E2",
+    padding: 8,
+    borderRadius: 25,
+    zIndex: 10,
+    shadowColor: "#4A90E2",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
   },
 });
 
