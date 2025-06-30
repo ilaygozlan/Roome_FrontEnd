@@ -8,45 +8,20 @@ import {
   ScrollView,
   Dimensions,
   Animated,
-  Modal
+  Modal,
 } from "react-native";
 import { FlatList } from "react-native";
 import Constants from "expo-constants";
 import ApartmentReview from "./components/apartmentReview";
-import { FontAwesome5, MaterialIcons } from "@expo/vector-icons";
+import { FontAwesome5, MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import API from "../config";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import UserProfile from "./UserProfile"; 
+import UserProfile from "./UserProfile";
 import ApartmentGallery from "./components/ApartmentGallery";
 
 const { width } = Dimensions.get("window");
-
-/**
- * @component ApartmentDetails
- * @description Detailed view component for apartment information.
- * Displays comprehensive apartment details including images, roommate information,
- * and type-specific details with interactive features.
- * 
- * Features:
- * - Image gallery carousel
- * - Apartment type-specific details
- * - Roommate information carousel
- * - Owner profile access
- * - Reviews section
- * - Animated pagination
- * - RTL (Right-to-Left) support
- * 
- * @param {Object} props
- * @param {Object} props.apt - Apartment data object
- * @param {Function} props.onClose - Callback function to close the details view
- * 
- * Apartment Types:
- * - 0: Rental
- * - 1: Roommates
- * - 2: Sublet
- */
 
 export default function ApartmentDetails({ apt, onClose }) {
   const router = useRouter();
@@ -83,17 +58,11 @@ export default function ApartmentDetails({ apt, onClose }) {
         carouselRef.current.scrollTo({ x: nextIndex * width, animated: true });
         setActiveSlide(nextIndex);
       }
-    }, 5000); // every 5 seconds
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [activeSlide, apt]);
 
-  /**
-   * Gets display name for apartment type
-   * @function getTypeName
-   * @param {number} type - Apartment type code
-   * @returns {string} Display name in Hebrew
-   */
   const getTypeName = (type) => {
     switch (type) {
       case 0:
@@ -107,12 +76,6 @@ export default function ApartmentDetails({ apt, onClose }) {
     }
   };
 
-  /**
-   * Parses roommate information string into structured data
-   * @function parseRoommates
-   * @param {string} info - Roommate information string
-   * @returns {Array<Object>} Array of roommate detail objects
-   */
   const parseRoommates = (info) => {
     if (!info) return [];
     const roommateStrings = info
@@ -158,18 +121,13 @@ export default function ApartmentDetails({ apt, onClose }) {
     });
   };
 
-  /**
-   * Renders type-specific apartment details
-   * @function renderExtraDetails
-   * @returns {JSX.Element} Type-specific detail components
-   */
   const renderExtraDetails = () => {
     switch (apt.ApartmentType) {
       case 0:
         return (
           <>
             <View style={styles.detailRow}>
-              <MaterialIcons name="calendar-today" size={16} color="#E3965A" />
+              <MaterialIcons name="calendar-today" size={18} color="#E3965A" />
               <Text style={styles.detail}>
                 משך חוזה: {apt.Rental_ContractLength} חודשים
               </Text>
@@ -207,18 +165,16 @@ export default function ApartmentDetails({ apt, onClose }) {
                   contentContainerStyle={{ flexDirection: "row-reverse" }}
                 >
                   {roommates.map((rm, index) => (
-                    <View
-                      key={index}
-                      style={[styles.roommateCard, { width: width - 40 }]}
-                    >
+                    <View key={index} style={styles.roommateCard}>
                       {rm["תמונה"] && (
                         <Image
                           source={{ uri: rm["תמונה"] }}
                           style={styles.roommateImage}
+                          resizeMode="cover"
                         />
                       )}
                       <Text style={styles.roommateHeader}>
-                        שותף {index + 1}
+                        🧑‍🤝‍🧑 שותף {index + 1}
                       </Text>
                       {Object.entries(rm).map(
                         ([label, value]) =>
@@ -267,14 +223,14 @@ export default function ApartmentDetails({ apt, onClose }) {
         return (
           <>
             <View style={styles.detailRow}>
-              <MaterialIcons name="cancel" size={16} color="#E3965A" />
+              <MaterialIcons name="cancel" size={18} color="#E3965A" />
               <Text style={styles.detail}>
                 ביטול ללא קנס:{" "}
                 {apt.Sublet_CanCancelWithoutPenalty ? "כן" : "לא"}
               </Text>
             </View>
             <View style={styles.detailRow}>
-              <MaterialIcons name="home" size={16} color="#E3965A" />
+              <MaterialIcons name="home" size={18} color="#E3965A" />
               <Text style={styles.detail}>
                 נכס שלם: {apt.Sublet_IsWholeProperty ? "כן" : "לא"}
               </Text>
@@ -286,260 +242,259 @@ export default function ApartmentDetails({ apt, onClose }) {
     }
   };
 
-return (
-  <SafeAreaView style={{ flex: 1 }}>
-    <FlatList
-      data={[]}
-      ListHeaderComponent={
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <TouchableOpacity onPress={onClose} style={styles.backButton}>
-              <Text style={styles.backText}>←</Text>
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}></Text>
-          </View>
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      <FlatList
+        data={[]}
+        ListHeaderComponent={
+          <View style={styles.container}>
+            <View style={styles.header}>
+              <TouchableOpacity onPress={onClose} style={styles.backButton}>
+                <Ionicons name="arrow-back" size={24} color="#E3965A" />
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}></Text>
+            </View>
 
-          <ApartmentGallery images={apt.Images} />
+            
+              <ApartmentGallery images={apt.Images} />
+            
+            <Text style={styles.title}>{apt.Location}</Text>
+            <Text style={styles.price}>{apt.Price} ש"ח</Text>
+            <Text style={styles.description}>{apt.Description}</Text>
 
-          <Text style={styles.title}>{apt.Location}</Text>
-          <Text style={styles.price}>{apt.Price} ש"ח</Text>
-          <Text style={styles.description}>{apt.Description}</Text>
-
-          <Text style={styles.sectionTitle}>
-            סוג דירה: {getTypeName(apt.ApartmentType)}
-          </Text>
-
-          <View style={styles.detailRow}>
-            <MaterialIcons name="meeting-room" size={16} color="#E3965A" />
-            <Text style={styles.detail}>חדרים: {apt.AmountOfRooms}</Text>
-          </View>
-
-          <View style={styles.detailRow}>
-            <MaterialIcons
-              name="pets"
-              size={16}
-              color={apt.AllowPet ? "#E3965A" : "#ccc"}
-            />
-            <Text style={styles.detail}>
-              חיות מחמד: {apt.AllowPet ? "מותר" : "אסור"}
+            <Text style={styles.sectionTitle}>
+              סוג דירה: {getTypeName(apt.ApartmentType)}
             </Text>
-          </View>
 
-          <View style={styles.detailRow}>
-            <MaterialIcons
-              name="smoking-rooms"
-              size={16}
-              color={apt.AllowSmoking ? "#E3965A" : "#ccc"}
-            />
-            <Text style={styles.detail}>
-              עישון: {apt.AllowSmoking ? "מותר" : "אסור"}
-            </Text>
-          </View>
-
-          <View style={styles.detailRow}>
-            <MaterialIcons
-              name="local-parking"
-              size={16}
-              color={apt.ParkingSpace > 0 ? "#E3965A" : "#ccc"}
-            />
-            <Text style={styles.detail}>חניה: {apt.ParkingSpace}</Text>
-          </View>
-
-          <View style={styles.detailRow}>
-            <MaterialIcons name="event-available" size={16} color="#E3965A" />
-            <Text style={styles.detail}>
-              תאריך כניסה: {apt.EntryDate?.split("T")[0]}
-            </Text>
-          </View>
-
-          {apt.ExitDate && (
             <View style={styles.detailRow}>
-              <MaterialIcons name="event-busy" size={16} color="#E3965A" />
+              <MaterialIcons name="meeting-room" size={18} color="#E3965A" />
+              <Text style={styles.detail}>חדרים: {apt.AmountOfRooms}</Text>
+            </View>
+
+            <View style={styles.detailRow}>
+              <MaterialIcons
+                name="pets"
+                size={18}
+                color={apt.AllowPet ? "#E3965A" : "#ccc"}
+              />
               <Text style={styles.detail}>
-                תאריך יציאה: {apt.ExitDate?.split("T")[0]}
+                חיות מחמד: {apt.AllowPet ? "מותר" : "אסור"}
               </Text>
             </View>
-          )}
 
-          {renderExtraDetails()}
-
-          {userInfo && (
-            <TouchableOpacity
-              onPress={() => setShowUserProfile(true)}
-              style={styles.uploaderContainer}
-            >
-              <Image
-                source={{
-                  uri:
-                    userInfo.profilePicture ||
-                    "https://example.com/default-profile.png",
-                }}
-                style={styles.uploaderImage}
+            <View style={styles.detailRow}>
+              <MaterialIcons
+                name="smoking-rooms"
+                size={18}
+                color={apt.AllowSmoking ? "#E3965A" : "#ccc"}
               />
-              <Text style={styles.uploaderName}>
-                מפורסם ע״י: {userInfo.fullName}
+              <Text style={styles.detail}>
+                עישון: {apt.AllowSmoking ? "מותר" : "אסור"}
               </Text>
-            </TouchableOpacity>
-          )}
+            </View>
 
-          <ApartmentReview apartmentId={apt.ApartmentID} />
-        </View>
-      }
-    />
+            <View style={styles.detailRow}>
+              <MaterialIcons
+                name="local-parking"
+                size={18}
+                color={apt.ParkingSpace > 0 ? "#E3965A" : "#ccc"}
+              />
+              <Text style={styles.detail}>חניה: {apt.ParkingSpace}</Text>
+            </View>
 
-    <Modal
-      visible={showUserProfile}
-      animationType="slide"
-      onRequestClose={() => setShowUserProfile(false)}
-    >
-      <UserProfile
-        userId={apt.UserID}
-        onClose={() => setShowUserProfile(false)}
+            <View style={styles.detailRow}>
+              <MaterialIcons name="event-available" size={18} color="#E3965A" />
+              <Text style={styles.detail}>
+                תאריך כניסה: {apt.EntryDate?.split("T")[0]}
+              </Text>
+            </View>
+
+            {apt.ExitDate && (
+              <View style={styles.detailRow}>
+                <MaterialIcons name="event-busy" size={18} color="#E3965A" />
+                <Text style={styles.detail}>
+                  תאריך יציאה: {apt.ExitDate?.split("T")[0]}
+                </Text>
+              </View>
+            )}
+
+            {renderExtraDetails()}
+
+            {userInfo && (
+              <TouchableOpacity
+                onPress={() => setShowUserProfile(true)}
+                style={[
+                  styles.uploaderContainer,
+                  { backgroundColor: "#E3965A" },
+                ]}
+              >
+                <Image
+                  source={{
+                    uri:
+                      userInfo.profilePicture ||
+                      "https://example.com/default-profile.png",
+                  }}
+                  style={styles.uploaderImage}
+                />
+                <Text style={[styles.uploaderName, { color: "white" }]}>
+                  מפורסם ע״י: {userInfo.fullName}
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            <ApartmentReview apartmentId={apt.ApartmentID} />
+          </View>
+        }
       />
-    </Modal>
-  </SafeAreaView>
-);
+
+      <Modal
+        visible={showUserProfile}
+        animationType="slide"
+        onRequestClose={() => setShowUserProfile(false)}
+      >
+        <UserProfile
+          userId={apt.UserID}
+          onClose={() => setShowUserProfile(false)}
+        />
+      </Modal>
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 15,
-    backgroundColor: "#fff",
+    padding: 20,
+    backgroundColor: "#f8f9fb",
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 15,
     paddingVertical: 10,
-    paddingTop: Constants.statusBarHeight + 15,
-    backgroundColor: "#fff",
+    marginBottom: 10,
   },
-  backButton: { padding: 5, marginRight: 10 },
-  backText: { fontSize: 24, color: "#E3965A", fontWeight: "bold" },
-  headerTitle: { color: "white", fontSize: 18, fontWeight: "bold" },
-  image: {
-    width: "100%",
-    height: 250,
-    borderRadius: 10,
+  backButton: {
+    padding: 5,
+    marginRight: 10,
   },
-  title: {
+  headerTitle: {
     fontSize: 20,
     fontWeight: "bold",
+    color: "#333",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#333",
+    marginTop: 15,
     textAlign: "right",
-    marginTop: 10,
   },
   price: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
+    color: "#28a745",
+    marginTop: 8,
     textAlign: "right",
-    color: "green",
-    marginTop: 5,
   },
   description: {
     fontSize: 16,
+    color: "#666",
+    marginTop: 12,
+    lineHeight: 24,
     textAlign: "right",
-    marginTop: 10,
-    color: "#555",
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
-    marginTop: 20,
+    marginTop: 25,
+    color: "#E3965A",
     textAlign: "right",
   },
   detailRow: {
     flexDirection: "row-reverse",
     alignItems: "center",
-    marginTop: 5,
+    marginTop: 10,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 10,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 2 },
   },
   detail: {
     fontSize: 15,
-    textAlign: "right",
-    marginHorizontal: 8,
     color: "#444",
-  },
-  roommateScroll: {
-    marginTop: 10,
-    paddingVertical: 10,
+    marginHorizontal: 10,
+    flexShrink: 1,
+    textAlign: "right",
   },
   roommateCard: {
-    backgroundColor: "#f0f0f0",
-    borderRadius: 10,
-    padding: 10,
-    marginRight: 10,
-    marginLeft: 0,
-    width: 200,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 15,
+    marginHorizontal: 10,
     alignItems: "center",
-    marginTop: 15,
+    marginTop: 20,
+    width: width - 60,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
   },
   roommateHeader: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 6,
-    color: "#333",
+    color: "#E3965A",
+    marginBottom: 10,
   },
   roommateDetail: {
     fontSize: 14,
-    textAlign: "right",
+    color: "#555",
     marginBottom: 4,
-    color: "#444",
-    alignSelf: "flex-end",
+    textAlign: "right",
+    alignSelf: "stretch",
   },
   roommateImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginBottom: 10,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 15,
   },
-  openHouseItem: {
-    backgroundColor: "#F4B982",
-    padding: 10,
-    borderRadius: 8,
-    marginVertical: 5,
+  dot: {
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 4,
   },
-  openHouseText: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  openHouseLocation: {
-    fontSize: 14,
-    color: "#555",
-    marginBottom: 5,
-  },
-  registerButton: {
-    backgroundColor: "#E3965A",
-    padding: 8,
-    borderRadius: 5,
-    alignItems: "center",
-  },
-  registerText: {
-    color: "white",
-    fontWeight: "bold",
-  },
-  noOpenHouses: {
-    textAlign: "center",
-    color: "gray",
-    fontSize: 16,
+  paginationContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 10,
   },
   uploaderContainer: {
     flexDirection: "row-reverse",
     alignItems: "center",
-    marginTop: 20,
-    backgroundColor: "#f9f9f9",
-    padding: 10,
-    borderRadius: 8,
+    marginTop: 30,
+    backgroundColor: "#fff",
+    padding: 12,
+    borderRadius: 10,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 2 },
   },
   uploaderImage: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    marginLeft: 10,
+    marginLeft: 12,
   },
   uploaderName: {
     fontSize: 16,
-    color: "#333",
     fontWeight: "bold",
+    color: "#333",
   },
 });
