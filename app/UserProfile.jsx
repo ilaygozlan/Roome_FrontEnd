@@ -210,7 +210,9 @@ const UserProfile = (props) => {
             <TouchableOpacity
               style={styles.backButton}
               onPress={() => {
-                props.onClose();
+            
+                  router.back();
+          
               }}
             >
               <Feather name="arrow-left" size={24} color="#fff" />
@@ -240,7 +242,7 @@ const UserProfile = (props) => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.backButton}
-                onPress={() => props.onClose()}
+                 onPress={() => router.back()}
               >
                 <Feather name="arrow-left" size={24} color="#fff" />
               </TouchableOpacity>
