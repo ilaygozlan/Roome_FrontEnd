@@ -358,7 +358,7 @@ const UserProfile = (props) => {
             paddingTop: 50,
           }}
         >
-          <UserOwnedApartmentsGrid userId={finalUserId} isMyProfile={false} />
+          <UserOwnedApartmentsGrid userId={finalUserId} isMyProfile={false} loginUserId={loginUserId} />
         </View>
 
         {isMyProfile && (
