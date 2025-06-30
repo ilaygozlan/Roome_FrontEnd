@@ -14,6 +14,8 @@ import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import API from "../config";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import ApartmentLabelsPopup from "./components/ApartmentLabelsPopup";
+
 
 const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
   const { allApartments } = useContext(ActiveApartmentContext);
@@ -24,6 +26,7 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+  const [visibleLabelsPopupId, setVisibleLabelsPopupId] = useState(null);
 
   const [startDateObj, setStartDateObj] = useState(new Date());
   const [endDateObj, setEndDateObj] = useState(new Date());
@@ -186,9 +189,7 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
 
   return (
     <View style={styles.wrapper}>
-      <Text style={styles.title}>
-        {isMyProfile ? "הדירות שלי" : ""}
-      </Text>
+      <Text style={styles.title}>{isMyProfile ? "הדירות שלי" : ""}</Text>
       <ScrollView contentContainerStyle={styles.container}>
         {ownedApartments.map((apt) => (
           <View
@@ -198,6 +199,13 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
               { borderColor: getBorderColor(apt.ApartmentType) },
             ]}
           >
+            <TouchableOpacity
+              style={styles.aiButton}
+              onPress={() => setVisibleLabelsPopupId(apt.ApartmentID)}
+            >
+              <Text style={styles.aiButtonText}>שדרג את המודעה עם AI</Text>
+            </TouchableOpacity>
+
             <View
               style={[
                 styles.typeLabel,
@@ -219,15 +227,27 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
               {isMyProfile && (
                 <>
                   {(openHousesMap[apt.ApartmentID] || []).map((item, idx) => (
-                  <View key={idx} style={styles.openHouseItem}>
-                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                
-                    <Text style={styles.openHouseButtonText}>
-                      {new Date(item.date).toLocaleDateString("he-IL")} | {item.startTime} - {item.endTime} | נרשמו: {item.amountOfPeoples} / {item.totalRegistrations}
-                    </Text>
-                    <MaterialCommunityIcons name="calendar-outline" size={20} color="white" style={{ marginLeft: 6 }} />
-                  </View>
-                </View>
+                    <View key={idx} style={styles.openHouseItem}>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Text style={styles.openHouseButtonText}>
+                          {new Date(item.date).toLocaleDateString("he-IL")} |{" "}
+                          {item.startTime} - {item.endTime} | נרשמו:{" "}
+                          {item.amountOfPeoples} / {item.totalRegistrations}
+                        </Text>
+                        <MaterialCommunityIcons
+                          name="calendar-outline"
+                          size={20}
+                          color="white"
+                          style={{ marginLeft: 6 }}
+                        />
+                      </View>
+                    </View>
                   ))}
 
                   <TouchableOpacity
@@ -239,6 +259,13 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile }) => {
                 </>
               )}
             </View>
+
+            {visibleLabelsPopupId === apt.ApartmentID && (
+              <ApartmentLabelsPopup
+                apartmentId={apt.ApartmentID}
+                onClose={() => setVisibleLabelsPopupId(null)}
+              />
+            )}
           </View>
         ))}
       </ScrollView>
@@ -433,6 +460,21 @@ const styles = StyleSheet.create({
     color: "gray",
     textAlign: "right",
   },
+    aiButton: {
+    position: "absolute",
+    top: 5,
+    right: 5,
+    backgroundColor: "#5C67F2",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 5,
+    zIndex: 3,
+  },
+  aiButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 12,
+  },
   price: {
     fontSize: 16,
     fontWeight: "bold",
@@ -477,20 +519,20 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "bold",
   },
-openHouseCreateButton: {
-  backgroundColor: "#FF9F3D",
-  padding: 10,
-  borderRadius: 5,
-  marginTop: 10,
-  shadowColor: "#FF9F3D",
-  shadowOpacity: 0.4,
-  shadowRadius: 6,
-  shadowOffset: { width: 0, height: 3 },
-},
+  openHouseCreateButton: {
+    backgroundColor: "#FF9F3D",
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+    shadowColor: "#FF9F3D",
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+  },
 
-openHouseCreateButtonPressed: {
-  backgroundColor: "#E68A2B", 
-},
+  openHouseCreateButtonPressed: {
+    backgroundColor: "#E68A2B",
+  },
   openHouseItem: {
     backgroundColor: "#e68400",
     padding: 10,
