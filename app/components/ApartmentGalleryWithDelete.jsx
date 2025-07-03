@@ -10,19 +10,23 @@ import {
   Alert,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import API from "../../config";
 
 const { width } = Dimensions.get("window");
 const baseUrl = "https://roomebackend20250414140006.azurewebsites.net";
 
-const GetImagesArr = (images) => {
-  const imageArray =
+const prepareImages = (images) => {
+  return (
     images?.split(",").map((img) => {
       const trimmed = img.trim();
-      return trimmed.startsWith("https")
-        ? trimmed
-        : `${baseUrl}${trimmed.startsWith("/") ? "" : "/"}${trimmed}`;
-    }) || [];
-  return imageArray;
+      return {
+        original: trimmed, // מה שנשלח מהשרת (נשמר בדאטהבייס)
+        fullUrl: trimmed.startsWith("https")
+          ? trimmed
+          : `${baseUrl}${trimmed.startsWith("/") ? "" : "/"}${trimmed}`,
+      };
+    }) || []
+  );
 };
 
 export default function ApartmentGalleryWithDelete({ images }) {
@@ -31,7 +35,7 @@ export default function ApartmentGalleryWithDelete({ images }) {
   const [imageArray, setImageArray] = useState([]);
 
   useEffect(() => {
-    setImageArray(GetImagesArr(images));
+    setImageArray(prepareImages(images));
   }, [images]);
 
   const handleScroll = (event) => {
@@ -39,22 +43,33 @@ export default function ApartmentGalleryWithDelete({ images }) {
     const index = Math.round(x / width);
     setCurrentIndex(index);
   };
+const confirmDeleteImage = (originalPath) => {
+  Alert.alert("מחיקת תמונה", "האם אתה בטוח שברצונך למחוק את התמונה?", [
+    { text: "בטל", style: "cancel" },
+    {
+      text: "מחק",
+      style: "destructive",
+      onPress: async () => {
+        try {
+          await fetch(
+            `${API}UploadImageCpntroller/deleteApartmentImage?imageUrl=${encodeURIComponent(originalPath)}`,
+            {
+              method: "DELETE",
+            }
+          );
+        } catch (error) {
+          console.error("Error deleting image:", error);
+        } finally {
+          setImageArray((prev) =>
+            prev.filter((img) => img.original !== originalPath)
+          );
+        }
+      },
+    },
+  ]);
+};
 
-  const confirmDeleteImage = (urlToDelete) => {
-    Alert.alert(
-      "מחיקת תמונה",
-      "האם אתה בטוח שברצונך למחוק את התמונה?",
-      [
-        { text: "בטל", style: "cancel" },
-        {
-          text: "מחק",
-          style: "destructive",
-          onPress: () =>
-            setImageArray((prev) => prev.filter((img) => img !== urlToDelete)),
-        },
-      ]
-    );
-  };
+
 
   if (imageArray.length === 0) {
     return (
@@ -75,12 +90,12 @@ export default function ApartmentGalleryWithDelete({ images }) {
         ref={scrollRef}
         style={styles.scrollView}
       >
-        {imageArray.map((imgUrl, index) => (
+        {imageArray.map((img, index) => (
           <View key={index} style={styles.imageWrapper}>
-            <Image source={{ uri: imgUrl }} style={styles.image} />
+            <Image source={{ uri: img.fullUrl }} style={styles.image} />
             <TouchableOpacity
               style={styles.deleteIcon}
-              onPress={() => confirmDeleteImage(imgUrl)}
+              onPress={() => confirmDeleteImage(img.original)}
             >
               <MaterialCommunityIcons
                 name="trash-can-outline"
@@ -115,16 +130,19 @@ const styles = StyleSheet.create({
     position: "relative",
     width: width,
     height: 200,
+    alignItems: "center",
+    justifyContent: "center",
   },
   image: {
-    width: width-40,
+    width: width - 40,
     height: 200,
     resizeMode: "cover",
+    borderRadius: 10,
   },
   deleteIcon: {
     position: "absolute",
     top: 5,
-    right: 50,
+    right: 30,
     backgroundColor: "rgba(0,0,0,0.6)",
     borderRadius: 20,
     padding: 5,
