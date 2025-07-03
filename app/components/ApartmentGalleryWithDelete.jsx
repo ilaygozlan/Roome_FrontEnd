@@ -7,6 +7,7 @@ import {
   Dimensions,
   Text,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
@@ -39,8 +40,20 @@ export default function ApartmentGalleryWithDelete({ images }) {
     setCurrentIndex(index);
   };
 
-  const deleteImage = (urlToDelete) => {
-    setImageArray((prev) => prev.filter((img) => img !== urlToDelete));
+  const confirmDeleteImage = (urlToDelete) => {
+    Alert.alert(
+      "מחיקת תמונה",
+      "האם אתה בטוח שברצונך למחוק את התמונה?",
+      [
+        { text: "בטל", style: "cancel" },
+        {
+          text: "מחק",
+          style: "destructive",
+          onPress: () =>
+            setImageArray((prev) => prev.filter((img) => img !== urlToDelete)),
+        },
+      ]
+    );
   };
 
   if (imageArray.length === 0) {
@@ -67,7 +80,7 @@ export default function ApartmentGalleryWithDelete({ images }) {
             <Image source={{ uri: imgUrl }} style={styles.image} />
             <TouchableOpacity
               style={styles.deleteIcon}
-              onPress={() => deleteImage(imgUrl)}
+              onPress={() => confirmDeleteImage(imgUrl)}
             >
               <MaterialCommunityIcons
                 name="trash-can-outline"
@@ -104,14 +117,14 @@ const styles = StyleSheet.create({
     height: 200,
   },
   image: {
-    width: width,
+    width: width-40,
     height: 200,
     resizeMode: "cover",
   },
   deleteIcon: {
     position: "absolute",
-    top: 10,
-    right: 10,
+    top: 5,
+    right: 50,
     backgroundColor: "rgba(0,0,0,0.6)",
     borderRadius: 20,
     padding: 5,
