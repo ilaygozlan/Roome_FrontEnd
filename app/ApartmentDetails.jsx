@@ -320,43 +320,11 @@ export default function ApartmentDetails({ apt, onClose }) {
 
             {renderExtraDetails()}
 
-            {userInfo && (
-              <TouchableOpacity
-                onPress={() => setShowUserProfile(true)}
-                style={[
-                  styles.uploaderContainer,
-                  { backgroundColor: "#E3965A" },
-                ]}
-              >
-                <Image
-                  source={{
-                    uri:
-                      userInfo.profilePicture ||
-                      "https://example.com/default-profile.png",
-                  }}
-                  style={styles.uploaderImage}
-                />
-                <Text style={[styles.uploaderName, { color: "white" }]}>
-                  מפורסם ע״י: {userInfo.fullName}
-                </Text>
-              </TouchableOpacity>
-            )}
-
             <ApartmentReview apartmentId={apt.ApartmentID} />
           </View>
         }
       />
 
-      <Modal
-        visible={showUserProfile}
-        animationType="slide"
-        onRequestClose={() => setShowUserProfile(false)}
-      >
-        <UserProfile
-          userId={apt.UserID}
-          onClose={() => setShowUserProfile(false)}
-        />
-      </Modal>
     </SafeAreaView>
   );
 }
