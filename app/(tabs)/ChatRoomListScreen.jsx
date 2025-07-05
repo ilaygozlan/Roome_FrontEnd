@@ -123,7 +123,7 @@ const ChatRoomListScreen = () => {
               );
 
               router.push({
-                pathname: "ChatRoom",
+                pathname: "chat/ChatRoom",
                 params: { recipientId: chat.otherUserId },
               });
             } catch (err) {

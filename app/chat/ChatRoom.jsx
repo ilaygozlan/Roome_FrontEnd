@@ -14,15 +14,17 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { userInfoContext } from "./contex/userInfoContext";
+import { userInfoContext } from "../contex/userInfoContext";
 import { Ionicons } from "@expo/vector-icons";
-import API from "../config";
-import { useSignalR } from "./contex/SignalRContext";
+import API from "../../config";
+import { useSignalR } from "../contex/SignalRContext";
 
 const ChatRoom = () => {
+
   const navigation = useNavigation();
   const route = useRoute();
-  const { recipientId } = route.params;
+const { recipientId } = route.params || {};
+  console.log("📱 ChatRoom mounted. recipientId:", recipientId);
 
   const { loginUserId } = useContext(userInfoContext);
   const {
@@ -47,6 +49,7 @@ const ChatRoom = () => {
     }
   }, [loginUserId]);
 
+  // טען פרופיל משתמש
   useEffect(() => {
     fetch(API + "User/GetUserById/" + recipientId)
       .then((response) => response.json())
@@ -58,12 +61,18 @@ const ChatRoom = () => {
         console.error("Error fetching user profile:", error);
         setLoadingProfile(false);
       });
-  }, []);
+  }, [recipientId]);
 
+  // טען היסטוריית הודעות רק כאשר loginUserId קיים
   useEffect(() => {
+    //if (!loginUserId) return;
     fetch(`${API}Chat/GetMessages/${loginUserId}/${recipient}`)
       .then((res) => res.json())
       .then((data) => {
+        if (!Array.isArray(data)) {
+          setMessages([]);
+          return;
+        }
         const loadedMessages = data.map((m) => ({
           from: m.fromUserId,
           text: m.content,
@@ -77,9 +86,9 @@ const ChatRoom = () => {
       .catch((err) => {
         console.error("Error loading chat history:", err);
       });
-  }, []);
+  }, [loginUserId, recipient]);
 
-  // ✅ מאזין להודעות חדשות בזמן אמת
+  // מאזין להודעות חדשות בזמן אמת
   useEffect(() => {
     const handleIncoming = (senderId, message) => {
       const newMsg = {
@@ -94,14 +103,15 @@ const ChatRoom = () => {
     };
 
     onReceiveMessage(handleIncoming);
-  }, []);
+  }, [onReceiveMessage]);
 
+  // גלילה אוטומטית לסוף
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
 
   const sendMessage = () => {
-    if (input.trim() === "") return;
+    if (input.trim() === "" || !loginUserId) return;
 
     const myMsg = {
       from: loginUserId,
