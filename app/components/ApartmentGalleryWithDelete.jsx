@@ -124,12 +124,13 @@ const confirmDeleteImage = (originalPath) => {
 const styles = StyleSheet.create({
   scrollView: {
     height: 200,
-    width: width,
+    width: width - 40,
   },
   imageWrapper: {
     position: "relative",
-    width: width,
+    width: width - 40,
     height: 200,
+    paddingHorizontal: 20,
     alignItems: "center",
     justifyContent: "center",
   },

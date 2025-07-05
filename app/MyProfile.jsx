@@ -21,7 +21,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from "expo-image-picker";
 import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
-
+import MyOpenHouses from "./components/MyOpenHouses";
 
 const baseUrl = "https://roomebackend20250414140006.azurewebsites.net";
 const GetImageUrl = (image) => {
@@ -46,17 +46,18 @@ const MyProfile = (props) => {
   const [showFriendsModal, setShowFriendsModal] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showPhoneError, setShowPhoneError] = useState(false);
-  const [ownedApartmentsNum,setOwnedApartmentsNum] = useState(0);
+  const [ownedApartmentsNum, setOwnedApartmentsNum] = useState(0);
   const { allApartments } = useContext(ActiveApartmentContext);
+  const [showOpenHousesModal, setShowOpenHousesModal] = useState(false);
 
-    useEffect(() => {
-      if (!loginUserId) return;
-  
-      const filtered = allApartments.filter(
-        (apt) => apt.UserID === Number(loginUserId)
-      );
-      setOwnedApartmentsNum(filtered.length);
-    }, [allApartments, loginUserId]);
+  useEffect(() => {
+    if (!loginUserId) return;
+
+    const filtered = allApartments.filter(
+      (apt) => apt.UserID === Number(loginUserId)
+    );
+    setOwnedApartmentsNum(filtered.length);
+  }, [allApartments, loginUserId]);
 
   // --- Fetch user profile ---
   useEffect(() => {
@@ -168,20 +169,31 @@ const MyProfile = (props) => {
 
   // --- Likes/Favorites count ---
   const likesCount = userProfile.favoriteApartmentsCount || 0;
+  const openHousesCount = 3; //-------------replace
 
   // --- RTL helper ---
   const rtl = I18nManager.isRTL;
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F6F7FB' }}>
+    <View style={{ flex: 1, backgroundColor: "#F6F7FB" }}>
       {/* Header */}
       <View style={styles.headerContainer}>
-        <TouchableOpacity style={styles.logoutIcon} onPress={LogoutButton.onPress}>
+        <TouchableOpacity
+          style={styles.logoutIcon}
+          onPress={LogoutButton.onPress}
+        >
           <Feather name="log-out" size={24} color="#A1A7B3" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.avatarWrapper} onPress={() => setModalVisible(true)}>
+        <TouchableOpacity
+          style={styles.avatarWrapper}
+          onPress={() => setModalVisible(true)}
+        >
           <Image
-            source={userProfile.profilePicture ? { uri: userProfile.profilePicture } : { uri: 'https://www.w3schools.com/howto/img_avatar.png' }}
+            source={
+              userProfile.profilePicture
+                ? { uri: userProfile.profilePicture }
+                : { uri: "https://www.w3schools.com/howto/img_avatar.png" }
+            }
             style={styles.avatar}
           />
           <View style={styles.editIconCircle}>
@@ -193,32 +205,55 @@ const MyProfile = (props) => {
       </View>
 
       {/* Counters Row */}
-      <View style={[styles.countersRow, rtl && { flexDirection: 'row-reverse' }]}> 
-        <TouchableOpacity style={[styles.counterCard, styles.counterCardActive]} onPress={() => setShowFriendsModal(true)}>
+      <View
+        style={[styles.countersRow, rtl && { flexDirection: "row-reverse" }]}
+      >
+        <TouchableOpacity
+          style={[styles.counterCard, styles.counterCardActive]}
+          onPress={() => setShowFriendsModal(true)}
+        >
           <Text style={styles.counterNumber}>{friends.length}</Text>
           <Text style={styles.counterLabel}>חברים</Text>
         </TouchableOpacity>
         <View style={styles.counterCard}>
           <Text style={styles.counterNumber}>{ownedApartmentsNum}</Text>
-          <Text style={styles.counterLabel}>דירות</Text>
+          <Text style={styles.counterLabel}>הדירות שלי</Text>
         </View>
-        <View style={styles.counterCard}>
-          <Text style={styles.counterNumber}>{likesCount}</Text>
-          <Text style={styles.counterLabel}>מועדפים</Text>
-        </View>
+        <TouchableOpacity style={[styles.counterCard,styles.counterCardActive]} onPress={() => setShowOpenHousesModal(true)}>
+          <Text style={styles.counterNumber}>{openHousesCount}</Text>
+          <Text style={styles.counterLabel}>בתים פתוחים</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Friends Modal */}
-      <Modal visible={showFriendsModal} animationType="slide" onRequestClose={() => setShowFriendsModal(false)}>
+      <Modal
+        visible={showFriendsModal}
+        animationType="slide"
+        onRequestClose={() => setShowFriendsModal(false)}
+      >
         <View style={styles.friendsModalContainer}>
           <Text style={styles.friendsModalTitle}>החברים שלי</Text>
           <ScrollView>
-            {friends.map(friend => (
-              <TouchableOpacity key={friend.id} style={styles.friendRow} onPress={() => {
-                setShowFriendsModal(false);
-                router.push({ pathname: 'UserProfile', params: { userId: friend.id } });
-              }}>
-                <Image source={{ uri: friend.profilePicture || 'https://www.w3schools.com/howto/img_avatar.png' }} style={styles.friendAvatar} />
+            {friends.map((friend) => (
+              <TouchableOpacity
+                key={friend.id}
+                style={styles.friendRow}
+                onPress={() => {
+                  setShowFriendsModal(false);
+                  router.push({
+                    pathname: "UserProfile",
+                    params: { userId: friend.id },
+                  });
+                }}
+              >
+                <Image
+                  source={{
+                    uri:
+                      friend.profilePicture ||
+                      "https://www.w3schools.com/howto/img_avatar.png",
+                  }}
+                  style={styles.friendAvatar}
+                />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.friendName}>{friend.fullName}</Text>
                   <Text style={styles.friendUsername}>@{friend.username}</Text>
@@ -226,8 +261,11 @@ const MyProfile = (props) => {
               </TouchableOpacity>
             ))}
           </ScrollView>
-          <TouchableOpacity style={styles.closeModalBtn} onPress={() => setShowFriendsModal(false)}>
-            <Text style={{ color: '#fff', fontSize: 18 }}>סגור</Text>
+          <TouchableOpacity
+            style={styles.closeModalBtn}
+            onPress={() => setShowFriendsModal(false)}
+          >
+            <Text style={{ color: "#fff", fontSize: 18 }}>סגור</Text>
           </TouchableOpacity>
         </View>
       </Modal>
@@ -267,7 +305,9 @@ const MyProfile = (props) => {
               style={styles.input}
               placeholder="שם מלא"
               value={updatedProfile.fullName}
-              onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, fullName: text })}
+              onChangeText={(text) =>
+                setUpdatedProfile({ ...updatedProfile, fullName: text })
+              }
             />
             <TextInput
               style={styles.inputDisabled}
@@ -293,12 +333,16 @@ const MyProfile = (props) => {
               style={styles.input}
               placeholder="סטטוס תעסוקה"
               value={updatedProfile.jobStatus}
-              onChangeText={(text) => setUpdatedProfile({ ...updatedProfile, jobStatus: text })}
+              onChangeText={(text) =>
+                setUpdatedProfile({ ...updatedProfile, jobStatus: text })
+              }
             />
             <Text style={styles.label}>מגדר:</Text>
             <Picker
               selectedValue={updatedProfile.gender}
-              onValueChange={(val) => setUpdatedProfile({ ...updatedProfile, gender: val })}
+              onValueChange={(val) =>
+                setUpdatedProfile({ ...updatedProfile, gender: val })
+              }
               style={styles.picker}
             >
               <Picker.Item label="זכר" value="M" />
@@ -310,7 +354,8 @@ const MyProfile = (props) => {
               onPress={() => setShowDatePicker(true)}
             >
               <Text style={styles.dateButtonText}>
-                תאריך לידה: {new Date(updatedProfile.birthDate).toLocaleDateString("he-IL")}
+                תאריך לידה:{" "}
+                {new Date(updatedProfile.birthDate).toLocaleDateString("he-IL")}
               </Text>
             </TouchableOpacity>
             {showDatePicker && (
@@ -375,25 +420,74 @@ const MyProfile = (props) => {
 
       {/* Profile Info Card */}
       <View style={styles.infoCard}>
-        <InfoRow icon={<FontAwesome5 name="envelope" size={18} color="#5C67F2" />} label="אימייל" value={userProfile.email} />
-        <InfoRow icon={<FontAwesome5 name="phone" size={18} color="#5C67F2" />} label="טלפון" value={userProfile.phoneNumber} />
-        <InfoRow icon={<FontAwesome5 name="venus-mars" size={18} color="#5C67F2" />} label="מגדר" value={userProfile.gender === 'F' ? 'נקבה' : 'זכר'} />
-        <InfoRow icon={<FontAwesome5 name="birthday-cake" size={18} color="#5C67F2" />} label="תאריך לידה" value={new Date(userProfile.birthDate).toLocaleDateString('he-IL')} />
-        <InfoRow icon={<FontAwesome5 name="dog" size={18} color="#5C67F2" />} label="חיית מחמד" value={userProfile.ownPet ? 'בעל חיית מחמד' : 'אין חיה'} />
-        <InfoRow icon={<FontAwesome5 name="smoking" size={18} color="#5C67F2" />} label="עישון" value={userProfile.smoke ? 'מעשן' : 'לא מעשן'} />
-        <InfoRow icon={<FontAwesome5 name="briefcase" size={18} color="#5C67F2" />} label="סטטוס" value={userProfile.jobStatus} />
-       </View>
+        <InfoRow
+          icon={<FontAwesome5 name="envelope" size={18} color="#5C67F2" />}
+          label="אימייל"
+          value={userProfile.email}
+        />
+        <InfoRow
+          icon={<FontAwesome5 name="phone" size={18} color="#5C67F2" />}
+          label="טלפון"
+          value={userProfile.phoneNumber}
+        />
+        <InfoRow
+          icon={<FontAwesome5 name="venus-mars" size={18} color="#5C67F2" />}
+          label="מגדר"
+          value={userProfile.gender === "F" ? "נקבה" : "זכר"}
+        />
+        <InfoRow
+          icon={<FontAwesome5 name="birthday-cake" size={18} color="#5C67F2" />}
+          label="תאריך לידה"
+          value={new Date(userProfile.birthDate).toLocaleDateString("he-IL")}
+        />
+        <InfoRow
+          icon={<FontAwesome5 name="dog" size={18} color="#5C67F2" />}
+          label="חיית מחמד"
+          value={userProfile.ownPet ? "בעל חיית מחמד" : "אין חיה"}
+        />
+        <InfoRow
+          icon={<FontAwesome5 name="smoking" size={18} color="#5C67F2" />}
+          label="עישון"
+          value={userProfile.smoke ? "מעשן" : "לא מעשן"}
+        />
+        <InfoRow
+          icon={<FontAwesome5 name="briefcase" size={18} color="#5C67F2" />}
+          label="סטטוס"
+          value={userProfile.jobStatus}
+        />
+      </View>
 
       {/* Settings Row */}
       <TouchableOpacity style={styles.settingsRow}>
-        <FontAwesome5 name="cog" size={20} color="#A1A7B3" style={{ marginLeft: 16 }} />
+        <FontAwesome5
+          name="cog"
+          size={20}
+          color="#A1A7B3"
+          style={{ marginLeft: 16 }}
+        />
         <Text style={styles.settingsText}>הגדרות</Text>
-        <Feather name="chevron-left" size={22} color="#A1A7B3" style={{ marginRight: 'auto' }} />
+        <Feather
+          name="chevron-left"
+          size={22}
+          color="#A1A7B3"
+          style={{ marginRight: "auto" }}
+        />
       </TouchableOpacity>
 
+      {/* Open Houses Modal */}
+      <MyOpenHouses 
+        visible={showOpenHousesModal}
+        onClose={() => setShowOpenHousesModal(false)}
+        userId={loginUserId}
+      />
+
       {/* Apartments Grid */}
-      <View style={{ width: '100%', alignItems: 'center', marginTop: 30 }}>
-        <UserOwnedApartmentsGrid userId={loginUserId} isMyProfile={true} loginUserId={loginUserId} />
+      <View style={{ width: "100%", alignItems: "center", marginTop: 30 }}>
+        <UserOwnedApartmentsGrid
+          userId={loginUserId}
+          isMyProfile={true}
+          loginUserId={loginUserId}
+        />
       </View>
     </View>
   );
@@ -410,101 +504,291 @@ const InfoRow = ({ icon, label, value }) => (
 );
 
 const styles = StyleSheet.create({
-  headerContainer: { alignItems: 'center', paddingTop: 40, paddingBottom: 16, backgroundColor: '#F6F7FB', position: 'relative' },
-  logoutIcon: { position: 'absolute', top: 40, right: 24, zIndex: 10 },
-  avatarWrapper: { marginBottom: 12, backgroundColor: '#fff', borderRadius: 60, padding: 6, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 4 },
+  headerContainer: {
+    alignItems: "center",
+    paddingTop: 40,
+    paddingBottom: 16,
+    backgroundColor: "#F6F7FB",
+    position: "relative",
+  },
+  logoutIcon: { position: "absolute", top: 40, right: 24, zIndex: 10 },
+  avatarWrapper: {
+    marginBottom: 12,
+    backgroundColor: "#fff",
+    borderRadius: 60,
+    padding: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+  },
   avatar: { width: 100, height: 100, borderRadius: 50 },
-  editIconCircle: { position: 'absolute', bottom: 0, right: 0, backgroundColor: '#E3965A', borderRadius: 12, padding: 4, borderWidth: 2, borderColor: '#fff' },
-  profileName: { fontSize: 24, fontWeight: '700', color: '#222B45', marginTop: 8, textAlign: 'center' },
-  profileEmail: { fontSize: 15, color: '#A1A7B3', marginTop: 2, marginBottom: 10, textAlign: 'center' },
-  countersRow: { flexDirection: 'row', justifyContent: 'space-between', width: '90%', alignSelf: 'center', marginBottom: 18 },
-  counterCard: { flex: 1, marginHorizontal: 6, borderRadius: 18, alignItems: 'center', paddingVertical: 18, backgroundColor: '#F3F4F8', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
-  counterCardActive: { backgroundColor: '#E6E6FA' },
-  counterNumber: { fontSize: 22, fontWeight: '700', color: '#E3965A', marginBottom: 2 },
-  counterLabel: { fontSize: 13, color: '#A1A7B3', fontWeight: '500' },
-  friendsModalContainer: { flex: 1, backgroundColor: '#fff', paddingTop: 40, paddingHorizontal: 18 },
-  friendsModalTitle: { fontSize: 22, fontWeight: 'bold', marginBottom: 18, textAlign: 'center' },
-  friendRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F3F4F8' },
+  editIconCircle: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    backgroundColor: "#E3965A",
+    borderRadius: 12,
+    padding: 4,
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+  profileName: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#222B45",
+    marginTop: 8,
+    textAlign: "center",
+  },
+  profileEmail: {
+    fontSize: 15,
+    color: "#A1A7B3",
+    marginTop: 2,
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  countersRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "90%",
+    alignSelf: "center",
+    marginBottom: 18,
+  },
+  counterCard: {
+    flex: 1,
+    marginHorizontal: 6,
+    borderRadius: 18,
+    alignItems: "center",
+    paddingVertical: 18,
+    backgroundColor: "#F3F4F8",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  counterCardActive: { backgroundColor: "#E6E6FA" },
+  counterNumber: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#E3965A",
+    marginBottom: 2,
+  },
+  counterLabel: { fontSize: 13, color: "#A1A7B3", fontWeight: "500" },
+  friendsModalContainer: {
+    flex: 1,
+    backgroundColor: "#fff",
+    paddingTop: 40,
+    paddingHorizontal: 18,
+  },
+  friendsModalTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 18,
+    textAlign: "center",
+  },
+  friendRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F8",
+  },
   friendAvatar: { width: 48, height: 48, borderRadius: 24, marginRight: 16 },
-  friendName: { fontSize: 16, fontWeight: '600', color: '#222B45' },
-  friendUsername: { fontSize: 13, color: '#A1A7B3' },
-  closeModalBtn: { backgroundColor: '#7C83FD', padding: 14, borderRadius: 12, marginTop: 18, marginBottom: 18, alignItems: 'center' },
+  friendName: { fontSize: 16, fontWeight: "600", color: "#222B45" },
+  friendUsername: { fontSize: 13, color: "#A1A7B3" },
+  closeModalBtn: {
+    backgroundColor: "#7C83FD",
+    padding: 14,
+    borderRadius: 12,
+    marginTop: 18,
+    marginBottom: 18,
+    alignItems: "center",
+  },
   infoCard: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 22,
     marginTop: 18,
     marginHorizontal: 18,
     paddingVertical: 18,
     paddingHorizontal: 18,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 3,
   },
   infoRow: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 14,
     paddingBottom: 6,
   },
   infoLabelContainer: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
+    flexDirection: "row-reverse",
+    alignItems: "center",
     gap: 8,
     minWidth: 110,
   },
   infoLabel: {
     fontSize: 15,
-    color: '#7C83FD',
-    fontWeight: '600',
+    color: "#7C83FD",
+    fontWeight: "600",
     marginRight: 8,
   },
   infoValue: {
     fontSize: 15,
-    color: '#A1A7B3',
-    fontWeight: '500',
-    textAlign: 'left',
+    color: "#A1A7B3",
+    fontWeight: "500",
+    textAlign: "left",
     flex: 1,
   },
   settingsRow: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    backgroundColor: "#fff",
     borderRadius: 18,
     marginTop: 18,
     marginHorizontal: 18,
     paddingVertical: 18,
     paddingHorizontal: 22,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 2,
   },
-  settingsText: { fontSize: 16, color: '#222B45', fontWeight: '500', marginLeft: 12 },
-  modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.35)' },
-  modalContent: { backgroundColor: '#fff', borderRadius: 20, padding: 25, width: '85%', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 15 },
-  closeButton: { position: 'absolute', top: 15, left: 15, padding: 8, zIndex: 10 },
-  modalTitle: { fontSize: 22, fontWeight: '700', marginBottom: 25, textAlign: 'right', color: '#34495e' },
-  input: { borderBottomWidth: 1, borderColor: '#ccc', marginBottom: 20, paddingVertical: 8, fontSize: 16, color: '#34495e', textAlign: 'right' },
-  inputDisabled: { backgroundColor: '#f0f0f0', paddingVertical: 14, paddingHorizontal: 10, borderRadius: 12, marginBottom: 20, color: '#999', fontSize: 16, textAlign: 'right' },
-  saveButton: { backgroundColor: '#7C83FD', paddingVertical: 14, borderRadius: 14, marginTop: 15, shadowColor: '#7C83FD', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 8 },
-  buttonText: { color: '#fff', fontWeight: '600', fontSize: 16, textAlign: 'center' },
-  photoContainer: { alignItems: 'center', marginBottom: 25 },
-  profilePhoto: { width: 110, height: 110, borderRadius: 55, backgroundColor: '#eee' },
-  photoPlaceholder: { width: 110, height: 110, borderRadius: 55, backgroundColor: '#d9d9d9', justifyContent: 'center', alignItems: 'center' },
-  photoText: { color: '#666', fontWeight: '500' },
-  label: { fontSize: 16, marginBottom: 8, textAlign: 'right', fontWeight: '600', color: '#34495e' },
-  picker: { borderWidth: 1, borderColor: '#ccc', borderRadius: 12, marginBottom: 20, paddingHorizontal: 10, fontSize: 16, color: '#34495e' },
-  dateButton: { borderWidth: 1, borderColor: '#ccc', borderRadius: 12, padding: 15, marginBottom: 20, backgroundColor: '#fff' },
-  dateButtonText: { textAlign: 'right', fontSize: 16, color: '#34495e' },
-  toggleContainer: { flexDirection: 'row-reverse', justifyContent: 'space-around', marginBottom: 30 },
-  toggleButton: { paddingVertical: 12, borderRadius: 12, borderWidth: 1, borderColor: '#ccc', width: '45%', alignItems: 'center', backgroundColor: '#fff' },
-  toggleButtonActive: { backgroundColor: '#7C83FD', borderColor: '#7C83FD' },
-  toggleText: { fontSize: 16, color: '#34495e' },
-  toggleTextActive: { color: '#fff', fontWeight: '700' },
+  settingsText: {
+    fontSize: 16,
+    color: "#222B45",
+    fontWeight: "500",
+    marginLeft: 12,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.35)",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 25,
+    width: "85%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 15,
+  },
+  closeButton: {
+    position: "absolute",
+    top: 15,
+    left: 15,
+    padding: 8,
+    zIndex: 10,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    marginBottom: 25,
+    textAlign: "right",
+    color: "#34495e",
+  },
+  input: {
+    borderBottomWidth: 1,
+    borderColor: "#ccc",
+    marginBottom: 20,
+    paddingVertical: 8,
+    fontSize: 16,
+    color: "#34495e",
+    textAlign: "right",
+  },
+  inputDisabled: {
+    backgroundColor: "#f0f0f0",
+    paddingVertical: 14,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    marginBottom: 20,
+    color: "#999",
+    fontSize: 16,
+    textAlign: "right",
+  },
+  saveButton: {
+    backgroundColor: "#7C83FD",
+    paddingVertical: 14,
+    borderRadius: 14,
+    marginTop: 15,
+    shadowColor: "#7C83FD",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+  },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 16,
+    textAlign: "center",
+  },
+  photoContainer: { alignItems: "center", marginBottom: 25 },
+  profilePhoto: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    backgroundColor: "#eee",
+  },
+  photoPlaceholder: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    backgroundColor: "#d9d9d9",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  photoText: { color: "#666", fontWeight: "500" },
+  label: {
+    fontSize: 16,
+    marginBottom: 8,
+    textAlign: "right",
+    fontWeight: "600",
+    color: "#34495e",
+  },
+  picker: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 12,
+    marginBottom: 20,
+    paddingHorizontal: 10,
+    fontSize: 16,
+    color: "#34495e",
+  },
+  dateButton: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 20,
+    backgroundColor: "#fff",
+  },
+  dateButtonText: { textAlign: "right", fontSize: 16, color: "#34495e" },
+  toggleContainer: {
+    flexDirection: "row-reverse",
+    justifyContent: "space-around",
+    marginBottom: 30,
+  },
+  toggleButton: {
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    width: "45%",
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
+  toggleButtonActive: { backgroundColor: "#7C83FD", borderColor: "#7C83FD" },
+  toggleText: { fontSize: 16, color: "#34495e" },
+  toggleTextActive: { color: "#fff", fontWeight: "700" },
 });
 
-export default MyProfile; 
+export default MyProfile;
