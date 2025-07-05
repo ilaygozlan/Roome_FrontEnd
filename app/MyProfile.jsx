@@ -15,13 +15,15 @@ import {
 import { FontAwesome5, Feather } from "@expo/vector-icons";
 import API from "../config";
 import { useRouter } from "expo-router";
-import LogoutButton from "./components/LogoutButton";
 import UserOwnedApartmentsGrid from "./UserOwnedApartmentsGrid";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from "expo-image-picker";
 import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
 import MyOpenHouses from "./components/MyOpenHouses";
+import { signOut } from 'firebase/auth';
+import { auth } from './firebase';
+
 
 const baseUrl = "https://roomebackend20250414140006.azurewebsites.net";
 const GetImageUrl = (image) => {
@@ -174,13 +176,22 @@ const MyProfile = (props) => {
   // --- RTL helper ---
   const rtl = I18nManager.isRTL;
 
+    const handleLogout = async () => {
+      try {
+        await signOut(auth);
+        router.replace('/Login');
+      } catch (error) {
+        console.error('Error signing out:', error);
+      }
+    };
+
   return (
     <View style={{ flex: 1, backgroundColor: "#F6F7FB" }}>
       {/* Header */}
       <View style={styles.headerContainer}>
         <TouchableOpacity
           style={styles.logoutIcon}
-          onPress={LogoutButton.onPress}
+          onPress={handleLogout}
         >
           <Feather name="log-out" size={24} color="#A1A7B3" />
         </TouchableOpacity>
