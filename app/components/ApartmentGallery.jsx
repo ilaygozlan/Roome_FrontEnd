@@ -27,6 +27,7 @@ import {
 const { width } = Dimensions.get("window");
 const baseUrl = "https://roomebackend20250414140006.azurewebsites.net";
 
+
 /**
  * Processes image URLs to ensure they are properly formatted
  * @param {string} images - Comma-separated string of image URLs

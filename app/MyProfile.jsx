@@ -49,7 +49,6 @@ import RoommatePreferencesForm from "./components/RoommatePreferencesForm";
  */
 
 const baseUrl = "https://roomebackend20250414140006.azurewebsites.net";
-
 const GetImageUrl = (image) => {
   if (!image) return "";
 

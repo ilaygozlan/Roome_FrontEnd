@@ -1,13 +1,14 @@
-import { View, Text } from "react-native";
-import React from "react";
 import { Stack } from "expo-router";
-import ChatRoom from "./ChatRoom";
+import useNotificationNavigation from "./contex/useNotificationNavigation"; // ודא שהנתיב נכון
 
 const AuthStack = () => {
+  useNotificationNavigation();
+
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Login" />
       <Stack.Screen name="SignUp" />
+      <Stack.Screen name="ChatRoom" /> 
     </Stack>
   );
 };

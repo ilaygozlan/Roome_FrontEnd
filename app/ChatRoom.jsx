@@ -14,10 +14,10 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import SignalRService from "./SignalRService";
 import { userInfoContext } from "./contex/userInfoContext";
 import { Ionicons } from "@expo/vector-icons";
 import API from "../config";
+import { useSignalR } from "./contex/SignalRContext";
 
 const ChatRoom = () => {
   const navigation = useNavigation();
@@ -25,6 +25,12 @@ const ChatRoom = () => {
   const { recipientId } = route.params;
 
   const { loginUserId } = useContext(userInfoContext);
+  const {
+    sendMessage: signalRSendMessage,
+    onReceiveMessage,
+    startConnection, // ✅ נוסף כאן
+  } = useSignalR();
+
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const scrollViewRef = useRef();
@@ -33,6 +39,13 @@ const ChatRoom = () => {
 
   const [userProfile, setUserProfile] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
+
+  // ✅ התחברות ל-SignalR ברגע שהמשתמש מחובר
+  useEffect(() => {
+    if (loginUserId) {
+      startConnection(loginUserId.toString());
+    }
+  }, [loginUserId]);
 
   useEffect(() => {
     fetch(API + "User/GetUserById/" + recipientId)
@@ -47,7 +60,6 @@ const ChatRoom = () => {
       });
   }, []);
 
-  // טעינת היסטוריית הצ'אט
   useEffect(() => {
     fetch(`${API}Chat/GetMessages/${loginUserId}/${recipient}`)
       .then((res) => res.json())
@@ -67,9 +79,9 @@ const ChatRoom = () => {
       });
   }, []);
 
+  // ✅ מאזין להודעות חדשות בזמן אמת
   useEffect(() => {
-    SignalRService.startConnection(loginUserId);
-    SignalRService.onReceiveMessage((senderId, message) => {
+    const handleIncoming = (senderId, message) => {
       const newMsg = {
         from: senderId,
         text: message,
@@ -79,11 +91,9 @@ const ChatRoom = () => {
         }),
       };
       setMessages((prev) => [...prev, newMsg]);
-    });
-
-    return () => {
-      SignalRService.stopConnection();
     };
+
+    onReceiveMessage(handleIncoming);
   }, []);
 
   useEffect(() => {
@@ -102,10 +112,9 @@ const ChatRoom = () => {
       }),
     };
 
-    SignalRService.sendMessage(recipient.toString(), input);
+    signalRSendMessage(recipient.toString(), input);
     setMessages((prev) => [...prev, myMsg]);
 
-    // שמירה בשרת
     fetch(`${API}Chat/SaveMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -219,6 +228,7 @@ const ChatRoom = () => {
     </SafeAreaView>
   );
 };
+export default ChatRoom;
 
 const createStyles = (isDark) =>
   StyleSheet.create({
@@ -295,4 +305,3 @@ const createStyles = (isDark) =>
     },
   });
 
-export default ChatRoom;
