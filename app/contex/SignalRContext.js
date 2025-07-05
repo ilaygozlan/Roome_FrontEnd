@@ -20,7 +20,7 @@ export const SignalRProvider = ({ children }) => {
     if (connection) return;
 
     const newConnection = new signalR.HubConnectionBuilder()
-      .withUrl(`${API.replace(/\/$/, '')}/chatHub?userId=${userId}`)
+      .withUrl('https://roomebackend20250414140006.azurewebsites.net/api//chatHub?userId'+userId  )  
       .withAutomaticReconnect()
       .configureLogging(signalR.LogLevel.Information)
       .build();
