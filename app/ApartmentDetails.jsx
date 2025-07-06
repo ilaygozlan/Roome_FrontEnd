@@ -31,7 +31,6 @@ export default function ApartmentDetails({ apt, onClose }) {
   const [showUserProfile, setShowUserProfile] = useState(false);
   const navigation = useNavigation();
   const [userInfo, setUserInfo] = useState(null);
-  const [containerWidth, setContainerWidth] = useState(width);
 
   useEffect(() => {
     console.log("APT CHANGED:", apt.ApartmentID);
@@ -158,12 +157,12 @@ export default function ApartmentDetails({ apt, onClose }) {
                   pagingEnabled
                   showsHorizontalScrollIndicator={false}
                   ref={carouselRef}
-                  inverted={true}
                   onScroll={Animated.event(
                     [{ nativeEvent: { contentOffset: { x: scrollX } } }],
                     { useNativeDriver: false }
                   )}
                   scrollEventThrottle={16}
+                  contentContainerStyle={{ flexDirection: "row-reverse" }}
                 >
                   {roommates.map((rm, index) => (
                     <View key={index} style={styles.roommateCard}>
@@ -248,13 +247,7 @@ export default function ApartmentDetails({ apt, onClose }) {
       <FlatList
         data={[]}
         ListHeaderComponent={
-          <View
-            style={styles.container}
-            onLayout={(e) => {
-              const w = e.nativeEvent.layout.width;
-              setContainerWidth(w);
-            }}
-          >
+          <View style={styles.container}>
             <View style={styles.header}>
               <TouchableOpacity onPress={onClose} style={styles.backButton}>
                 <Ionicons name="arrow-back" size={24} color="#E3965A" />
@@ -262,8 +255,9 @@ export default function ApartmentDetails({ apt, onClose }) {
               <Text style={styles.headerTitle}></Text>
             </View>
 
-            <ApartmentGallery images={apt.Images} width={containerWidth - 40} />
-
+            
+              <ApartmentGallery images={apt.Images} />
+            
             <Text style={styles.title}>{apt.Location}</Text>
             <Text style={styles.price}>{apt.Price} ש"ח</Text>
             <Text style={styles.description}>{apt.Description}</Text>
@@ -326,10 +320,43 @@ export default function ApartmentDetails({ apt, onClose }) {
 
             {renderExtraDetails()}
 
+            {userInfo && (
+              <TouchableOpacity
+                onPress={() => setShowUserProfile(true)}
+                style={[
+                  styles.uploaderContainer,
+                  { backgroundColor: "#E3965A" },
+                ]}
+              >
+                <Image
+                  source={{
+                    uri:
+                      userInfo.profilePicture ||
+                      "https://example.com/default-profile.png",
+                  }}
+                  style={styles.uploaderImage}
+                />
+                <Text style={[styles.uploaderName, { color: "white" }]}>
+                  מפורסם ע״י: {userInfo.fullName}
+                </Text>
+              </TouchableOpacity>
+            )}
+
             <ApartmentReview apartmentId={apt.ApartmentID} />
           </View>
         }
       />
+
+      <Modal
+        visible={showUserProfile}
+        animationType="slide"
+        onRequestClose={() => setShowUserProfile(false)}
+      >
+        <UserProfile
+          userId={apt.UserID}
+          onClose={() => setShowUserProfile(false)}
+        />
+      </Modal>
     </SafeAreaView>
   );
 }
