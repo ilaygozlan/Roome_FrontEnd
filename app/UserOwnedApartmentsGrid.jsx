@@ -16,8 +16,9 @@ import API from "../config";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import ApartmentLabelsPopup from "./components/ApartmentLabelsPopup";
 import OpenHouseButton from "./components/OpenHouseButton";
-
-const UserOwnedApartmentsGrid = ({ userId, isMyProfile,loginUserId }) => {
+import EditApartmentModal from "./components/EditApartmentModal";
+//hey
+const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
   const { allApartments } = useContext(ActiveApartmentContext);
   const [openHouseModalVisible, setOpenHouseModalVisible] = useState(false);
   const [selectedApartmentId, setSelectedApartmentId] = useState(null);
@@ -33,6 +34,13 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile,loginUserId }) => {
   const [endTime, setEndTime] = useState("");
   const [ownedApartments, setOwnedApartments] = useState([]);
   const [peopleCount, setPeopleCount] = useState("");
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editingApartment, setEditingApartment] = useState(null);
+  const handleSaveEdit = () => {};
+  const handleEdit = (apartment) => {
+    setEditingApartment(apartment);
+    setEditModalVisible(true);
+  };
 
   useEffect(() => {
     if (!userId) return;
@@ -56,6 +64,7 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile,loginUserId }) => {
       prev === apartmentId ? null : apartmentId
     );
   };
+
   const getBorderColor = (type) => {
     switch (type) {
       case 0:
@@ -206,12 +215,24 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile,loginUserId }) => {
             ]}
           >
             {isMyProfile && (
-              <TouchableOpacity
-                style={styles.aiButton}
-                onPress={() => setVisibleLabelsPopupId(apt.ApartmentID)}
-              >
-                <Text style={styles.aiButtonText}>שדרג את המודעה עם AI</Text>
-              </TouchableOpacity>
+              <View style={styles.rightButtonsContainer}>
+                <TouchableOpacity
+                  style={styles.editIconButton}
+                  onPress={() => handleEdit(apt)}
+                >
+                  <MaterialCommunityIcons
+                    name="pencil"
+                    size={20}
+                    color="white"
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.aiButton}
+                  onPress={() => setVisibleLabelsPopupId(apt.ApartmentID)}
+                >
+                  <Text style={styles.aiButtonText}>שדרג את המודעה עם AI</Text>
+                </TouchableOpacity>
+              </View>
             )}
 
             <View
@@ -291,6 +312,7 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile,loginUserId }) => {
                   </View>
                 ))}
             </View>
+            
 
             {visibleLabelsPopupId === apt.ApartmentID && (
               <ApartmentLabelsPopup
@@ -319,136 +341,196 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile,loginUserId }) => {
           <View
             style={{
               backgroundColor: "#fff",
-              padding: 20,
-              borderRadius: 10,
-              width: "80%",
+              padding: 25,
+              borderRadius: 12,
+              width: "90%",
+              maxWidth: 400,
+              direction: "rtl",
             }}
           >
             <Text
               style={{
-                fontSize: 18,
+                fontSize: 20,
                 fontWeight: "bold",
-                marginBottom: 10,
+                marginBottom: 20,
                 textAlign: "center",
+                color: "#333",
               }}
             >
               צור בית פתוח
             </Text>
 
-            <Text>בחר תאריך:</Text>
-            <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+            {/* Date Picker */}
+            <View style={{ marginBottom: 15 }}>
               <Text
+                style={{ marginBottom: 6, color: "#555", fontWeight: "bold" }}
+              >
+                בחר תאריך
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowDatePicker(true)}
                 style={{
-                  padding: 10,
-                  borderColor: "#ccc",
                   borderWidth: 1,
-                  borderRadius: 5,
+                  borderColor: "#ccc",
+                  borderRadius: 8,
+                  paddingVertical: 10,
+                  paddingHorizontal: 12,
                 }}
               >
-                {openHouseDate.toLocaleDateString("he-IL")}
-              </Text>
-            </TouchableOpacity>
-            {showDatePicker && (
-              <DateTimePicker
-                value={openHouseDate}
-                mode="date"
-                display="default"
-                onChange={(event, selectedDate) => {
-                  setShowDatePicker(false);
-                  if (selectedDate) setOpenHouseDate(selectedDate);
-                }}
-              />
-            )}
+                <Text style={{ color: "#333" }}>
+                  {openHouseDate.toLocaleDateString("he-IL")}
+                </Text>
+              </TouchableOpacity>
+              {showDatePicker && (
+                <DateTimePicker
+                  value={openHouseDate}
+                  mode="date"
+                  display="default"
+                  onChange={(event, selectedDate) => {
+                    setShowDatePicker(false);
+                    if (selectedDate) setOpenHouseDate(selectedDate);
+                  }}
+                />
+              )}
+            </View>
 
-            <Text>שעת התחלה:</Text>
-            <TouchableOpacity onPress={() => setShowStartPicker(true)}>
+            {/* Start Time */}
+            <View style={{ marginBottom: 15 }}>
               <Text
+                style={{ marginBottom: 6, color: "#555", fontWeight: "bold" }}
+              >
+                שעת התחלה
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowStartPicker(true)}
                 style={{
-                  padding: 10,
-                  borderColor: "#ccc",
                   borderWidth: 1,
-                  borderRadius: 5,
+                  borderColor: "#ccc",
+                  borderRadius: 8,
+                  paddingVertical: 10,
+                  paddingHorizontal: 12,
                 }}
               >
-                {startTime || "בחר שעה"}
-              </Text>
-            </TouchableOpacity>
-            {showStartPicker && (
-              <DateTimePicker
-                value={startDateObj}
-                mode="time"
-                display={Platform.OS === "ios" ? "spinner" : "default"}
-                onChange={(event, selectedDate) => {
-                  if (event.type === "set" && selectedDate) {
-                    setStartDateObj(selectedDate);
-                    setStartTime(formatTime(selectedDate));
-                  }
-                  if (Platform.OS !== "ios") {
-                    setShowStartPicker(false);
-                  }
-                }}
-              />
-            )}
+                <Text style={{ color: "#333" }}>{startTime || "בחר שעה"}</Text>
+              </TouchableOpacity>
+              {showStartPicker && (
+                <DateTimePicker
+                  value={startDateObj}
+                  mode="time"
+                  display={Platform.OS === "ios" ? "spinner" : "default"}
+                  onChange={(event, selectedDate) => {
+                    if (event.type === "set" && selectedDate) {
+                      setStartDateObj(selectedDate);
+                      setStartTime(formatTime(selectedDate));
+                    }
+                    if (Platform.OS !== "ios") {
+                      setShowStartPicker(false);
+                    }
+                  }}
+                />
+              )}
+            </View>
 
-            <Text>שעת סיום:</Text>
-            <TouchableOpacity onPress={() => setShowEndPicker(true)}>
+            {/* End Time */}
+            <View style={{ marginBottom: 15 }}>
               <Text
+                style={{ marginBottom: 6, color: "#555", fontWeight: "bold" }}
+              >
+                שעת סיום
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowEndPicker(true)}
                 style={{
-                  padding: 10,
-                  borderColor: "#ccc",
                   borderWidth: 1,
-                  borderRadius: 5,
+                  borderColor: "#ccc",
+                  borderRadius: 8,
+                  paddingVertical: 10,
+                  paddingHorizontal: 12,
                 }}
               >
-                {endTime || "בחר שעה"}
+                <Text style={{ color: "#333" }}>{endTime || "בחר שעה"}</Text>
+              </TouchableOpacity>
+              {showEndPicker && (
+                <DateTimePicker
+                  value={endDateObj}
+                  mode="time"
+                  display={Platform.OS === "ios" ? "spinner" : "default"}
+                  onChange={(event, selectedDate) => {
+                    if (event.type === "set" && selectedDate) {
+                      setEndDateObj(selectedDate);
+                      setEndTime(formatTime(selectedDate));
+                    }
+                    if (Platform.OS !== "ios") {
+                      setShowEndPicker(false);
+                    }
+                  }}
+                />
+              )}
+            </View>
+
+            {/* People Count */}
+            <View style={{ marginBottom: 20 }}>
+              <Text
+                style={{ marginBottom: 6, color: "#555", fontWeight: "bold" }}
+              >
+                כמות משתתפים
               </Text>
-            </TouchableOpacity>
-            {showEndPicker && (
-              <DateTimePicker
-                value={endDateObj}
-                mode="time"
-                display={Platform.OS === "ios" ? "spinner" : "default"}
-                onChange={(event, selectedDate) => {
-                  if (event.type === "set" && selectedDate) {
-                    setEndDateObj(selectedDate);
-                    setEndTime(formatTime(selectedDate));
-                  }
-                  if (Platform.OS !== "ios") {
-                    setShowEndPicker(false);
-                  }
+              <TextInput
+                value={peopleCount.toString()}
+                placeholder="בחר כמות משתתפים"
+                onChangeText={(val) => setPeopleCount(val)}
+                keyboardType="numeric"
+                style={{
+                  borderWidth: 1,
+                  borderColor: "#ccc",
+                  borderRadius: 8,
+                  paddingVertical: 10,
+                  paddingHorizontal: 12,
+                  color: "#333",
                 }}
               />
-            )}
-
-            <Text>כמות משתתפים:</Text>
-            <TextInput
-              value={peopleCount.toString()}
-              placeholder="יש לבחור כמות משתתפים"
-              onChangeText={(val) => setPeopleCount(val)}
-              keyboardType="numeric"
-              style={{ borderWidth: 1, padding: 10, marginBottom: 20 }}
-            />
+            </View>
 
             <TouchableOpacity
               style={{
-                backgroundColor: "#2661A1",
-                padding: 10,
-                borderRadius: 5,
+                backgroundColor: "#5C67F2",
+                paddingVertical: 12,
+                borderRadius: 8,
+                marginBottom: 10,
               }}
               onPress={submitOpenHouse}
             >
-              <Text style={{ color: "white", textAlign: "center" }}>אישור</Text>
+              <Text
+                style={{
+                  color: "white",
+                  textAlign: "center",
+                  fontWeight: "bold",
+                  fontSize: 16,
+                }}
+              >
+                אישור
+              </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={{ marginTop: 10 }}
-              onPress={() => setOpenHouseModalVisible(false)}
-            >
-              <Text style={{ color: "#888", textAlign: "center" }}>ביטול</Text>
+            <TouchableOpacity onPress={() => setOpenHouseModalVisible(false)}>
+              <Text
+                style={{ color: "#888", textAlign: "center", fontSize: 16 }}
+              >
+                ביטול
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
+
+      {editingApartment && (
+        <EditApartmentModal
+          visible={editModalVisible}
+          apartment={editingApartment}
+          onClose={() => setEditModalVisible(false)}
+          onSave={handleSaveEdit}
+        />
+      )}
     </View>
   );
 };
@@ -492,21 +574,6 @@ const styles = StyleSheet.create({
     color: "gray",
     textAlign: "right",
   },
-  aiButton: {
-    position: "absolute",
-    top: 5,
-    right: 5,
-    backgroundColor: "#5C67F2",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 5,
-    zIndex: 3,
-  },
-  aiButtonText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 12,
-  },
   price: {
     fontSize: 16,
     fontWeight: "bold",
@@ -529,28 +596,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignSelf: "flex-start",
   },
-  openHouseButton: {
-    backgroundColor: "#2661A1",
-    padding: 10,
-    borderRadius: 5,
-    marginTop: 10,
-  },
-  openHouseButtonText: {
-    color: "#fff",
-    textAlign: "center",
-    fontWeight: "bold",
-  },
-  openHouseRow: {
-    backgroundColor: "#FFA500",
-    padding: 10,
-    borderRadius: 5,
-    marginTop: 10,
-  },
-  openHouseText: {
-    color: "white",
-    textAlign: "center",
-    fontWeight: "bold",
-  },
   openHouseCreateButton: {
     backgroundColor: "#FF9F3D",
     padding: 10,
@@ -561,7 +606,6 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
   },
-
   openHouseCreateButtonPressed: {
     backgroundColor: "#E68A2B",
   },
@@ -570,6 +614,37 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     marginTop: 10,
+  },
+  openHouseButtonText: {
+    color: "#fff",
+    textAlign: "center",
+    fontWeight: "bold",
+  },
+  aiButton: {
+    backgroundColor: "#5C67F2",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 5,
+  },
+  aiButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 12,
+  },
+  rightButtonsContainer: {
+    position: "absolute",
+    top: 5,
+    right: 5,
+    zIndex: 10,
+    alignItems: "flex-end",
+    gap: 5,
+  },
+  editIconButton: {
+    backgroundColor: "#5C67F2",
+    padding: 6,
+    borderRadius: 5,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
 

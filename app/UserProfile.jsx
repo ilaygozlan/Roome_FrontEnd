@@ -98,7 +98,7 @@ const UserProfile = (props) => {
   const [updatedProfile, setUpdatedProfile] = useState({});
   const [friends, setFriends] = useState([]);
   const [isFriend, setIsFriend] = useState(false);
-
+//hey
   useEffect(() => {
     console.log(finalUserId);
     fetch(API + "User/GetUserById/" + finalUserId)
