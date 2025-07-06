@@ -321,6 +321,7 @@ const MyProfile = (props) => {
               </Text>
             </TouchableOpacity>
           </View>
+          
         </View>
 
         <View style={styles.friendsSection}>

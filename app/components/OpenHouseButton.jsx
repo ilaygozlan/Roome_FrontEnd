@@ -12,6 +12,7 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import API from "../../config";
 import { sendPushNotification } from "./pushNatification";
+import { Linking } from 'react-native';
 
 /**
  * @component OpenHouseButton
@@ -43,6 +44,7 @@ export default function OpenHouseButton({
   const [modalVisible, setModalVisible] = useState(false);
   const [openHouses, setOpenHouses] = useState([]);
   const [loading, setLoading] = useState(false);
+ const [calendarLink, setCalendarLink] = useState(null);
 
   useEffect(() => {
     if (modalVisible) {
@@ -82,6 +84,49 @@ export default function OpenHouseButton({
    * @param {number} openHouseId - ID of the open house session
    * @returns {Promise<void>}
    */
+const offerToSyncWithCalendar = async (openHouseId) => {
+  console.log("🟡 שואלת את המשתמש אם להוסיף ליומן...");
+  Alert.alert(
+    "הוספה ליומן Google",
+    "האם תרצה להוסיף את הסיור ליומן שלך?",
+    [
+      {
+        text: "לא תודה",
+        style: "cancel",
+        onPress: () => console.log("🙅‍♂️ המשתמש סירב להוספה ליומן"),
+      },
+      {
+        text: "כן, הוסף ליומן",
+        onPress: async () => {
+          console.log("✅ המשתמש בחר להוסיף ליומן");
+          try {
+            const res = await fetch(
+              API + `OpenHouse/RegisterAndSyncToCalendar?userId=${userId}&openHouseId=${openHouseId}`,
+              { method: "POST" }
+            );
+
+            const text = await res.text();
+            const result = text ? JSON.parse(text) : {};
+
+            console.log("📨 התקבלה תגובה מהשרת:", result);
+
+            if (res.ok && result.calendarEventLink) {
+              console.log("📅 קישור לאירוע ביומן:", result.calendarEventLink);
+              Linking.openURL(result.calendarEventLink);
+            } else {
+              console.warn("⚠️ לא נשלח קישור ליומן:", result.message || "אין קישור");
+              Alert.alert("הוספה ליומן נכשלה", result.message || "נסה שוב מאוחר יותר");
+            }
+          } catch (error) {
+            console.error("❌ שגיאה בזמן התחברות ליומן:", error);
+            Alert.alert("שגיאה", "לא ניתן להתחבר ליומן Google כרגע.");
+          }
+        },
+      },
+    ]
+  );
+};
+
   const registerForOpenHouse = async (openHouseId) => {
     try {
       // 1. Register the user for the open house
@@ -103,6 +148,8 @@ export default function OpenHouseButton({
      
         console.log(" נרשמת בהצלחה לסיור, מנסה לשלוח התראה לבעל הדירה");
         console.log(userOwnerId)
+         offerToSyncWithCalendar(openHouseId);
+
         // 2. Retrieve the push token for the property owner using the ownerId
         const tokenResponse = await fetch(
           API + `User/GetPushToken/${userOwnerId}`,
@@ -110,6 +157,7 @@ export default function OpenHouseButton({
             method: "GET",
             headers: { "Content-Type": "application/json" },
           }
+
         );
 
         if (tokenResponse.ok) {
