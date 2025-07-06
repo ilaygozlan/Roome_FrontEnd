@@ -20,7 +20,7 @@ const prepareImages = (images) => {
     images?.split(",").map((img) => {
       const trimmed = img.trim();
       return {
-        original: trimmed, // מה שנשלח מהשרת (נשמר בדאטהבייס)
+        original: trimmed, 
         fullUrl: trimmed.startsWith("https")
           ? trimmed
           : `${baseUrl}${trimmed.startsWith("/") ? "" : "/"}${trimmed}`,
