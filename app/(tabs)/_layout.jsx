@@ -114,6 +114,15 @@ export default function Layout() {
                   <Ionicons name="person-outline" size={size} color={color} />
                 ),
               }}
+            /> 
+            <Tabs.Screen
+              name="Admin"
+              options={{
+                title: "Admin",
+                tabBarIcon: ({ color, size }) => (
+                  <Ionicons name="person-outline" size={size} color={color} />
+                ),
+              }}
             />
             <Tabs.Screen
               name="UploadNewApartment"
