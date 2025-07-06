@@ -43,12 +43,16 @@ export default function SignUpScreen() {
   const [error, setError] = useState("");
   const router = useRouter();
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: "182842175967-l3ihifvtioodbbkv4pgv99358ed2ih4u.apps.googleusercontent.com",
-    iosClientId: "182842175967-l3ihifvtioodbbkv4pgv99358ed2ih4u.apps.googleusercontent.com",
-    webClientId: "182842175967-l3ihifvtioodbbkv4pgv99358ed2ih4u.apps.googleusercontent.com",
-    expoClientId: "182842175967-l3ihifvtioodbbkv4pgv99358ed2ih4u.apps.googleusercontent.com"
-  });
+const redirectUri = "https://auth.expo.io/@ofrig/roome";
+
+const [request, response, promptAsync] = Google.useAuthRequest({
+  androidClientId: "182842175967-l3ihifvtioodbbkv4pgv99358ed2ih4u.apps.googleusercontent.com",
+  iosClientId: "182842175967-l3ihifvtioodbbkv4pgv99358ed2ih4u.apps.googleusercontent.com",
+  expoClientId: "182842175967-l3ihifvtioodbbkv4pgv99358ed2ih4u.apps.googleusercontent.com",
+  webClientId: "541845970315-u3vj2nb8dd8ea104fr61maa9j8g5d8op.apps.googleusercontent.com",
+  redirectUri,
+});
+
 
   /**
    * Handles Google Sign-In process
