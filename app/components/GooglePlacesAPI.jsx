@@ -1,7 +1,7 @@
+import 'react-native-get-random-values';
 import React from 'react';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { View, StyleSheet } from 'react-native';
-import { v4 as uuidv4 } from 'uuid';
 
 /**
  * @component GooglePlacesInput
