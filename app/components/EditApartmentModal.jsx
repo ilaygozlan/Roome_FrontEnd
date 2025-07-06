@@ -19,7 +19,7 @@ import API from "../../config";
 import GooglePlacesInput from "../components/GooglePlacesAPI";
 import ApartmentGalleryWithDelete from "./ApartmentGalleryWithDelete";
 import { AntDesign } from "@expo/vector-icons";
-
+//hey
 export default function EditApartmentModal({
   visible,
   onClose,
