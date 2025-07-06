@@ -1,14 +1,14 @@
 // app/tabs/ProfilePage.jsx
 import React, { useContext, useEffect, useState } from "react";
 import { View, ScrollView } from "react-native";
-import AdminPage from "../AdminPage"
+import AdminScreen from "../AdminScreen"
 
 const Admin = () => {
 
   return (
     <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <AdminPage  />
+        <AdminScreen  />
       </ScrollView>
     </View>
   );

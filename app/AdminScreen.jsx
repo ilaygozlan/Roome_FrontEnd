@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
  import AdminApartmentsList from "./components/AdminApartmentsList"
+ import AdminUsersList from "./components/AdminUsersList"
 
-export default function AdminPage() {
+export default function AdminScreen() {
   const [showApts, setShowApts] = useState(false);
+  const [showUsers, setshowUsers] = useState(false);
 
   return (
     <View style={{ flex: 1, padding: 20 }}>
@@ -18,6 +20,15 @@ export default function AdminPage() {
         </Text>
       </TouchableOpacity>
 
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => setshowUsers((prev) => !prev)}
+      >
+        <Text style={styles.buttonText}>
+          {showUsers ? "הסתר משתמשים" : "רשימת משתמשים"}
+        </Text>
+      </TouchableOpacity>
+      {showUsers && <AdminUsersList />}
       {showApts && <AdminApartmentsList />}
     </View>
   );
