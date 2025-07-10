@@ -42,7 +42,35 @@ Notifications.setNotificationHandler({
  * @param {string} title - Notification title
  * @param {string} body - Notification body content
  * @returns {Promise<void>}
+ * @param {boolean} isNowActive - If true, user was re-activated; otherwise, deactivated
  */
+export async function sendNotificationAdmin(expoPushToken, title, body) {
+  const message = {
+    to: expoPushToken,
+    sound: 'default',
+    title: title,
+    body: body,
+    data: { adminAction: title === "החשבון שלך הושבת" ? "deactivated" : "re-activated" },
+  };
+
+  try {
+    const response = await fetch('https://exp.host/--/api/v2/push/send', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Accept-encoding': 'gzip, deflate',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(message),
+    });
+
+    const responseData = await response.json();
+    console.log('📢 Admin Notification Response:', responseData);
+  } catch (error) {
+    console.error('❌ Error sending admin notification:', error);
+  }
+}
+
 export async function sendPushNotification(expoPushToken) {
   const message = {
     to: expoPushToken,
