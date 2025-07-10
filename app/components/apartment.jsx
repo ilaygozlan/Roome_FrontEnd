@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Modal,
+  Image,
   Share,
   Linking,
   Platform,
@@ -31,7 +32,7 @@ export default function Apartment(props) {
   const router = useRouter();
 
   const [selectedType, setSelectedType] = useState(null);
-  const [selectedLocation, setSelectedLocation] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState(null);
   const [priceRange, setPriceRange] = useState([100, 10000]);
 
   // Share via WhatsApp
@@ -94,7 +95,26 @@ export default function Apartment(props) {
         >
           <Text style={styles.typeText}>{getTypeName(apt.ApartmentType)}</Text>
         </View>
-
+        <TouchableOpacity
+          onPress={() =>
+            router.push({
+              pathname: "UserProfile",
+              params: { userId: apt.Creator_ID },
+            })
+          }
+        >
+          <View style={styles.creatorContainer}>
+            <Image
+              source={{
+                uri:
+                  apt.Creator_ProfilePicture ||
+                  "https://example.com/default-profile.png",
+              }}
+              style={styles.creatorImage}
+            />
+            <Text style={styles.creatorName}>{apt.Creator_FullName}</Text>
+          </View>
+        </TouchableOpacity>
         <View style={styles.cardContent}>
           <ApartmentGallery images={apt.Images} />
 
@@ -105,7 +125,7 @@ export default function Apartment(props) {
             }}
           >
             <View style={styles.details}>
-              <Text style={styles.title}> {apt.Location}</Text>
+              <Text style={styles.title}>{apt.Location}</Text>
               <Text style={styles.description}>{apt.Description}</Text>
               <Text style={styles.price}>{apt.Price} ש"ח</Text>
             </View>
@@ -148,12 +168,110 @@ export default function Apartment(props) {
     const newAptArr = allApartments.filter((apt) => {
       const matchesType =
         selectedType === null || apt.ApartmentType === selectedType;
+
       const matchesPrice =
         apt.Price >= priceRange[0] && apt.Price <= priceRange[1];
-      return matchesType && matchesPrice;
+
+      let matchesLocation = true;
+
+      let aptLocationObj = {};
+
+      if (
+        apt.Location &&
+        apt.Location.trim().startsWith("{") &&
+        apt.Location.trim().endsWith("}")
+      ) {
+        try {
+          aptLocationObj = JSON.parse(apt.Location);
+        } catch (e) {
+          console.warn("Invalid JSON in apt.Location:", apt.Location);
+        }
+      } else if (apt.Location) {
+        // treat plain string as address only
+        aptLocationObj = {
+          address: apt.Location,
+          latitude: null,
+          longitude: null,
+        };
+      }
+
+      if (selectedLocation?.address) {
+        const locationTypes = selectedLocation?.types || [];
+        const city = extractCityFromAddress(selectedLocation.address);
+        const street = extractStreetFromAddress(selectedLocation.address);
+
+        if (locationTypes.includes("country")) {
+          matchesLocation = true;
+        } else if (locationTypes.includes("locality")) {
+          const normalizedCity = normalizeString(city);
+
+          matchesLocation =
+            aptLocationObj.address &&
+            normalizeString(aptLocationObj.address).includes(normalizedCity);
+        } else if (locationTypes.includes("sublocality")) {
+          const normalizedAddress = normalizeString(selectedLocation.address);
+          const normalizedCity = normalizeString(city);
+
+          matchesLocation =
+            (aptLocationObj.address &&
+              normalizeString(aptLocationObj.address).includes(
+                normalizedAddress
+              )) ||
+            (aptLocationObj.address &&
+              normalizeString(aptLocationObj.address).includes(normalizedCity));
+        } else if (locationTypes.includes("street_address")) {
+          const normalizedStreet = normalizeString(street);
+
+          matchesLocation =
+            (aptLocationObj.address &&
+              normalizeString(aptLocationObj.address).includes(
+                normalizedStreet
+              )) ||
+            (aptLocationObj.latitude != null &&
+              aptLocationObj.longitude != null &&
+              getDistance(
+                selectedLocation.latitude,
+                selectedLocation.longitude,
+                aptLocationObj.latitude,
+                aptLocationObj.longitude
+              ) < 0.5);
+        }
+      }
+
+      return matchesType && matchesPrice && matchesLocation;
     });
+
     setPreviewSearchApt(newAptArr);
   };
+
+  function extractCityFromAddress(address) {
+    if (!address) return "";
+    const parts = address.split(",");
+    if (parts.length >= 2) {
+      return parts[parts.length - 2].trim();
+    }
+    return parts[0].trim();
+  }
+  function extractStreetFromAddress(address) {
+    if (!address) return "";
+    const parts = address.split(",");
+    return parts[0].trim();
+  }
+  function getDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // radius of Earth in km
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+  function normalizeString(str) {
+    return str?.replace(/[\s\-–"׳"]/g, "").toLowerCase();
+  }
 
   return (
     <>
@@ -245,11 +363,31 @@ const styles = StyleSheet.create({
   typeLabel: {
     position: "absolute",
     zIndex: 2,
-    top: 5,
-    left: 5,
+    top: 12,
+    left: 10,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 5,
     alignSelf: "flex-start",
+  },
+  creatorContainer: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    margin: 10,
+  },
+
+  creatorImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginLeft: 10,
+    borderWidth: 1,
+    borderColor: "#E3965A",
+  },
+
+  creatorName: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
   },
 });
