@@ -7,7 +7,6 @@ import AdminScreen from "../AdminScreen";
 import { useRouter } from "expo-router";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebase";
-import { ActivityIndicator } from "react-native";
 import { checkIfAdmin } from "../../checkAdmin";
 
 /**
@@ -32,8 +31,11 @@ import { checkIfAdmin } from "../../checkAdmin";
  */
 
 const ProfilePage = () => {
-  const { loginUserId } = useContext(userInfoContext);
-  const [checking, setChecking] = useState(true);
+const { loginUserId, isLoading } = useContext(userInfoContext);
+
+
+
+const [checking, setChecking] = useState(true);
   const [isAdmin, setIsAdmin] = useState(null);
   const router = useRouter();
 
@@ -50,7 +52,9 @@ const ProfilePage = () => {
     });
     return () => unsubscribe();
   }, []);
-
+if (isLoading || !loginUserId) {
+  return <ActivityIndicator size="large" style={{ flex: 1, justifyContent: "center" }} />;
+}
   if (checking || isAdmin === null) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -59,15 +63,15 @@ const ProfilePage = () => {
     );
   }
 
-  return (
-    <View style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        {isAdmin ? <AdminScreen /> : <MyProfile myId={loginUserId} />}
-      </ScrollView>
-    </View>
-  );
+
+
+
+return (
+  <View style={{ flex: 1 }}>
+    <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+      <MyProfile myId={loginUserId} />
+    </ScrollView>
+  </View>
+);
 };
-
-
-
 export default ProfilePage;
