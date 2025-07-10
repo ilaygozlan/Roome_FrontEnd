@@ -92,7 +92,7 @@ export const ActiveApartmentProvider = ({ children }) => {
             } catch (e) {
               return {
                 ...apt,
-                Location: apt.Location, // שומר את המיקום המקורי אם זה לא JSON
+                Location: apt.Location, 
               };
             }
           });
