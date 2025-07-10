@@ -51,6 +51,7 @@ const MyProfile = (props) => {
   const [ownedApartmentsNum, setOwnedApartmentsNum] = useState(0);
   const { allApartments } = useContext(ActiveApartmentContext);
   const [showOpenHousesModal, setShowOpenHousesModal] = useState(false);
+  const [openHouses, setOpenHouses] = useState([]);
 
   useEffect(() => {
     if (!loginUserId) return;
@@ -59,6 +60,7 @@ const MyProfile = (props) => {
       (apt) => apt.UserID === Number(loginUserId)
     );
     setOwnedApartmentsNum(filtered.length);
+    fetchOpenHouses();
   }, [allApartments, loginUserId]);
 
   // --- Fetch user profile ---
@@ -157,6 +159,44 @@ const MyProfile = (props) => {
     }
   };
 
+const fetchOpenHouses = async () => {
+  try {
+    const response = await fetch(
+      `${API}OpenHouse/getByUser/${loginUserId}`
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch open houses');
+    }
+
+    const data = await response.json();
+
+    if (!Array.isArray(data)) {
+      console.error('Unexpected data shape:', data);
+      setOpenHouses([]);
+      return;
+    }
+
+    const formattedData = data.map(item => ({
+      id: item.ID,
+      apartmentId: item.ApartmentID,
+      location: 'לא צויין מיקום',
+      date: item.Date ? item.Date.split('T')[0] : '',
+      startTime: item.StartTime?.substring(0, 5) || '',
+      endTime: item.EndTime?.substring(0, 5) || '',
+      amountOfPeoples: item.AmountOfPeople ?? 0,
+      totalRegistrations: item.TotalRegistrations ?? 0,
+    }));
+
+    setOpenHouses(formattedData);
+  } catch (err) {
+    console.error('Error fetching open houses:', err);
+    setOpenHouses([]);
+  }
+};
+
+
+
   // --- Loading/Error ---
   if (loading)
     return (
@@ -169,9 +209,7 @@ const MyProfile = (props) => {
       </Text>
     );
 
-  // --- Likes/Favorites count ---
-  const likesCount = userProfile.favoriteApartmentsCount || 0;
-  const openHousesCount = 3; //-------------replace
+
 
   // --- RTL helper ---
   const rtl = I18nManager.isRTL;
@@ -231,7 +269,7 @@ const MyProfile = (props) => {
           <Text style={styles.counterLabel}>הדירות שלי</Text>
         </View>
         <TouchableOpacity style={[styles.counterCard,styles.counterCardActive]} onPress={() => setShowOpenHousesModal(true)}>
-          <Text style={styles.counterNumber}>{openHousesCount}</Text>
+          <Text style={styles.counterNumber}>{openHouses.length}</Text>
           <Text style={styles.counterLabel}>בתים פתוחים</Text>
         </TouchableOpacity>
       </View>
@@ -490,6 +528,7 @@ const MyProfile = (props) => {
         visible={showOpenHousesModal}
         onClose={() => setShowOpenHousesModal(false)}
         userId={loginUserId}
+        openHouses={openHouses}
       />
 
       {/* Apartments Grid */}

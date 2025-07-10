@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   View,
   Text,
@@ -12,72 +12,14 @@ import {
 } from 'react-native';
 import { FontAwesome5, Feather } from '@expo/vector-icons';
 import * as Calendar from 'expo-calendar';
-//hey
-const MyOpenHouses = ({ visible, onClose, userId }) => {
-  const [openHouses, setOpenHouses] = useState([]);
+import API from "../../config";
+import { userInfoContext } from "../contex/userInfoContext";
+
+const MyOpenHouses = ({ visible, onClose, openHouses }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [addingToCalendar, setAddingToCalendar] = useState(null);
 
-  // Mock data - replace with actual API call
-  const mockOpenHouses = [
-    {
-      id: 1,
-      apartmentId: 101,
-      location: 'דירה ברחוב הרצל 15, תל אביב',
-      date: '2024-01-15',
-      startTime: '14:00',
-      endTime: '16:00',
-      amountOfPeoples: 20,
-      totalRegistrations: 12,
-    },
-    {
-      id: 2,
-      apartmentId: 102,
-      location: 'דירה ברחוב דיזנגוף 8, תל אביב',
-      date: '2024-01-18',
-      startTime: '10:00',
-      endTime: '12:00',
-      amountOfPeoples: 15,
-      totalRegistrations: 8,
-    },
-    {
-      id: 3,
-      apartmentId: 103,
-      location: 'דירה ברחוב אלנבי 25, תל אביב',
-      date: '2024-01-20',
-      startTime: '16:00',
-      endTime: '18:00',
-      amountOfPeoples: 25,
-      totalRegistrations: 18,
-    },
-  ];
-
-  useEffect(() => {
-    if (visible) {
-      fetchOpenHouses();
-    }
-  }, [visible, userId]);
-
-  const fetchOpenHouses = async () => {
-    setLoading(true);
-    setError(false);
-    
-    try {
-      // Replace with actual API call
-      // const response = await fetch(`https://roomebackend20250414140006.azurewebsites.net/OpenHouse/GetUserOpenHouses/${userId}`);
-      // const data = await response.json();
-      
-      // For now, using mock data
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
-      setOpenHouses(mockOpenHouses);
-    } catch (err) {
-      setError(true);
-      console.error('Error fetching open houses:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const addToCalendar = async (openHouse) => {
     setAddingToCalendar(openHouse.id);
@@ -142,25 +84,6 @@ const MyOpenHouses = ({ visible, onClose, userId }) => {
   };
 
   const rtl = I18nManager.isRTL;
-
-  if (loading) {
-    return (
-      <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <Feather name="x" size={24} color="#222B45" />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>הבתים הפתוחים שלי</Text>
-          </View>
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#7C83FD" />
-            <Text style={styles.loadingText}>טוען...</Text>
-          </View>
-        </View>
-      </Modal>
-    );
-  }
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
