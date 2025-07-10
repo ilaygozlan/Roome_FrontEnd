@@ -231,12 +231,8 @@ const UserProfile = (props) => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.chatButton}
-                onPress={() =>
-                  router.push({
-                    pathname: "ChatRoom",
-                    params: { recipientId: finalUserId },
-                  })
-                }
+                onPress={() => router.push(`/chat/${finalUserId}`)}
+
               >
                 <FontAwesome5 name="comments" size={18} color="#fff" />
               </TouchableOpacity>
