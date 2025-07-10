@@ -19,7 +19,7 @@ import ApartmentGallery from "./ApartmentGallery";
 import { ActiveApartmentContext } from "../contex/ActiveApartmentContext";
 import ApartmentDetails from "../ApartmentDetails";
 import { userInfoContext } from "../contex/userInfoContext";
-
+//hey
 export default function Apartment(props) {
   const { allApartments, setAllApartments } = useContext(
     ActiveApartmentContext
