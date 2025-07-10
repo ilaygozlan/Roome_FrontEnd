@@ -229,7 +229,12 @@ if (apartment.ApartmentType === 0) {
     }
 
     setIsUploading(false);
-    Alert.alert("הצלחה", "הדירה עודכנה בהצלחה");
+Alert.alert("הצלחה", "הדירה עודכנה בהצלחה", [
+  {
+    text: "אישור",
+    onPress: () => router.push("(tabs)/ProfilePage"),
+  },
+]);    
     // onSave && onSave(); // Removed as per edit hint
     // onClose(); // Removed as per edit hint
   } catch (err) {
@@ -300,13 +305,6 @@ return (
 <View style={{ width: "100%" }}>
   <GooglePlacesInput onLocationSelected={handleLocationSelected} />
 </View>
-
-
-
-
-
-
-
               <Text style={styles.label}>מחיר:</Text>
               <TextInput
                 style={styles.input}
@@ -456,6 +454,7 @@ return (
                 <Text style={{ color: "white", fontWeight: "bold" }}>
                   שמור שינויים
                 </Text>
+                
               </TouchableOpacity>
 
               <TouchableOpacity onPress={() => router.back()} style={styles.cancelButton}>
