@@ -17,6 +17,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import ApartmentLabelsPopup from "./components/ApartmentLabelsPopup";
 import OpenHouseButton from "./components/OpenHouseButton";
 import EditApartmentModal from "./components/EditApartmentModal";
+import { useNavigation } from "@react-navigation/native";
 //hey
 const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
   const { allApartments } = useContext(ActiveApartmentContext);
@@ -34,12 +35,9 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
   const [endTime, setEndTime] = useState("");
   const [ownedApartments, setOwnedApartments] = useState([]);
   const [peopleCount, setPeopleCount] = useState("");
-  const [editModalVisible, setEditModalVisible] = useState(false);
-  const [editingApartment, setEditingApartment] = useState(null);
-  const handleSaveEdit = () => {};
+  const navigation = useNavigation();
   const handleEdit = (apartment) => {
-    setEditingApartment(apartment);
-    setEditModalVisible(true);
+    navigation.navigate('EditApartment', { apartment: JSON.stringify(apartment) });
   };
 
   useEffect(() => {
@@ -523,14 +521,15 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
         </View>
       </Modal>
 
-      {editingApartment && (
+      {/* The EditApartmentModal component is now a screen, not a modal */}
+      {/* {editingApartment && (
         <EditApartmentModal
           visible={editModalVisible}
           apartment={editingApartment}
           onClose={() => setEditModalVisible(false)}
           onSave={handleSaveEdit}
         />
-      )}
+      )} */}
     </View>
   );
 };
