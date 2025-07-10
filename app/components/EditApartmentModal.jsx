@@ -227,18 +227,22 @@ export default function EditApartmentModal({
 
           <Text style={styles.label}>כתובת נוכחית:</Text>
           <Text style={styles.currentLocation}>{apartment.Location}</Text>
+          <View style={{ width: "100%" }}>
 
           <Text style={styles.label}>כתובת חדשה:</Text>
-
-          <View style={{ width: "100%" }}>
-            <GooglePlacesInput onLocationSelected={setLocation} />
           </View>
+
+<View style={{ zIndex: 10, width: "100%", marginBottom: 10 }}>
+  <GooglePlacesInput onLocationSelected={setLocation} />
+</View>
+
         </View>
 
         <ScrollView
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
         >
+          
           <Text style={styles.label}>מחיר:</Text>
           <TextInput
             style={styles.input}
