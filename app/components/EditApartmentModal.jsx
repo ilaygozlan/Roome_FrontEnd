@@ -22,23 +22,25 @@ import GooglePlacesInput from "../components/GooglePlacesAPI";
 import ApartmentGalleryWithDelete from "./ApartmentGalleryWithDelete";
 import { AntDesign } from "@expo/vector-icons";
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 //hey
-export default function EditApartmentModal({
-  visible,
-  onClose,
-  apartment,
-  onSave,
-}) {
+export default function EditApartmentModal() {
+  const params = useLocalSearchParams();
+  let apartment = params.apartment;
+  if (typeof apartment === 'string') {
+    try {
+      apartment = JSON.parse(apartment);
+    } catch {
+      apartment = undefined;
+    }
+  }
+  const router = useRouter();
   if (!apartment || !apartment.ApartmentID) {
     return (
-      <Modal visible={visible} animationType="slide">
-        <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-        >
-          <Text>טוען פרטי דירה...</Text>
-        </View>
-      </Modal>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text>טוען פרטי דירה...</Text>
+      </View>
     );
   }
 
@@ -75,13 +77,15 @@ export default function EditApartmentModal({
     { id: 2, name: "סאבלט", icon: "swap" },
   ];
 
+  // Only reset fields when a new apartment is loaded for editing
   useEffect(() => {
     setPrice(apartment.Price?.toString() || "");
- setLocation({
-    address: apartment.Location,
-    latitude: apartment.Latitude,
-    longitude: apartment.Longitude,
-  });    setRooms(apartment.AmountOfRooms?.toString() || "");
+    setLocation({
+      address: apartment.Location,
+      latitude: apartment.Latitude,
+      longitude: apartment.Longitude,
+    });
+    setRooms(apartment.AmountOfRooms?.toString() || "");
     setDescription(apartment.Description || "");
     setFloor(apartment.Floor?.toString() || "");
     setParkingSpace(apartment.ParkingSpace?.toString() || "");
@@ -103,9 +107,11 @@ export default function EditApartmentModal({
       setCanCancelWithoutPenalty(apartment.CanCancelWithoutPenalty || false);
       setIsWholeProperty(apartment.IsWholeProperty || false);
     }
-    
-    
-  }, [apartment]);
+  }, [apartment.ApartmentID]);
+
+  useEffect(() => {
+    console.log("location state changed:", location);
+  }, [location]);
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -138,45 +144,45 @@ const parsedLocation =
         longitude: apartment.Longitude,
       };
 
-  const commonFields = {
-    apartmentID: apartment.ApartmentID,
-    userID: apartment.UserID,
-    price: Number(price),
-    amountOfRooms: Number(rooms),
-    location: parsedLocation?.address,
-    allowPet,
-    allowSmoking,
-    gardenBalcony,
-    parkingSpace: Number(parkingSpace),
-    entryDate,
-    exitDate,
-    isActive: true,
-    floor: Number(floor),
-    apartmentType: apartment.ApartmentType,
-    description,
-    propertyTypeID,
+const commonFields = {
+  Id: apartment.ApartmentID,
+  UserID: apartment.UserID,
+  Price: Number(price),
+  AmountOfRooms: Number(rooms),
+  Location: parsedLocation?.address,
+  AllowPet: allowPet,
+  AllowSmoking: allowSmoking,
+  GardenBalcony: gardenBalcony,
+  ParkingSpace: Number(parkingSpace),
+  EntryDate: entryDate,
+  ExitDate: exitDate,
+  IsActive: true,
+  Floor: Number(floor),
+  ApartmentType: apartment.ApartmentType,
+  Description: description,
+  PropertyTypeID: propertyTypeID,
+};
+
+let updatedApartment = {};
+
+if (apartment.ApartmentType === 0) {
+  updatedApartment = {
+    ...commonFields,
+    ContractLength: Number(contractLength),
+    ExtensionPossible: extensionPossible,
   };
-
-  let updatedApartment = {};
-
-  if (apartment.ApartmentType === 0) {
-    updatedApartment = {
-      ...commonFields,
-      contractLength: Number(contractLength),
-      extensionPossible,
-    };
-  } else if (apartment.ApartmentType === 1) {
-    updatedApartment = {
-      ...commonFields,
-      numberOfRoommates: Number(numberOfRoommates),
-    };
-  } else if (apartment.ApartmentType === 2) {
-    updatedApartment = {
-      ...commonFields,
-      canCancelWithoutPenalty,
-      isWholeProperty,
-    };
-  }
+} else if (apartment.ApartmentType === 1) {
+  updatedApartment = {
+    ...commonFields,
+    NumberOfRoommates: Number(numberOfRoommates),
+  };
+} else if (apartment.ApartmentType === 2) {
+  updatedApartment = {
+    ...commonFields,
+    CanCancelWithoutPenalty: canCancelWithoutPenalty,
+    IsWholeProperty: isWholeProperty,
+  };
+}
 
   let endpoint = "";
   if (apartment.ApartmentType === 0)
@@ -224,17 +230,37 @@ const parsedLocation =
 
     setIsUploading(false);
     Alert.alert("הצלחה", "הדירה עודכנה בהצלחה");
-    onSave && onSave();
-    onClose();
+    // onSave && onSave(); // Removed as per edit hint
+    // onClose(); // Removed as per edit hint
   } catch (err) {
     setIsUploading(false);
     Alert.alert("שגיאה", err.message);
   }
 };
 
+// Handle location selection from GooglePlacesInput
+const handleLocationSelected = (loc) => {
+  // If loc is a string (JSON), parse it
+  let parsedLoc = loc;
+  if (typeof loc === "string") {
+    try {
+      parsedLoc = JSON.parse(loc);
+    } catch {
+      // If parsing fails, fallback to address only
+      parsedLoc = { address: loc };
+    }
+  }
+  // Ensure address, latitude, and longitude are always present
+  setLocation({
+    address: parsedLoc.address || "",
+    latitude: parsedLoc.latitude || null,
+    longitude: parsedLoc.longitude || null,
+  });
+};
+
 
 return (
-  <Modal visible={visible} animationType="slide">
+  <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
     <SafeAreaView style={{ flex: 1 }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -272,51 +298,10 @@ return (
    <Text style={styles.label}>כתובת חדשה:</Text>
 
 <View style={{ width: "100%" }}>
-  <View style={{ zIndex: 1000, flex: 0 }}>
-    <GooglePlacesAutocomplete
-      placeholder="הקלד מיקום..."
-      onPress={(data, details = null) => {
-        if (details) {
-          const location = details.formatted_address;
-          const lat = details.geometry.location.lat;
-          const lng = details.geometry.location.lng;
-
-          console.log("📍 Address:", location);
-          console.log("🌍 Latitude:", lat);
-          console.log("🌍 Longitude:", lng);
-
-          const fullAdress = ({
-            address: location,
-            latitude: lat,
-            longitude: lng,
-          });
-
-          try {
-            const parsed = JSON.parse(fullAdress);
-            setLocation(parsed);
-          } catch (e) {
-            console.warn("שגיאה בפענוח מיקום:", e);
-          }
-        }
-      }}
-      fetchDetails={true}
-      query={{
-        key: 'AIzaSyCy4JnaYp3wvOAUH7-lOA4IFB_tBK9-5BE',
-        language: 'he',
-        components: 'country:il',
-      }}
-      enablePoweredByContainer={false}
-      styles={autocompleteStyles}
-    />
-  </View>
+  <GooglePlacesInput onLocationSelected={handleLocationSelected} />
 </View>
 
 
-{location?.address && (
-  <Text style={{ marginTop: 8, marginBottom: 16, color: "#333", alignSelf: "flex-end" }}>
-    כתובת שנבחרה: {location.address}
-  </Text>
-)}
 
 
 
@@ -325,7 +310,7 @@ return (
               <Text style={styles.label}>מחיר:</Text>
               <TextInput
                 style={styles.input}
-                keyboardType="numeric"
+                keyboaהrdType="numeric"
                 value={price}
                 onChangeText={setPrice}
               />
@@ -473,7 +458,7 @@ return (
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={onClose} style={styles.cancelButton}>
+              <TouchableOpacity onPress={() => router.back()} style={styles.cancelButton}>
                 <Text style={styles.cancelText}>ביטול</Text>
               </TouchableOpacity>
             </View>
@@ -482,7 +467,7 @@ return (
         />
       </KeyboardAvoidingView>
     </SafeAreaView>
-  </Modal>
+  </View>
 );
 
 }
