@@ -389,11 +389,11 @@ const styles = StyleSheet.create({
   },
 
   searchButton: {
-    backgroundColor: "#E3965A", // צבע כתום
+    backgroundColor: "#E3965A", 
     paddingVertical: 12,
     paddingHorizontal: 60,
     borderRadius: 25,
-    elevation: 3, // צל
+    elevation: 3, 
   },
 
   searchButtonText: {
