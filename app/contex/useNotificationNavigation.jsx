@@ -5,7 +5,6 @@ import { useRouter } from "expo-router";
 export default function useNotificationNavigation(pendingNotificationRef, isAuthenticated) {
   const router = useRouter();
 
-  // האזנה ללחיצה על ההתראה
   useEffect(() => {
     const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
       const recipientId = response.notification.request.content.data?.recipientId;
@@ -18,11 +17,11 @@ export default function useNotificationNavigation(pendingNotificationRef, isAuth
       }
 
       if (isAuthenticated && router?.push) {
-        // הניווט ברגע שהמשתמש כבר מאומת
+      
         console.log("🔀 Navigating to /chat/" + recipientId);
         setTimeout(() => {
           router.push(`/chat/${recipientId}`);
-        }, 100); // הוספת דיליי קטן שיכולה למנוע race
+        }, 100);
       } else if (pendingNotificationRef?.current !== undefined) {
         console.log("💾 Saving recipientId for later:", recipientId);
         pendingNotificationRef.current = recipientId;
@@ -32,7 +31,7 @@ export default function useNotificationNavigation(pendingNotificationRef, isAuth
     return () => subscription.remove();
   }, [router, isAuthenticated, pendingNotificationRef]);
 
-  // לאחר שהמשתמש מחובר, נבדוק אם הייתה התראה שמחכה
+
   useEffect(() => {
     if (isAuthenticated && pendingNotificationRef?.current) {
       const savedRecipientId = pendingNotificationRef.current;
