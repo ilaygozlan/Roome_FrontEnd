@@ -20,6 +20,7 @@ import { Keyboard, TouchableWithoutFeedback } from "react-native";
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import GooglePlacesInput from "./GooglePlacesAPI";
 
+
 /**
  * @component SearchBar
  * @description Advanced search component for apartment filtering with expandable interface.
@@ -56,6 +57,9 @@ export default function SearchBar({
   priceRange,
   setPriceRange,
   SearchApartments,
+  index,
+  setIndex,
+  showAllApartments
 }) {
   const [expanded, setExpanded] = useState(false);
   const [searchInput, setSearchInput] = useState(
@@ -92,7 +96,34 @@ export default function SearchBar({
       <View style={styles.searchRow}>
         {/* Search bar */}
         <TouchableOpacity style={styles.searchBar} onPress={toggleExpand}>
-          <Ionicons name="search" size={20} color="#000" style={styles.icon} />
+          {index ? (
+            <Ionicons
+              name="search"
+              size={20}
+              color="#000"
+              style={styles.icon}
+            />
+          ) : (
+            <TouchableOpacity
+              onPress={() => {
+                setSelectedType(null);
+                setSelectedLocation(null);
+                setPriceRange([0, 20000]);
+                setSearchInput("");
+                SearchApartments();
+                setExpanded(false);
+                setIndex(true);
+                showAllApartments();
+              }}
+            >
+              <Ionicons
+                name="refresh-outline"
+                size={24}
+                color={colors.primary}
+                style={styles.icon}
+              />
+            </TouchableOpacity>
+          )}
           <View style={{ flex: 1, alignItems: "flex-end" }}>
             <Text style={[styles.locationMain, { textAlign: "right" }]}>
               {selectedLocation || selectedType !== null
@@ -125,7 +156,6 @@ export default function SearchBar({
             <Text style={[styles.label, { marginTop: 0 }]}>בחר מיקום:</Text>
             <GooglePlacesAutocomplete
               placeholder={selectedLocation?.address || "הקלד מיקום..."}
-            
               onPress={(data, details = null) => {
                 if (details) {
                   const location = details.formatted_address;
@@ -389,11 +419,11 @@ const styles = StyleSheet.create({
   },
 
   searchButton: {
-    backgroundColor: "#E3965A", 
+    backgroundColor: "#E3965A",
     paddingVertical: 12,
     paddingHorizontal: 60,
     borderRadius: 25,
-    elevation: 3, 
+    elevation: 3,
   },
 
   searchButtonText: {
