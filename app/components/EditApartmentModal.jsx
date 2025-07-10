@@ -19,7 +19,7 @@ import API from "../../config";
 import GooglePlacesInput from "../components/GooglePlacesAPI";
 import ApartmentGalleryWithDelete from "./ApartmentGalleryWithDelete";
 import { AntDesign } from "@expo/vector-icons";
-
+//hey
 export default function EditApartmentModal({
   visible,
   onClose,
@@ -48,6 +48,12 @@ export default function EditApartmentModal({
   const [allowPet, setAllowPet] = useState(false);
   const [allowSmoking, setAllowSmoking] = useState(false);
   const [gardenBalcony, setGardenBalcony] = useState(false);
+  const [numberOfRoommates, setNumberOfRoommates] = useState("");
+  const [contractLength, setContractLength] = useState("");
+  const [extensionPossible, setExtensionPossible] = useState(false);
+  const [canCancelWithoutPenalty, setCanCancelWithoutPenalty] = useState(false);
+  const [isWholeProperty, setIsWholeProperty] = useState(false);
+
   const [entryDate, setEntryDate] = useState(
     new Date().toISOString().split("T")[0]
   );
@@ -78,6 +84,17 @@ export default function EditApartmentModal({
     setEntryDate(apartment.EntryDate?.split("T")[0] || "");
     setExitDate(apartment.ExitDate?.split("T")[0] || "");
     setImages(apartment.Images?.split(",").map((img) => img.trim()) || []);
+    if (apartment.ApartmentType === 1) {
+      setNumberOfRoommates(apartment.NumberOfRoommates?.toString() || "");
+    }
+    if (apartment.ApartmentType === 0) {
+      setContractLength(apartment.ContractLength?.toString() || "");
+      setExtensionPossible(apartment.ExtensionPossible || false);
+    }
+    if (apartment.ApartmentType === 2) {
+      setCanCancelWithoutPenalty(apartment.CanCancelWithoutPenalty || false);
+      setIsWholeProperty(apartment.IsWholeProperty || false);
+    }
   }, [apartment]);
 
   const pickImage = async () => {
@@ -117,6 +134,18 @@ export default function EditApartmentModal({
       gardenBalcony,
       propertyTypeID,
     };
+
+    if (apartment.ApartmentType === 1) {
+      updatedApartment.numberOfRoommates = Number(numberOfRoommates);
+    }
+    if (apartment.ApartmentType === 0) {
+      updatedApartment.contractLength = Number(contractLength);
+      updatedApartment.extensionPossible = extensionPossible;
+    }
+    if (apartment.ApartmentType === 2) {
+      updatedApartment.canCancelWithoutPenalty = canCancelWithoutPenalty;
+      updatedApartment.isWholeProperty = isWholeProperty;
+    }
 
     let endpoint = "";
     if (apartment.ApartmentType === 0)
@@ -174,10 +203,7 @@ export default function EditApartmentModal({
   return (
     <Modal visible={visible} animationType="slide">
       <SafeAreaView style={{ flex: 1 }}>
-        <ScrollView
-          contentContainerStyle={styles.container}
-          keyboardShouldPersistTaps="handled"
-        >
+        <View style={{ padding: 20 }}>
           <Text style={styles.title}>עריכת דירה</Text>
 
           <View style={styles.typeRow}>
@@ -203,13 +229,16 @@ export default function EditApartmentModal({
           <Text style={styles.currentLocation}>{apartment.Location}</Text>
 
           <Text style={styles.label}>כתובת חדשה:</Text>
-          <View style={styles.googleInputWrapper}>
-            <GooglePlacesInput
-              onLocationSelected={setLocation}
-              placeholder="הקלד מיקום חדש..."
-            />
-          </View>
 
+          <View style={{ width: "100%" }}>
+            <GooglePlacesInput onLocationSelected={setLocation} />
+          </View>
+        </View>
+
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+        >
           <Text style={styles.label}>מחיר:</Text>
           <TextInput
             style={styles.input}
@@ -249,6 +278,57 @@ export default function EditApartmentModal({
             value={parkingSpace}
             onChangeText={setParkingSpace}
           />
+          {apartment.ApartmentType === 1 && (
+            <>
+              <Text style={styles.label}>מספר שותפים:</Text>
+              <TextInput
+                style={styles.input}
+                keyboardType="numeric"
+                value={numberOfRoommates}
+                onChangeText={setNumberOfRoommates}
+              />
+            </>
+          )}
+
+          {apartment.ApartmentType === 0 && (
+            <>
+              <Text style={styles.label}>אורך חוזה (חודשים):</Text>
+              <TextInput
+                style={styles.input}
+                keyboardType="numeric"
+                value={contractLength}
+                onChangeText={setContractLength}
+              />
+              <Text style={styles.label}>אפשרות להארכה:</Text>
+              <TouchableOpacity
+                style={styles.input}
+                onPress={() => setExtensionPossible(!extensionPossible)}
+              >
+                <Text>{extensionPossible ? "כן" : "לא"}</Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+          {apartment.ApartmentType === 2 && (
+            <>
+              <Text style={styles.label}>ביטול ללא קנס:</Text>
+              <TouchableOpacity
+                style={styles.input}
+                onPress={() =>
+                  setCanCancelWithoutPenalty(!canCancelWithoutPenalty)
+                }
+              >
+                <Text>{canCancelWithoutPenalty ? "כן" : "לא"}</Text>
+              </TouchableOpacity>
+              <Text style={styles.label}>האם מדובר בדירה שלמה:</Text>
+              <TouchableOpacity
+                style={styles.input}
+                onPress={() => setIsWholeProperty(!isWholeProperty)}
+              >
+                <Text>{isWholeProperty ? "כן" : "לא"}</Text>
+              </TouchableOpacity>
+            </>
+          )}
 
           <Text style={styles.label}>תאריך כניסה:</Text>
           <TouchableOpacity
@@ -290,11 +370,7 @@ export default function EditApartmentModal({
 
           <Text style={styles.label}>תמונות שהועלו:</Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-            <ApartmentGalleryWithDelete
-              images={apartment.Images}
-              
-            />
-        
+            <ApartmentGalleryWithDelete images={apartment.Images} />
           </View>
 
           <TouchableOpacity onPress={pickImage} style={styles.cameraButton}>

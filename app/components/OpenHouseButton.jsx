@@ -12,13 +12,14 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import API from "../../config";
 import { sendPushNotification } from "./pushNatification";
+import { Linking } from 'react-native';
 
 /**
  * @component OpenHouseButton
  * @description Component for managing open house viewings for apartments.
  * Handles registration, cancellation, and viewing of available open house slots.
  * Includes push notification functionality for property owners.
- *
+ * 
  * Features:
  * - Display available open house times
  * - Registration for open house viewings
@@ -26,7 +27,7 @@ import { sendPushNotification } from "./pushNatification";
  * - Real-time capacity tracking
  * - Push notifications to property owners
  * - Modal interface for viewing and managing registrations
- *
+ * 
  * @param {Object} props
  * @param {number} props.apartmentId - ID of the apartment
  * @param {number} props.userId - ID of the current user
@@ -43,6 +44,7 @@ export default function OpenHouseButton({
   const [modalVisible, setModalVisible] = useState(false);
   const [openHouses, setOpenHouses] = useState([]);
   const [loading, setLoading] = useState(false);
+ const [calendarLink, setCalendarLink] = useState(null);
 
   useEffect(() => {
     if (modalVisible) {
@@ -57,7 +59,6 @@ export default function OpenHouseButton({
    * @returns {Promise<void>}
    */
   const fetchOpenHouses = async () => {
-    setLoading(true);
     try {
       const res = await fetch(
         API + `OpenHouse/GetOpenHousesByApartment/${apartmentId}/${userId}`
@@ -73,8 +74,6 @@ export default function OpenHouseButton({
     } catch (err) {
       console.error("Error fetching open houses:", err.message);
       setOpenHouses([]);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -85,6 +84,49 @@ export default function OpenHouseButton({
    * @param {number} openHouseId - ID of the open house session
    * @returns {Promise<void>}
    */
+const offerToSyncWithCalendar = async (openHouseId) => {
+  console.log("🟡 שואלת את המשתמש אם להוסיף ליומן...");
+  Alert.alert(
+    "הוספה ליומן Google",
+    "האם תרצה להוסיף את הסיור ליומן שלך?",
+    [
+      {
+        text: "לא תודה",
+        style: "cancel",
+        onPress: () => console.log("🙅‍♂️ המשתמש סירב להוספה ליומן"),
+      },
+      {
+        text: "כן, הוסף ליומן",
+        onPress: async () => {
+          console.log("✅ המשתמש בחר להוסיף ליומן");
+          try {
+            const res = await fetch(
+              API + `OpenHouse/RegisterAndSyncToCalendar?userId=${userId}&openHouseId=${openHouseId}`,
+              { method: "POST" }
+            );
+
+            const text = await res.text();
+            const result = text ? JSON.parse(text) : {};
+
+            console.log("📨 התקבלה תגובה מהשרת:", result);
+
+            if (res.ok && result.calendarEventLink) {
+              console.log("📅 קישור לאירוע ביומן:", result.calendarEventLink);
+              Linking.openURL(result.calendarEventLink);
+            } else {
+              console.warn("⚠️ לא נשלח קישור ליומן:", result.message || "אין קישור");
+              Alert.alert("הוספה ליומן נכשלה", result.message || "נסה שוב מאוחר יותר");
+            }
+          } catch (error) {
+            console.error("❌ שגיאה בזמן התחברות ליומן:", error);
+            Alert.alert("שגיאה", "לא ניתן להתחבר ליומן Google כרגע.");
+          }
+        },
+      },
+    ]
+  );
+};
+
   const registerForOpenHouse = async (openHouseId) => {
     try {
       // 1. Register the user for the open house
@@ -103,9 +145,11 @@ export default function OpenHouseButton({
           "Registration Successful",
           "You have registered for the open house successfully!"
         );
-
+     
         console.log(" נרשמת בהצלחה לסיור, מנסה לשלוח התראה לבעל הדירה");
-        console.log(userOwnerId);
+        console.log(userOwnerId)
+         offerToSyncWithCalendar(openHouseId);
+
         // 2. Retrieve the push token for the property owner using the ownerId
         const tokenResponse = await fetch(
           API + `User/GetPushToken/${userOwnerId}`,
@@ -113,11 +157,12 @@ export default function OpenHouseButton({
             method: "GET",
             headers: { "Content-Type": "application/json" },
           }
+
         );
 
         if (tokenResponse.ok) {
           const result = await tokenResponse.json();
-          const ownerPushToken = result.pushToken;
+          const ownerPushToken = result.pushToken; 
 
           console.log("📬 טוקן של בעל הדירה:", ownerPushToken);
 
@@ -179,12 +224,10 @@ export default function OpenHouseButton({
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>🏡 סיורים בדירה</Text>
-
-            {loading ? (
-              <ActivityIndicator size="large" color="#E3965A" />
-            ) : openHouses.length > 0 ? (
+            {openHouses.length > 0 ? (
               openHouses.map((item) => {
                 const isFull = item.confirmedPeoples >= item.amountOfPeoples;
+
                 return (
                   <View key={item.openHouseId} style={styles.openHouseItem}>
                     <Text style={styles.openHouseText}>

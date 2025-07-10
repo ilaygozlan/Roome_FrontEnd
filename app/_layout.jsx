@@ -1,68 +1,25 @@
-import 'react-native-get-random-values';
-import { useEffect, useState, useContext } from "react";
-import { Stack, useRouter } from "expo-router";
+import { Stack } from "expo-router";
+import { useEffect, useState, useRef } from "react";
+import { ActivityIndicator, View } from "react-native";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase";
-import { ActivityIndicator, View } from "react-native";
 import { ActiveApartmentProvider } from "./contex/ActiveApartmentContext";
 import { UserInfoProvider } from "./contex/userInfoContext";
-import AuthStack from "./AuthStack";
-
-/**
- * @component RootLayout
- * @description Root layout component that handles application-wide layout and authentication state.
- * Serves as the main wrapper for the entire application, managing authentication flow and context providers.
- * 
- * Features:
- * - Firebase authentication state management
- * - Loading state handling
- * - Navigation stack configuration
- * - Context providers setup
- * - New user flow handling
- * 
- * Context Providers:
- * - ActiveApartmentProvider
- * - UserInfoProvider
- * 
- * Navigation:
- * - Conditional rendering based on authentication state
- * - New user vs existing user routing
- * - Stack navigation configuration
- * 
- * @requires expo-router
- * @requires firebase/auth
- * @requires react-native-get-random-values
- */
+import SignalRProvider from "./contex/SignalRContext";
+import useNotificationNavigation from "./contex/useNotificationNavigation";
 
 export default function RootLayout() {
   const [user, setUser] = useState(null);
   const [checking, setChecking] = useState(true);
-  const [userId, setUserId] = useState(null);
-  const [isNewUser, setIsNewUser] = useState(null);
-  const router = useRouter();
+  const pendingNotification = useRef(null);
 
-  /**
-   * Authentication state management effect
-   * @effect
-   * Handles:
-   * - User authentication state changes
-   * - User data management
-   * - Loading state
-   */
+  useNotificationNavigation(pendingNotification, !!user);
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (u) => {
-      console.log("Auth state changed:", u);
-      console.log("checking changed:", checking);
-      if (u) {
-        setUser(u);
-      } else {
-        setUser(null);
-        setUserId(null);
-        setIsNewUser(null);
-      }
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      setUser(u);
       setChecking(false);
     });
-
     return () => unsubscribe();
   }, []);
 
@@ -74,32 +31,13 @@ export default function RootLayout() {
     );
   }
 
-  /**
-   * App Stack component for authenticated users
-   * @component
-   * @param {Object} props
-   * @param {boolean} props.isNewUser - Whether the user is new
-   * @param {string} props.userId - User's ID
-   */
-  const AppStack = ({ isNewUser, userId }) => (
-    <Stack screenOptions={{ headerShown: false }}>
-      {isNewUser ? (
-        <Stack.Screen name="ProfileInfo" />
-      ) : (
-        <Stack.Screen name="(tabs)" />
-      )}
-      <Stack.Screen name="ApartmentDetails"/>
-      <Stack.Screen name="UserProfile"/>
-        <Stack.Screen name="ChatRoom" />
-    </Stack>
-  );
-
-
   return (
-    <ActiveApartmentProvider>
     <UserInfoProvider>
-       <AuthStack/>
+      <ActiveApartmentProvider>
+        <SignalRProvider>
+          <Stack screenOptions={{ headerShown: false }} />
+        </SignalRProvider>
+      </ActiveApartmentProvider>
     </UserInfoProvider>
-    </ActiveApartmentProvider>
   );
 }

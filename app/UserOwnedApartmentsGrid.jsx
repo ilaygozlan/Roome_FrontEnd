@@ -17,7 +17,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import ApartmentLabelsPopup from "./components/ApartmentLabelsPopup";
 import OpenHouseButton from "./components/OpenHouseButton";
 import EditApartmentModal from "./components/EditApartmentModal";
-
+//hey
 const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
   const { allApartments } = useContext(ActiveApartmentContext);
   const [openHouseModalVisible, setOpenHouseModalVisible] = useState(false);
@@ -312,6 +312,7 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
                   </View>
                 ))}
             </View>
+            
 
             {visibleLabelsPopupId === apt.ApartmentID && (
               <ApartmentLabelsPopup

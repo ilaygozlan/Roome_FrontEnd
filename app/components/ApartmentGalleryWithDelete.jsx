@@ -14,13 +14,13 @@ import API from "../../config";
 
 const { width } = Dimensions.get("window");
 const baseUrl = "https://roomebackend20250414140006.azurewebsites.net";
-
+//hey
 const prepareImages = (images) => {
   return (
     images?.split(",").map((img) => {
       const trimmed = img.trim();
       return {
-        original: trimmed, // מה שנשלח מהשרת (נשמר בדאטהבייס)
+        original: trimmed, 
         fullUrl: trimmed.startsWith("https")
           ? trimmed
           : `${baseUrl}${trimmed.startsWith("/") ? "" : "/"}${trimmed}`,
