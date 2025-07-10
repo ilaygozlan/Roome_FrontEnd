@@ -10,7 +10,9 @@ import {
   ScrollView,
   Alert,
   Modal,
-  Platform,
+  Platform, FlatList,
+ KeyboardAvoidingView,
+
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -19,6 +21,8 @@ import API from "../../config";
 import GooglePlacesInput from "../components/GooglePlacesAPI";
 import ApartmentGalleryWithDelete from "./ApartmentGalleryWithDelete";
 import { AntDesign } from "@expo/vector-icons";
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+
 //hey
 export default function EditApartmentModal({
   visible,
@@ -73,7 +77,11 @@ export default function EditApartmentModal({
 
   useEffect(() => {
     setPrice(apartment.Price?.toString() || "");
-    setRooms(apartment.AmountOfRooms?.toString() || "");
+ setLocation({
+    address: apartment.Location,
+    latitude: apartment.Latitude,
+    longitude: apartment.Longitude,
+  });    setRooms(apartment.AmountOfRooms?.toString() || "");
     setDescription(apartment.Description || "");
     setFloor(apartment.Floor?.toString() || "");
     setParkingSpace(apartment.ParkingSpace?.toString() || "");
@@ -95,6 +103,8 @@ export default function EditApartmentModal({
       setCanCancelWithoutPenalty(apartment.CanCancelWithoutPenalty || false);
       setIsWholeProperty(apartment.IsWholeProperty || false);
     }
+    
+    
   }, [apartment]);
 
   const pickImage = async () => {
@@ -113,290 +123,390 @@ export default function EditApartmentModal({
     setImages(images.filter((uri) => uri !== uriToRemove));
   };
 
-  const handleUpdate = async () => {
-    if (!location || !price || !rooms) {
-      Alert.alert("שגיאה", "אנא מלא את כל השדות הנדרשים");
-      return;
-    }
+const handleUpdate = async () => {
+  if (!location || !price || !rooms) {
+    Alert.alert("שגיאה", "אנא מלא את כל השדות הנדרשים");
+    return;
+  }
 
-    const updatedApartment = {
-      ...apartment,
-      price: Number(price),
-      amountOfRooms: Number(rooms),
-      description,
-      floor: Number(floor),
-      parkingSpace: Number(parkingSpace),
-      entryDate,
-      exitDate,
-      location,
-      allowPet,
-      allowSmoking,
-      gardenBalcony,
-      propertyTypeID,
-    };
+const parsedLocation = 
+  location && location !== "" 
+    ? (typeof location === "string" ? JSON.parse(location) : location) 
+    : {
+        address: apartment.Location,
+        latitude: apartment.Latitude,
+        longitude: apartment.Longitude,
+      };
 
-    if (apartment.ApartmentType === 1) {
-      updatedApartment.numberOfRoommates = Number(numberOfRoommates);
-    }
-    if (apartment.ApartmentType === 0) {
-      updatedApartment.contractLength = Number(contractLength);
-      updatedApartment.extensionPossible = extensionPossible;
-    }
-    if (apartment.ApartmentType === 2) {
-      updatedApartment.canCancelWithoutPenalty = canCancelWithoutPenalty;
-      updatedApartment.isWholeProperty = isWholeProperty;
-    }
-
-    let endpoint = "";
-    if (apartment.ApartmentType === 0)
-      endpoint = `${API}Apartment/EditRentalApartment`;
-    if (apartment.ApartmentType === 1)
-      endpoint = `${API}Apartment/EditSharedApartment`;
-    if (apartment.ApartmentType === 2)
-      endpoint = `${API}Apartment/EditSubletApartment`;
-
-    try {
-      setIsUploading(true);
-      const res = await fetch(endpoint, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedApartment),
-      });
-
-      if (!res.ok) throw new Error("שגיאה בעדכון הדירה");
-
-      const formData = new FormData();
-      images.forEach((uri) => {
-        if (!uri.startsWith("/uploadedFiles")) {
-          const fileName = uri.split("/").pop();
-          const fileType = fileName.split(".").pop();
-          const mimeType = fileType === "png" ? "image/png" : "image/jpeg";
-
-          formData.append("files", {
-            uri,
-            name: fileName,
-            type: mimeType,
-          });
-        }
-      });
-
-      if (formData._parts.length > 0) {
-        await fetch(
-          `${API}UploadImageCpntroller/uploadApartmentImage/${apartment.ApartmentID}`,
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
-      }
-
-      setIsUploading(false);
-      Alert.alert("הצלחה", "הדירה עודכנה בהצלחה");
-      onSave && onSave();
-      onClose();
-    } catch (err) {
-      setIsUploading(false);
-      Alert.alert("שגיאה", err.message);
-    }
+  const commonFields = {
+    apartmentID: apartment.ApartmentID,
+    userID: apartment.UserID,
+    price: Number(price),
+    amountOfRooms: Number(rooms),
+    location: parsedLocation?.address,
+    allowPet,
+    allowSmoking,
+    gardenBalcony,
+    parkingSpace: Number(parkingSpace),
+    entryDate,
+    exitDate,
+    isActive: true,
+    floor: Number(floor),
+    apartmentType: apartment.ApartmentType,
+    description,
+    propertyTypeID,
   };
 
-  return (
-    <Modal visible={visible} animationType="slide">
-      <SafeAreaView style={{ flex: 1 }}>
-        <View style={{ padding: 20 }}>
-          <Text style={styles.title}>עריכת דירה</Text>
+  let updatedApartment = {};
 
-          <View style={styles.typeRow}>
-            {(() => {
-              const category = categories.find(
-                (cat) => cat.id === apartment.ApartmentType
-              );
-              return (
-                <View style={[styles.typeOption, styles.selectedType]}>
-                  <AntDesign
-                    name={category.icon}
-                    size={24}
-                    color="#E3965A"
-                    style={{ marginBottom: 4 }}
-                  />
-                  <Text>{category.name}</Text>
-                </View>
-              );
-            })()}
-          </View>
+  if (apartment.ApartmentType === 0) {
+    updatedApartment = {
+      ...commonFields,
+      contractLength: Number(contractLength),
+      extensionPossible,
+    };
+  } else if (apartment.ApartmentType === 1) {
+    updatedApartment = {
+      ...commonFields,
+      numberOfRoommates: Number(numberOfRoommates),
+    };
+  } else if (apartment.ApartmentType === 2) {
+    updatedApartment = {
+      ...commonFields,
+      canCancelWithoutPenalty,
+      isWholeProperty,
+    };
+  }
 
-          <Text style={styles.label}>כתובת נוכחית:</Text>
-          <Text style={styles.currentLocation}>{apartment.Location}</Text>
-          <View style={{ width: "100%" }}>
+  let endpoint = "";
+  if (apartment.ApartmentType === 0)
+    endpoint = `${API}Apartment/EditRentalApartment`;
+  if (apartment.ApartmentType === 1)
+    endpoint = `${API}Apartment/EditSharedApartment`;
+  if (apartment.ApartmentType === 2)
+    endpoint = `${API}Apartment/EditSubletApartment`;
 
-          <Text style={styles.label}>כתובת חדשה:</Text>
-          </View>
+  try {
+    setIsUploading(true);
 
-<View style={{ zIndex: 10, width: "100%", marginBottom: 10 }}>
-  <GooglePlacesInput onLocationSelected={setLocation} />
+    const res = await fetch(endpoint, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updatedApartment),
+    });
+
+    if (!res.ok) throw new Error("שגיאה בעדכון הדירה");
+
+    const formData = new FormData();
+    images.forEach((uri) => {
+      if (!uri.startsWith("/uploadedFiles")) {
+        const fileName = uri.split("/").pop();
+        const fileType = fileName.split(".").pop();
+        const mimeType = fileType === "png" ? "image/png" : "image/jpeg";
+
+        formData.append("files", {
+          uri,
+          name: fileName,
+          type: mimeType,
+        });
+      }
+    });
+
+    if (formData._parts.length > 0) {
+      await fetch(
+        `${API}UploadImageCpntroller/uploadApartmentImage/${apartment.ApartmentID}`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+    }
+
+    setIsUploading(false);
+    Alert.alert("הצלחה", "הדירה עודכנה בהצלחה");
+    onSave && onSave();
+    onClose();
+  } catch (err) {
+    setIsUploading(false);
+    Alert.alert("שגיאה", err.message);
+  }
+};
+
+
+return (
+  <Modal visible={visible} animationType="slide">
+    <SafeAreaView style={{ flex: 1 }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <FlatList
+          data={[]} // dummy list to allow FlatList rendering
+          renderItem={null}
+          ListHeaderComponent={
+            <View style={styles.container}>
+              <Text style={styles.title}>עריכת דירה</Text>
+
+              <View style={styles.typeRow}>
+                {(() => {
+                  const category = categories.find(
+                    (cat) => cat.id === apartment.ApartmentType
+                  );
+                  return (
+                    <View style={[styles.typeOption, styles.selectedType]}>
+                      <AntDesign
+                        name={category.icon}
+                        size={24}
+                        color="#E3965A"
+                        style={{ marginBottom: 4 }}
+                      />
+                      <Text>{category.name}</Text>
+                    </View>
+                  );
+                })()}
+              </View>
+
+              <Text style={styles.label}>כתובת נוכחית:</Text>
+              <Text style={styles.currentLocation}>{apartment.Location}</Text>
+
+   <Text style={styles.label}>כתובת חדשה:</Text>
+
+<View style={{ width: "100%" }}>
+  <View style={{ zIndex: 1000, flex: 0 }}>
+    <GooglePlacesAutocomplete
+      placeholder="הקלד מיקום..."
+      onPress={(data, details = null) => {
+        if (details) {
+          const location = details.formatted_address;
+          const lat = details.geometry.location.lat;
+          const lng = details.geometry.location.lng;
+
+          console.log("📍 Address:", location);
+          console.log("🌍 Latitude:", lat);
+          console.log("🌍 Longitude:", lng);
+
+          const fullAdress = ({
+            address: location,
+            latitude: lat,
+            longitude: lng,
+          });
+
+          try {
+            const parsed = JSON.parse(fullAdress);
+            setLocation(parsed);
+          } catch (e) {
+            console.warn("שגיאה בפענוח מיקום:", e);
+          }
+        }
+      }}
+      fetchDetails={true}
+      query={{
+        key: 'AIzaSyCy4JnaYp3wvOAUH7-lOA4IFB_tBK9-5BE',
+        language: 'he',
+        components: 'country:il',
+      }}
+      enablePoweredByContainer={false}
+      styles={autocompleteStyles}
+    />
+  </View>
 </View>
 
-        </View>
 
-        <ScrollView
-          contentContainerStyle={styles.container}
+{location?.address && (
+  <Text style={{ marginTop: 8, marginBottom: 16, color: "#333", alignSelf: "flex-end" }}>
+    כתובת שנבחרה: {location.address}
+  </Text>
+)}
+
+
+
+
+
+              <Text style={styles.label}>מחיר:</Text>
+              <TextInput
+                style={styles.input}
+                keyboardType="numeric"
+                value={price}
+                onChangeText={setPrice}
+              />
+
+              <Text style={styles.label}>חדרים:</Text>
+              <TextInput
+                style={styles.input}
+                keyboardType="numeric"
+                value={rooms}
+                onChangeText={setRooms}
+              />
+
+              <Text style={styles.label}>תיאור:</Text>
+              <TextInput
+                style={styles.input}
+                value={description}
+                onChangeText={setDescription}
+                multiline
+              />
+
+              <Text style={styles.label}>קומה:</Text>
+              <TextInput
+                style={styles.input}
+                keyboardType="numeric"
+                value={floor}
+                onChangeText={setFloor}
+              />
+
+              <Text style={styles.label}>חניה:</Text>
+              <TextInput
+                style={styles.input}
+                keyboardType="numeric"
+                value={parkingSpace}
+                onChangeText={setParkingSpace}
+              />
+
+              {apartment.ApartmentType === 1 && (
+                <>
+                  <Text style={styles.label}>מספר שותפים:</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="numeric"
+                    value={numberOfRoommates}
+                    onChangeText={setNumberOfRoommates}
+                  />
+                </>
+              )}
+
+              {apartment.ApartmentType === 0 && (
+                <>
+                  <Text style={styles.label}>אורך חוזה (חודשים):</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="numeric"
+                    value={contractLength}
+                    onChangeText={setContractLength}
+                  />
+                  <Text style={styles.label}>אפשרות להארכה:</Text>
+                  <TouchableOpacity
+                    style={styles.input}
+                    onPress={() =>
+                      setExtensionPossible(!extensionPossible)
+                    }
+                  >
+                    <Text>{extensionPossible ? "כן" : "לא"}</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+
+              {apartment.ApartmentType === 2 && (
+                <>
+                  <Text style={styles.label}>ביטול ללא קנס:</Text>
+                  <TouchableOpacity
+                    style={styles.input}
+                    onPress={() =>
+                      setCanCancelWithoutPenalty(!canCancelWithoutPenalty)
+                    }
+                  >
+                    <Text>{canCancelWithoutPenalty ? "כן" : "לא"}</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.label}>האם מדובר בדירה שלמה:</Text>
+                  <TouchableOpacity
+                    style={styles.input}
+                    onPress={() =>
+                      setIsWholeProperty(!isWholeProperty)
+                    }
+                  >
+                    <Text>{isWholeProperty ? "כן" : "לא"}</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+
+              <Text style={styles.label}>תאריך כניסה:</Text>
+              <TouchableOpacity
+                onPress={() => setShowEntryPicker(true)}
+                style={styles.input}
+              >
+                <Text>{entryDate}</Text>
+              </TouchableOpacity>
+              {showEntryPicker && (
+                <DateTimePicker
+                  value={new Date(entryDate)}
+                  mode="date"
+                  minimumDate={new Date()}
+                  onChange={(event, date) => {
+                    setShowEntryPicker(false);
+                    if (date) setEntryDate(date.toISOString().split("T")[0]);
+                  }}
+                />
+              )}
+
+              <Text style={styles.label}>תאריך יציאה:</Text>
+              <TouchableOpacity
+                onPress={() => setShowExitPicker(true)}
+                style={styles.input}
+              >
+                <Text>{exitDate}</Text>
+              </TouchableOpacity>
+              {showExitPicker && (
+                <DateTimePicker
+                  value={new Date(exitDate)}
+                  mode="date"
+                  minimumDate={new Date(entryDate)}
+                  onChange={(event, date) => {
+                    setShowExitPicker(false);
+                    if (date) setExitDate(date.toISOString().split("T")[0]);
+                  }}
+                />
+              )}
+
+              <Text style={styles.label}>תמונות שהועלו:</Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+                <ApartmentGalleryWithDelete images={apartment.Images} />
+              </View>
+
+              <TouchableOpacity onPress={pickImage} style={styles.cameraButton}>
+                <Text style={{ color: "#E3965A", fontWeight: "bold" }}>
+                  הוסף תמונות נוספות
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.submitButton} onPress={handleUpdate}>
+                <Text style={{ color: "white", fontWeight: "bold" }}>
+                  שמור שינויים
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={onClose} style={styles.cancelButton}>
+                <Text style={styles.cancelText}>ביטול</Text>
+              </TouchableOpacity>
+            </View>
+          }
           keyboardShouldPersistTaps="handled"
-        >
-          
-          <Text style={styles.label}>מחיר:</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            value={price}
-            onChangeText={setPrice}
-          />
+        />
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  </Modal>
+);
 
-          <Text style={styles.label}>חדרים:</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            value={rooms}
-            onChangeText={setRooms}
-          />
-
-          <Text style={styles.label}>תיאור:</Text>
-          <TextInput
-            style={styles.input}
-            value={description}
-            onChangeText={setDescription}
-            multiline
-          />
-
-          <Text style={styles.label}>קומה:</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            value={floor}
-            onChangeText={setFloor}
-          />
-
-          <Text style={styles.label}>חניה:</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            value={parkingSpace}
-            onChangeText={setParkingSpace}
-          />
-          {apartment.ApartmentType === 1 && (
-            <>
-              <Text style={styles.label}>מספר שותפים:</Text>
-              <TextInput
-                style={styles.input}
-                keyboardType="numeric"
-                value={numberOfRoommates}
-                onChangeText={setNumberOfRoommates}
-              />
-            </>
-          )}
-
-          {apartment.ApartmentType === 0 && (
-            <>
-              <Text style={styles.label}>אורך חוזה (חודשים):</Text>
-              <TextInput
-                style={styles.input}
-                keyboardType="numeric"
-                value={contractLength}
-                onChangeText={setContractLength}
-              />
-              <Text style={styles.label}>אפשרות להארכה:</Text>
-              <TouchableOpacity
-                style={styles.input}
-                onPress={() => setExtensionPossible(!extensionPossible)}
-              >
-                <Text>{extensionPossible ? "כן" : "לא"}</Text>
-              </TouchableOpacity>
-            </>
-          )}
-
-          {apartment.ApartmentType === 2 && (
-            <>
-              <Text style={styles.label}>ביטול ללא קנס:</Text>
-              <TouchableOpacity
-                style={styles.input}
-                onPress={() =>
-                  setCanCancelWithoutPenalty(!canCancelWithoutPenalty)
-                }
-              >
-                <Text>{canCancelWithoutPenalty ? "כן" : "לא"}</Text>
-              </TouchableOpacity>
-              <Text style={styles.label}>האם מדובר בדירה שלמה:</Text>
-              <TouchableOpacity
-                style={styles.input}
-                onPress={() => setIsWholeProperty(!isWholeProperty)}
-              >
-                <Text>{isWholeProperty ? "כן" : "לא"}</Text>
-              </TouchableOpacity>
-            </>
-          )}
-
-          <Text style={styles.label}>תאריך כניסה:</Text>
-          <TouchableOpacity
-            onPress={() => setShowEntryPicker(true)}
-            style={styles.input}
-          >
-            <Text>{entryDate}</Text>
-          </TouchableOpacity>
-          {showEntryPicker && (
-            <DateTimePicker
-              value={new Date(entryDate)}
-              mode="date"
-              minimumDate={new Date()}
-              onChange={(event, date) => {
-                setShowEntryPicker(false);
-                if (date) setEntryDate(date.toISOString().split("T")[0]);
-              }}
-            />
-          )}
-
-          <Text style={styles.label}>תאריך יציאה:</Text>
-          <TouchableOpacity
-            onPress={() => setShowExitPicker(true)}
-            style={styles.input}
-          >
-            <Text>{exitDate}</Text>
-          </TouchableOpacity>
-          {showExitPicker && (
-            <DateTimePicker
-              value={new Date(exitDate)}
-              mode="date"
-              minimumDate={new Date(entryDate)}
-              onChange={(event, date) => {
-                setShowExitPicker(false);
-                if (date) setExitDate(date.toISOString().split("T")[0]);
-              }}
-            />
-          )}
-
-          <Text style={styles.label}>תמונות שהועלו:</Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-            <ApartmentGalleryWithDelete images={apartment.Images} />
-          </View>
-
-          <TouchableOpacity onPress={pickImage} style={styles.cameraButton}>
-            <Text style={{ color: "#E3965A", fontWeight: "bold" }}>
-              הוסף תמונות נוספות
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.submitButton} onPress={handleUpdate}>
-            <Text style={{ color: "white", fontWeight: "bold" }}>
-              שמור שינויים
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={onClose} style={styles.cancelButton}>
-            <Text style={styles.cancelText}>ביטול</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </SafeAreaView>
-    </Modal>
-  );
 }
+const autocompleteStyles = StyleSheet.create({
+  textInput: {
+    height: 48,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    fontSize: 16,
+    marginBottom: 15,
+    textAlign: 'right',
+    backgroundColor: 'white',
+  },
+  listView: {
+    position: 'absolute',
+    top: 50,
+    zIndex: 1000,
+    elevation: 5, // for Android
+    backgroundColor: 'white',
+    width: '100%',
+  },
+});
 
 const styles = StyleSheet.create({
   container: {
