@@ -21,9 +21,10 @@ import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from "expo-image-picker";
 import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
 import MyOpenHouses from "./components/MyOpenHouses";
-import { signOut } from 'firebase/auth';
-import { auth } from './firebase';
-//hey
+import { signOut } from "firebase/auth";
+import { auth } from "./firebase";
+import RoommatePreferencesForm from "./components/RoommatePreferencesForm";
+import RecommendedRoommates from "./components/RecommendedRoommates";
 
 const baseUrl = "https://roomebackend20250414140006.azurewebsites.net";
 const GetImageUrl = (image) => {
@@ -52,6 +53,8 @@ const MyProfile = (props) => {
   const { allApartments } = useContext(ActiveApartmentContext);
   const [showOpenHousesModal, setShowOpenHousesModal] = useState(false);
   const [openHouses, setOpenHouses] = useState([]);
+  const [showPreferencesForm, setShowPreferencesForm] = useState(false);
+  const [roommateMatches, setRoommateMatches] = useState([]);
 
   useEffect(() => {
     if (!loginUserId) return;
@@ -159,50 +162,46 @@ const MyProfile = (props) => {
     }
   };
 
-const fetchOpenHouses = async () => {
-  try {
-    const response = await fetch(
-      `${API}OpenHouse/getByUser/${loginUserId}`
-    );
+  const fetchOpenHouses = async () => {
+    try {
+      const response = await fetch(`${API}OpenHouse/getByUser/${loginUserId}`);
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch open houses');
-    }
+      if (!response.ok) {
+        throw new Error("Failed to fetch open houses");
+      }
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!Array.isArray(data)) {
-      console.error('Unexpected data shape:', data);
+      if (!Array.isArray(data)) {
+        console.error("Unexpected data shape:", data);
+        setOpenHouses([]);
+        return;
+      }
+
+      const formattedData = data.map((item) => {
+        const apt = allApartments.find(
+          (a) => a.ApartmentID === item.ApartmentID
+        );
+        const location = apt ? apt.Location : "לא צויין מיקום";
+
+        return {
+          id: item.ID,
+          apartmentId: item.ApartmentID,
+          location: location,
+          date: item.Date ? item.Date.split("T")[0] : "",
+          startTime: item.StartTime?.substring(0, 5) || "",
+          endTime: item.EndTime?.substring(0, 5) || "",
+          amountOfPeoples: item.AmountOfPeople ?? 0,
+          totalRegistrations: item.TotalRegistrations ?? 0,
+        };
+      });
+
+      setOpenHouses(formattedData);
+    } catch (err) {
+      console.error("Error fetching open houses:", err);
       setOpenHouses([]);
-      return;
     }
-
-     const formattedData = data.map(item => {
-      const apt = allApartments.find(
-        (a) => a.ApartmentID === item.ApartmentID
-      );
-      const location = apt ? apt.Location : 'לא צויין מיקום';
-
-      return {
-        id: item.ID,
-        apartmentId: item.ApartmentID,
-        location: location,
-        date: item.Date ? item.Date.split('T')[0] : '',
-        startTime: item.StartTime?.substring(0, 5) || '',
-        endTime: item.EndTime?.substring(0, 5) || '',
-        amountOfPeoples: item.AmountOfPeople ?? 0,
-        totalRegistrations: item.TotalRegistrations ?? 0,
-      };
-    });
-
-    setOpenHouses(formattedData);
-  } catch (err) {
-    console.error('Error fetching open houses:', err);
-    setOpenHouses([]);
-  }
-};
-
-
+  };
 
   // --- Loading/Error ---
   if (loading)
@@ -216,28 +215,23 @@ const fetchOpenHouses = async () => {
       </Text>
     );
 
-
-
   // --- RTL helper ---
   const rtl = I18nManager.isRTL;
 
-    const handleLogout = async () => {
-      try {
-        await signOut(auth);
-        router.replace('/Login');
-      } catch (error) {
-        console.error('Error signing out:', error);
-      }
-    };
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.replace("/Login");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: "#F6F7FB" }}>
       {/* Header */}
       <View style={styles.headerContainer}>
-        <TouchableOpacity
-          style={styles.logoutIcon}
-          onPress={handleLogout}
-        >
+        <TouchableOpacity style={styles.logoutIcon} onPress={handleLogout}>
           <Feather name="log-out" size={24} color="#A1A7B3" />
         </TouchableOpacity>
         <TouchableOpacity
@@ -275,7 +269,10 @@ const fetchOpenHouses = async () => {
           <Text style={styles.counterNumber}>{ownedApartmentsNum}</Text>
           <Text style={styles.counterLabel}>הדירות שלי</Text>
         </View>
-        <TouchableOpacity style={[styles.counterCard,styles.counterCardActive]} onPress={() => setShowOpenHousesModal(true)}>
+        <TouchableOpacity
+          style={[styles.counterCard, styles.counterCardActive]}
+          onPress={() => setShowOpenHousesModal(true)}
+        >
           <Text style={styles.counterNumber}>{openHouses.length}</Text>
           <Text style={styles.counterLabel}>בתים פתוחים</Text>
         </TouchableOpacity>
@@ -513,15 +510,19 @@ const fetchOpenHouses = async () => {
         />
       </View>
 
-      {/* Settings Row */}
-      <TouchableOpacity style={styles.settingsRow}>
+      <TouchableOpacity
+        style={styles.settingsRow}
+        onPress={() => setShowPreferencesForm(true)}
+      >
         <FontAwesome5
-          name="cog"
+          name="sliders-h"
           size={20}
           color="#A1A7B3"
           style={{ marginLeft: 16 }}
         />
-        <Text style={styles.settingsText}>הגדרות</Text>
+        <Text style={styles.settingsText}>
+          {"\u202A"} למציאת שותפים AI{"\u202C"}
+        </Text>
         <Feather
           name="chevron-left"
           size={22}
@@ -531,7 +532,7 @@ const fetchOpenHouses = async () => {
       </TouchableOpacity>
 
       {/* Open Houses Modal */}
-      <MyOpenHouses 
+      <MyOpenHouses
         visible={showOpenHousesModal}
         onClose={() => setShowOpenHousesModal(false)}
         userId={loginUserId}
@@ -546,6 +547,13 @@ const fetchOpenHouses = async () => {
           loginUserId={loginUserId}
         />
       </View>
+      {showPreferencesForm && (
+        <Modal visible={showPreferencesForm} animationType="slide">
+          <RoommatePreferencesForm
+            onClose={() => setShowPreferencesForm(false)}
+          />
+        </Modal>
+      )}
     </View>
   );
 };

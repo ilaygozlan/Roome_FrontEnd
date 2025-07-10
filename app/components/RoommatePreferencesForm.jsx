@@ -13,12 +13,15 @@ import { userInfoContext } from "../contex/userInfoContext";
 import API from "../../config";
 import MultiSlider from "@ptomasroos/react-native-multi-slider";
 import { Ionicons } from "@expo/vector-icons";
+import RecommendedRoommates from "./RecommendedRoommates";
 
 const RoommatePreferencesForm = ({ onClose, onMatchesFound }) => {
   const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = useWindowDimensions();
   const { loginUserId } = useContext(userInfoContext);
   const [preferences, setPreferences] = useState({});
   const [loading, setLoading] = useState(true);
+  const [resultsLoading, setResultsLoading] = useState(false);
+  const [matchedRoommates, setMatchedRoommates] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [scrollEnabled, setScrollEnabled] = useState(true);
   const [numOfRoommates, setNumOfRoommates] = useState(3);
@@ -133,6 +136,7 @@ const RoommatePreferencesForm = ({ onClose, onMatchesFound }) => {
 
   const handleSaveAndFind = () => {
     const payload = buildPayload();
+    setResultsLoading(true);
 
     fetch(`${API}RoommatePreferences/Upsert`, {
       method: "POST",
@@ -154,12 +158,14 @@ const RoommatePreferencesForm = ({ onClose, onMatchesFound }) => {
         )
       )
       .then((fullUsers) => {
-        onMatchesFound(fullUsers);
+        setMatchedRoommates(fullUsers);
+        console.log("👥 משתמשים שהתקבלו:", fullUsers);
       })
       .catch((err) => {
         console.error("Error:", err);
         Alert.alert("שגיאה", "אירעה שגיאה בתהליך.");
-      });
+      })
+      .finally(() => setResultsLoading(false));
   };
 
   const renderField = (field) => {
@@ -184,9 +190,7 @@ const RoommatePreferencesForm = ({ onClose, onMatchesFound }) => {
             allowOverlap={false}
             snapped
           />
-          <Text
-            style={styles.sliderText}
-          >{`${ageRange[0]} - ${ageRange[1]} שנים`}</Text>
+          <Text style={styles.sliderText}>{`${ageRange[0]} - ${ageRange[1]} שנים`}</Text>
         </View>
       );
     }
@@ -229,92 +233,98 @@ const RoommatePreferencesForm = ({ onClose, onMatchesFound }) => {
         <Ionicons name="close" size={30} color="#333" />
       </TouchableOpacity>
 
-      <ScrollView
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        style={{ flex: 1 }}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-        scrollEnabled={scrollEnabled}
-      >
-        {allFields.map((field, index) => (
-          <View
-            key={index}
-            style={{
-              width: SCREEN_WIDTH,
-              justifyContent: "center",
-              alignItems: "center",
-              height: SCREEN_HEIGHT,
-            }}
-          >
-            <View style={styles.card}>
-              {field.key === "intro" ? (
-                <>
-                  <Text style={styles.introTitle}>מלא את השאלון</Text>
-                  <Text style={styles.introText}>
-                    כדי למצוא את השותפים המושלמים עבורך
-                  </Text>
-                  <Text style={styles.introTextSmall}>
-                    כמה שותפים אתה מחפש?
-                  </Text>
+      {resultsLoading ? (
+        <ActivityIndicator size="large" color="#4A90E2" />
+      ) : matchedRoommates.length > 0 ? (
+        <ScrollView style={{ flex: 1 }}>
+          <RecommendedRoommates roommates={matchedRoommates} />
+        </ScrollView>
+      ) : (
+        <ScrollView
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          style={{ flex: 1 }}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          scrollEnabled={scrollEnabled}
+        >
+          {allFields.map((field, index) => (
+            <View
+              key={index}
+              style={{
+                width: SCREEN_WIDTH,
+                justifyContent: "center",
+                alignItems: "center",
+                height: SCREEN_HEIGHT,
+              }}
+            >
+              <View style={styles.card}>
+                {field.key === "intro" ? (
+                  <>
+                    <Text style={styles.introTitle}>מלא את השאלון</Text>
+                    <Text style={styles.introText}>
+                      כדי למצוא את השותפים המושלמים עבורך
+                    </Text>
+                    <Text style={styles.introTextSmall}>
+                      כמה שותפים אתה מחפש?
+                    </Text>
 
-                  <View style={styles.roommatesButtonsContainer}>
-                    {[1, 2, 3].map((num) => (
+                    <View style={styles.roommatesButtonsContainer}>
+                      {[1, 2, 3].map((num) => (
+                        <TouchableOpacity
+                          key={num}
+                          style={[
+                            styles.roommateButton,
+                            numOfRoommates === num && styles.roommateButtonSelected,
+                          ]}
+                          onPress={() => setNumOfRoommates(num)}
+                        >
+                          <Text
+                            style={[
+                              styles.roommateButtonText,
+                              numOfRoommates === num && styles.roommateButtonTextSelected,
+                            ]}
+                          >
+                            {num}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+
+                    <Text style={styles.introTextSmall}>
+                      גלול ימינה כדי להתחיל
+                    </Text>
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.label}>{field.question}</Text>
+                    {renderField(field)}
+                    {index === allFields.length - 1 && (
                       <TouchableOpacity
-                        key={num}
-                        style={[
-                          styles.roommateButton,
-                          numOfRoommates === num &&
-                            styles.roommateButtonSelected,
-                        ]}
-                        onPress={() => setNumOfRoommates(num)}
+                        style={[styles.submitBtn, { marginTop: 20 }]}
+                        onPress={handleSaveAndFind}
                       >
                         <Text
-                          style={[
-                            styles.roommateButtonText,
-                            numOfRoommates === num &&
-                              styles.roommateButtonTextSelected,
-                          ]}
+                          style={{
+                            color: "white",
+                            fontSize: 18,
+                            textAlign: "center",
+                          }}
                         >
-                          {num}
+                          מצא את השותפים המושלמים עבורך
                         </Text>
                       </TouchableOpacity>
-                    ))}
-                  </View>
-
-                  <Text style={styles.introTextSmall}>
-                    גלול ימינה כדי להתחיל
-                  </Text>
-                </>
-              ) : (
-                <>
-                  <Text style={styles.label}>{field.question}</Text>
-                  {renderField(field)}
-                  {index === allFields.length - 1 && (
-                    <TouchableOpacity
-                      style={[styles.submitBtn, { marginTop: 20 }]}
-                      onPress={handleSaveAndFind}
-                    >
-                      <Text
-                        style={{
-                          color: "white",
-                          fontSize: 18,
-                          textAlign: "center",
-                        }}
-                      >
-                        מצא את השותפים המושלמים עבורך
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </>
-              )}
+                    )}
+                  </>
+                )}
+              </View>
             </View>
-          </View>
-        ))}
-      </ScrollView>
+          ))}
+        </ScrollView>
+      )}
 
-      {currentPage > 0 && (
+      {currentPage > 0 && matchedRoommates.length === 0 && (
         <View style={styles.progressContainer}>
           <Text style={styles.progressText}>
             {currentPage} מתוך {fields.length}
@@ -383,30 +393,29 @@ const styles = StyleSheet.create({
   progressContainer: { position: "absolute", bottom: 40 },
   progressText: { fontSize: 18, color: "#333" },
   roommatesButtonsContainer: {
-  flexDirection: 'row',
-  justifyContent: 'space-around',
-  marginVertical: 20,
-  width: '100%',
-},
-roommateButton: {
-  borderWidth: 1,
-  borderColor: '#ccc',
-  borderRadius: 12,
-  paddingVertical: 15,
-  paddingHorizontal: 25,
-  backgroundColor: '#eee',
-},
-roommateButtonSelected: {
-  backgroundColor: '#2661A1',
-},
-roommateButtonText: {
-  fontSize: 18,
-  color: '#333',
-},
-roommateButtonTextSelected: {
-  color: '#fff',
-},
-
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginVertical: 20,
+    width: "100%",
+  },
+  roommateButton: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 12,
+    paddingVertical: 15,
+    paddingHorizontal: 25,
+    backgroundColor: "#eee",
+  },
+  roommateButtonSelected: {
+    backgroundColor: "#2661A1",
+  },
+  roommateButtonText: {
+    fontSize: 18,
+    color: "#333",
+  },
+  roommateButtonTextSelected: {
+    color: "#fff",
+  },
 });
 
 export default RoommatePreferencesForm;
