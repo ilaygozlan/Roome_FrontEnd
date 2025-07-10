@@ -9,6 +9,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import Feather from "@expo/vector-icons/Feather";
 import { ActiveApartmentProvider } from "../contex/ActiveApartmentContext";
 import { UserInfoProvider } from "../contex/userInfoContext";
+import { checkIfAdmin } from "../../checkAdmin";
 
 /**
  * @module TabsLayout
@@ -59,16 +60,21 @@ import { UserInfoProvider } from "../contex/userInfoContext";
 export default function Layout() {
   const [checking, setChecking] = useState(true);
   const router = useRouter();
+  const [isAdmin, setIsAdmin] = useState(null);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        router.replace("/Login");
-      }
-      setChecking(false);
-    });
-    return () => unsubscribe();
-  }, []);
+   useEffect(() => {
+      const unsubscribe = onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+          router.replace("/Login");
+        } else {
+          // Check if user is admin
+          const isAdminUser = await checkIfAdmin();
+          setIsAdmin(isAdminUser);
+        }
+        setChecking(false);
+      });
+      return () => unsubscribe();
+    }, []);
 
   if (checking) {
     return (
@@ -109,19 +115,17 @@ export default function Layout() {
             <Tabs.Screen
               name="ProfilePage"
               options={{
-                title: "Profile",
-                tabBarIcon: ({ color, size }) => (
-                  <Ionicons name="person-outline" size={size} color={color} />
-                ),
-              }}
-            /> 
-            <Tabs.Screen
-              name="Admin"
-              options={{
-                title: "Admin",
-                tabBarIcon: ({ color, size }) => (
-                  <Ionicons name="person-outline" size={size} color={color} />
-                ),
+                title: isAdmin ? "Admin" : "Profile",
+                tabBarIcon: ({ color, size }) =>
+                  isAdmin ? (
+                    <Ionicons
+                      name="settings-outline"
+                      size={size}
+                      color={color}
+                    />
+                  ) : (
+                    <Ionicons name="person-outline" size={size} color={color} />
+                  ),
               }}
             />
             <Tabs.Screen

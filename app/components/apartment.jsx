@@ -30,7 +30,7 @@ export default function Apartment(props) {
   const [showApartmentDetails, setShowApartmentDetails] = useState(false);
   const [selectedApartment, setSelectedApartment] = useState(null);
   const router = useRouter();
-
+  const [index, setIndex]= useState(true);
   const [selectedType, setSelectedType] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [priceRange, setPriceRange] = useState([100, 10000]);
@@ -242,6 +242,7 @@ export default function Apartment(props) {
     });
 
     setPreviewSearchApt(newAptArr);
+    setIndex(false);
   };
 
   function extractCityFromAddress(address) {
@@ -283,6 +284,9 @@ export default function Apartment(props) {
         priceRange={priceRange}
         setPriceRange={setPriceRange}
         SearchApartments={SearchApartments}
+        index={index}
+        setIndex={setIndex}
+        showAllApartments={()=>{setPreviewSearchApt(allApartments)}}
       />
       <ScrollView>
         <View style={styles.container}>{renderApartments()}</View>

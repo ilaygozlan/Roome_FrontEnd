@@ -30,9 +30,8 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 0 , flex: 1}}>
         <Apartment />
-      </ScrollView>
+    
     </SafeAreaView>
   );
 }

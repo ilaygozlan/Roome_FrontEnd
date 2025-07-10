@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,18 +11,21 @@ import {
   FlatList,
 } from "react-native";
 /*import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";*/
+
 import MultiSlider from "@ptomasroos/react-native-multi-slider";
 import { AntDesign, Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import SearchFilters from "./SearchFilters";
 import { useRouter } from "expo-router";
 import { Keyboard, TouchableWithoutFeedback } from "react-native";
+import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import GooglePlacesInput from "./GooglePlacesAPI";
+
 
 /**
  * @component SearchBar
  * @description Advanced search component for apartment filtering with expandable interface.
  * Provides functionality for filtering apartments by type, location, and price range.
- * 
+ *
  * Features:
  * - Expandable search interface
  * - Category selection (Rental, Roommates, Sublet)
@@ -30,7 +33,7 @@ import GooglePlacesInput from "./GooglePlacesAPI";
  * - Location selection
  * - Map view navigation
  * - Search filters integration
- * 
+ *
  * @param {Object} props
  * @param {number|null} props.selectedType - Currently selected apartment type
  * @param {Function} props.setSelectedType - Function to update selected type
@@ -54,8 +57,14 @@ export default function SearchBar({
   priceRange,
   setPriceRange,
   SearchApartments,
+  index,
+  setIndex,
+  showAllApartments
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [searchInput, setSearchInput] = useState(
+    selectedLocation?.address || ""
+  );
 
   const router = useRouter();
   const googlePlacesRef = useRef();
@@ -64,6 +73,10 @@ export default function SearchBar({
     UIManager.setLayoutAnimationEnabledExperimental &&
       UIManager.setLayoutAnimationEnabledExperimental(true);
   }
+
+  useEffect(() => {
+    setSearchInput(selectedLocation?.address || "");
+  }, [expanded, selectedLocation]);
 
   const locations = ["גמישות בחיפוש", "תל אביב", "חיפה", "באר שבע"];
   const categories = [
@@ -83,11 +96,38 @@ export default function SearchBar({
       <View style={styles.searchRow}>
         {/* Search bar */}
         <TouchableOpacity style={styles.searchBar} onPress={toggleExpand}>
-          <Ionicons name="search" size={20} color="#000" style={styles.icon} />
+          {index ? (
+            <Ionicons
+              name="search"
+              size={20}
+              color="#000"
+              style={styles.icon}
+            />
+          ) : (
+            <TouchableOpacity
+              onPress={() => {
+                setSelectedType(null);
+                setSelectedLocation(null);
+                setPriceRange([0, 20000]);
+                setSearchInput("");
+                SearchApartments();
+                setExpanded(false);
+                setIndex(true);
+                showAllApartments();
+              }}
+            >
+              <Ionicons
+                name="refresh-outline"
+                size={24}
+                color={colors.primary}
+                style={styles.icon}
+              />
+            </TouchableOpacity>
+          )}
           <View style={{ flex: 1, alignItems: "flex-end" }}>
             <Text style={[styles.locationMain, { textAlign: "right" }]}>
               {selectedLocation || selectedType !== null
-                ? `${selectedLocation || ""}${
+                ? `${selectedLocation?.address || ""}${
                     selectedLocation && selectedType !== null ? " • " : ""
                   }${
                     selectedType !== null ? categories[selectedType].name : ""
@@ -110,13 +150,63 @@ export default function SearchBar({
       </View>
 
       {expanded && (
-        <ScrollView
-          style={styles.expandSection}
-        >
+        <View style={styles.expandSection}>
           {/* Google Autocomplete */}
-          {/* <View style={{ zIndex: 9999, width: "100%" }}>
-              <GooglePlacesInput onLocationSelected={setSelectedLocation} />
-            </View>*/}
+          <View style={{ zIndex: 2, width: "100%", margin: 0 }}>
+            <Text style={[styles.label, { marginTop: 0 }]}>בחר מיקום:</Text>
+            <GooglePlacesAutocomplete
+              placeholder={selectedLocation?.address || "הקלד מיקום..."}
+              onPress={(data, details = null) => {
+                if (details) {
+                  const location = details.formatted_address;
+                  const lat = details.geometry.location.lat;
+                  const lng = details.geometry.location.lng;
+
+                  console.log("📍 Address:", location);
+                  console.log("🌍 Latitude:", lat);
+                  console.log("🌍 Longitude:", lng);
+                  console.log("🌍 type:", details.types);
+
+                  const fullAddress = {
+                    address: location,
+                    latitude: lat,
+                    longitude: lng,
+                    types: details.types,
+                  };
+
+                  setSelectedLocation(fullAddress);
+                }
+              }}
+              fetchDetails={true}
+              query={{
+                key: "AIzaSyCy4JnaYp3wvOAUH7-lOA4IFB_tBK9-5BE",
+                language: "he",
+                components: "country:il",
+              }}
+              enablePoweredByContainer={false}
+              styles={{
+                textInput: {
+                  height: 48,
+                  borderWidth: 1,
+                  borderColor: "#ccc",
+                  borderRadius: 10,
+                  paddingHorizontal: 10,
+                  fontSize: 16,
+                  marginBottom: 15,
+                  textAlign: "right",
+                  backgroundColor: "white",
+                },
+                listView: {
+                  position: "absolute",
+                  top: 50,
+                  zIndex: 1000,
+                  elevation: 5, // for Android
+                  backgroundColor: "white",
+                  width: "100%",
+                },
+              }}
+            />
+          </View>
 
           {/* most common locations*/}
           {/*
@@ -162,7 +252,7 @@ export default function SearchBar({
             />
             */}
           {/* apartment categories */}
-          <Text style={[styles.label, { marginTop: 25 }]}>בחר קטגוריה:</Text>
+          <Text style={[styles.label, { marginTop: 65 }]}>בחר קטגוריה:</Text>
           <View style={styles.categories}>
             {categories.map((cat) => (
               <TouchableOpacity
@@ -225,7 +315,7 @@ export default function SearchBar({
               <Text style={styles.searchButtonText}>חיפוש</Text>
             </TouchableOpacity>
           </View>
-        </ScrollView>
+        </View>
       )}
     </View>
   );
@@ -269,7 +359,6 @@ const styles = StyleSheet.create({
   },
   expandSection: {
     marginTop: 0,
-    paddingTop: 20,
     maxHeight: 500,
     padding: 10,
     backgroundColor: "#fefefe",
@@ -330,11 +419,11 @@ const styles = StyleSheet.create({
   },
 
   searchButton: {
-    backgroundColor: "#E3965A", // צבע כתום
+    backgroundColor: "#E3965A",
     paddingVertical: 12,
     paddingHorizontal: 60,
     borderRadius: 25,
-    elevation: 3, // צל
+    elevation: 3,
   },
 
   searchButtonText: {

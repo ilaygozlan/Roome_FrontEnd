@@ -8,6 +8,7 @@ import {
   FlatList,
   Alert,
   KeyboardAvoidingView,
+  Image
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { userInfoContext } from "../contex/userInfoContext";
@@ -17,7 +18,7 @@ import API from "../../config";
  * @component ApartmentReview
  * @description Component for displaying and managing apartment reviews and ratings.
  * Allows users to view, add, and delete reviews, and displays average ratings.
- * 
+ *
  * Features:
  * - Display average rating
  * - List all reviews
@@ -25,10 +26,10 @@ import API from "../../config";
  * - Delete own reviews
  * - RTL (Right-to-Left) layout support
  * - User-specific review management
- * 
+ *
  * @param {Object} props
  * @param {number} props.apartmentId - ID of the apartment being reviewed
- * 
+ *
  * State Management:
  * - Reviews list
  * - Average rating
@@ -38,7 +39,7 @@ import API from "../../config";
  */
 
 export default function ApartmentReview({ apartmentId }) {
-  const {loginUserId} = useContext(userInfoContext)
+  const { loginUserId } = useContext(userInfoContext);
 
   const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState("");
@@ -57,7 +58,9 @@ export default function ApartmentReview({ apartmentId }) {
 
   useEffect(() => {
     const total = reviews.reduce((sum, r) => sum + r.rating, 0);
-    setAverageRating(reviews.length ? (total / reviews.length).toFixed(1) : "0");
+    setAverageRating(
+      reviews.length ? (total / reviews.length).toFixed(1) : "0"
+    );
   }, [reviews]);
 
   /**
@@ -85,11 +88,13 @@ export default function ApartmentReview({ apartmentId }) {
         const data = await response.json();
         const mapped = data.map((r) => ({
           id: r.reviewId,
-          user: r.userId === loginUserId ? "You" : `User ${r.userId}`,
-          comment: r.reviewText,
+          user: r.UserID === loginUserId ? "You" : r.ReviewerName,
+          comment: r.review,
           rating: r.rate,
-          userId: r.userId,
+          userId: r.UserID,
+          avatar: r.ReviewerProfilePicture,
         }));
+
         setReviews(mapped);
         setHasReviewed(mapped.some((r) => r.userId === loginUserId));
       }
@@ -175,31 +180,45 @@ export default function ApartmentReview({ apartmentId }) {
    * @param {Object} props.item - Review data object
    * @returns {JSX.Element}
    */
-  const renderItem = ({ item }) => (
-    <View key={item.id} style={styles.reviewCard}>
-      <View style={styles.reviewHeader}>
+const renderItem = ({ item }) => (
+  <View key={item.id} style={styles.reviewCard}>
+    <View style={styles.reviewHeader}>
+      <View style={styles.rightSide}>
+        {item.avatar && (
+          <Image
+            source={{ uri: item.avatar }}
+            style={styles.avatar}
+          />
+        )}
         <Text style={styles.reviewUser}>{item.user}</Text>
+      </View>
+
+      <View style={styles.leftSide}>
+        <View style={styles.ratingRow}>
+          {Array(5)
+            .fill()
+            .map((_, index) => (
+              <AntDesign
+                key={index}
+                name={index < item.rating ? "star" : "staro"}
+                size={18}
+                color="#fb923c"
+              />
+            ))}
+        </View>
+
         {item.userId === loginUserId && (
           <TouchableOpacity onPress={() => deleteReview(item.id)}>
             <AntDesign name="delete" size={20} color="#fb923c" />
           </TouchableOpacity>
         )}
       </View>
-      <Text style={styles.reviewComment}>{item.comment}</Text>
-      <View style={{ flexDirection: "row" }}>
-        {Array(5)
-          .fill()
-          .map((_, index) => (
-            <AntDesign
-              key={index}
-              name={index < item.rating ? "star" : "staro"}
-              size={18}
-              color="#fb923c"
-            />
-          ))}
-      </View>
     </View>
-  );
+
+    <Text style={styles.reviewComment}>{item.comment}</Text>
+  </View>
+);
+
 
   return (
     <View style={{ paddingBottom: 50 }}>
@@ -223,31 +242,34 @@ export default function ApartmentReview({ apartmentId }) {
 
       {!hasReviewed && (
         <KeyboardAvoidingView>
-        <View style={styles.addReviewSection}>
-          <Text style={styles.addReviewTitle}>הוסף ביקורת חדשה:</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="כתוב ביקורת כאן..."
-            value={newReview}
-            onChangeText={setNewReview}
-          />
-          <View style={styles.ratingStars}>
-            {Array(5)
-              .fill()
-              .map((_, index) => (
-                <TouchableOpacity key={index} onPress={() => setNewRating(index + 1)}>
-                  <AntDesign
-                    name={index < newRating ? "star" : "staro"}
-                    size={30}
-                    color="#fb923c"
-                  />
-                </TouchableOpacity>
-              ))}
+          <View style={styles.addReviewSection}>
+            <Text style={styles.addReviewTitle}>הוסף ביקורת חדשה:</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="כתוב ביקורת כאן..."
+              value={newReview}
+              onChangeText={setNewReview}
+            />
+            <View style={styles.ratingStars}>
+              {Array(5)
+                .fill()
+                .map((_, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    onPress={() => setNewRating(index + 1)}
+                  >
+                    <AntDesign
+                      name={index < newRating ? "star" : "staro"}
+                      size={30}
+                      color="#fb923c"
+                    />
+                  </TouchableOpacity>
+                ))}
+            </View>
+            <TouchableOpacity style={styles.submitButton} onPress={addReview}>
+              <Text style={styles.submitText}>הוספת ביקורת</Text>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.submitButton} onPress={addReview}>
-            <Text style={styles.submitText}>הוספת ביקורת</Text>
-          </TouchableOpacity>
-        </View>
         </KeyboardAvoidingView>
       )}
     </View>
@@ -318,4 +340,41 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   submitText: { color: "white", fontWeight: "bold" },
+  reviewInfo: {
+  flexDirection: "row-reverse",
+  alignItems: "center",
+  gap: 8,
+},
+
+reviewHeader: {
+  flexDirection: "row-reverse",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: 6,
+},
+
+rightSide: {
+  flexDirection: "row-reverse",
+  alignItems: "center",
+  gap: 8,
+},
+
+leftSide: {
+  flexDirection: "row-reverse",
+  alignItems: "center",
+  gap: 10,
+},
+
+ratingRow: {
+  flexDirection: "row-reverse",
+  alignItems: "center",
+},
+
+avatar: {
+  width: 32,
+  height: 32,
+  borderRadius: 16,
+  backgroundColor: "#ddd",
+},
+
 });

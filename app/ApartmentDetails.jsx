@@ -14,6 +14,7 @@ import { FlatList } from "react-native";
 import Constants from "expo-constants";
 import ApartmentReview from "./components/apartmentReview";
 import { FontAwesome5, MaterialIcons, Ionicons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import API from "../config";
 import { useRouter } from "expo-router";
@@ -32,6 +33,138 @@ export default function ApartmentDetails({ apt, onClose }) {
   const navigation = useNavigation();
   const [userInfo, setUserInfo] = useState(null);
   const [containerWidth, setContainerWidth] = useState(width);
+
+  const labelToIcon = {
+    couch: <FontAwesome5 name="couch" size={24} />,
+    sofa: <FontAwesome5 name="couch" size={24} />,
+    armchair: <MaterialCommunityIcons name="seat" size={24} />,
+    chair: <MaterialIcons name="chair" size={24} />,
+    table: <MaterialIcons name="table-restaurant" size={24} />,
+    "coffee table": <MaterialCommunityIcons name="coffee" size={24} />,
+    "dining table": <MaterialIcons name="table-restaurant" size={24} />,
+    desk: <MaterialCommunityIcons name="desk" size={24} />,
+    bed: <FontAwesome5 name="bed" size={24} />,
+    "bunk bed": <MaterialCommunityIcons name="bunk-bed" size={24} />,
+    mattress: <MaterialCommunityIcons name="bed-king" size={24} />,
+    dresser: <MaterialCommunityIcons name="dresser" size={24} />,
+    wardrobe: <MaterialCommunityIcons name="wardrobe" size={24} />,
+    tv: <MaterialIcons name="tv" size={24} />,
+    television: <MaterialIcons name="tv" size={24} />,
+    lamp: <MaterialIcons name="emoji-objects" size={24} />,
+    chandelier: <MaterialCommunityIcons name="chandelier" size={24} />,
+    "light fixture": <MaterialCommunityIcons name="ceiling-light" size={24} />,
+    bookshelf: <MaterialCommunityIcons name="bookshelf" size={24} />,
+    mirror: <MaterialCommunityIcons name="mirror" size={24} />,
+    rug: <MaterialCommunityIcons name="rug" size={24} />,
+    curtain: <MaterialCommunityIcons name="curtains" size={24} />,
+    blinds: <MaterialCommunityIcons name="blinds" size={24} />,
+    balcony: <MaterialCommunityIcons name="balcony" size={24} />,
+    "patio furniture": <MaterialCommunityIcons name="table-chair" size={24} />,
+    "outdoor chair": <MaterialIcons name="chair-alt" size={24} />,
+    "outdoor table": <MaterialIcons name="table-restaurant" size={24} />,
+    "bar stool": <MaterialCommunityIcons name="stool" size={24} />,
+    vanity: <MaterialCommunityIcons name="vanity-light" size={24} />,
+    ottoman: <MaterialCommunityIcons name="stool-outline" size={24} />,
+    "bean bag": <MaterialCommunityIcons name="stool" size={24} />,
+    sideboard: <MaterialCommunityIcons name="sofa-outline" size={24} />,
+    "console table": (
+      <MaterialCommunityIcons name="table-furniture" size={24} />
+    ),
+    "shoe rack": <MaterialCommunityIcons name="shoe-formal" size={24} />,
+    "air conditioner": (
+      <MaterialCommunityIcons name="air-conditioner" size={24} />
+    ),
+    shower: <MaterialIcons name="shower" size={24} />,
+    "washing machine": (
+      <MaterialCommunityIcons name="washing-machine" size={24} />
+    ),
+    dryer: <MaterialCommunityIcons name="tumble-dryer" size={24} />,
+    "swimming pool": <MaterialCommunityIcons name="pool" size={24} />,
+    garden: <MaterialCommunityIcons name="flower" size={24} />,
+    yard: <MaterialCommunityIcons name="grass" size={24} />,
+    elevator: <MaterialCommunityIcons name="elevator" size={24} />,
+    parking: <MaterialIcons name="local-parking" size={24} />,
+    garage: <MaterialCommunityIcons name="garage" size={24} />,
+    dishwasher: <MaterialCommunityIcons name="dishwasher" size={24} />,
+    microwave: <MaterialCommunityIcons name="microwave" size={24} />,
+    oven: <MaterialCommunityIcons name="stove" size={24} />,
+    fridge: <MaterialCommunityIcons name="fridge-outline" size={24} />,
+    refrigerator: <MaterialCommunityIcons name="fridge-outline" size={24} />,
+    stove: <MaterialCommunityIcons name="stove" size={24} />,
+    "security camera": <MaterialCommunityIcons name="security" size={24} />,
+    intercom: <MaterialCommunityIcons name="home-account" size={24} />,
+    jacuzzi: <MaterialCommunityIcons name="hot-tub" size={24} />,
+  };
+
+  const labelTranslations = {
+    couch: "ספה",
+    sofa: "ספה",
+    armchair: "כורסה",
+    chair: "כיסא",
+    bench: "ספסל",
+    table: "שולחן",
+    "coffee table": "שולחן קפה",
+    "dining table": "שולחן אוכל",
+    desk: "שולחן כתיבה",
+    nightstand: "שידה ליד המיטה",
+    bed: "מיטה",
+    "bunk bed": "מיטת קומותיים",
+    mattress: "מזרן",
+    dresser: "שידה",
+    wardrobe: "ארון בגדים",
+    closet: "ארון",
+    tv: "טלוויזיה",
+    television: "טלוויזיה",
+    "tv stand": "שידת טלוויזיה",
+    "entertainment unit": "מערכת בידור",
+    lamp: "מנורה",
+    chandelier: "נברשת",
+    "light fixture": "גוף תאורה",
+    bookshelf: "כוורת ספרים",
+    bookcase: "כוורת ספרים",
+    shelf: "מדף",
+    cabinet: "ארונית",
+    drawer: "מגירה",
+    mirror: "מראה",
+    rug: "שטיח",
+    carpet: "שטיח",
+    curtain: "וילון",
+    blinds: "תריסים",
+    balcony: "מרפסת",
+    "patio furniture": "ריהוט חוץ",
+    "outdoor chair": "כיסא חוץ",
+    "outdoor table": "שולחן חוץ",
+    "bar stool": "שרפרף בר",
+    vanity: "שידת איפור",
+    ottoman: "הדום",
+    "bean bag": "פוף",
+    recliner: "כורסה נפתחת",
+    sideboard: "שידת צד",
+    "console table": "קונסולה",
+    "shoe rack": "מתקן לנעליים",
+    "air conditioner": "מזגן",
+    ac: "מזגן",
+    shower: "מקלחת",
+    "washing machine": "מכונת כביסה",
+    dryer: "מייבש כביסה",
+    "swimming pool": "בריכה",
+    pool: "בריכה",
+    garden: "גן",
+    yard: "חצר",
+    terrace: "טרסה",
+    elevator: "מעלית",
+    parking: "חניה",
+    garage: "מוסך",
+    dishwasher: "מדיח כלים",
+    microwave: "מיקרוגל",
+    oven: "תנור אפייה",
+    fridge: "מקרר",
+    refrigerator: "מקרר",
+    stove: "כיריים",
+    "security camera": "מצלמת אבטחה",
+    intercom: "אינטרקום",
+    jacuzzi: "ג׳קוזי",
+  };
 
   useEffect(() => {
     console.log("APT CHANGED:", apt.ApartmentID);
@@ -120,6 +253,43 @@ export default function ApartmentDetails({ apt, onClose }) {
       });
       return details;
     });
+  };
+  const getApartmentLabels = () => {
+    if (!apt.LabelsJson) return [];
+
+    try {
+      const labelsArr = JSON.parse(apt.LabelsJson);
+      return labelsArr
+        .map((item) => item.Label?.toLowerCase())
+        .filter((label) => label && labelToIcon[label]);
+    } catch (e) {
+      console.error("Error parsing LabelsJson:", e);
+      return [];
+    }
+  };
+  const renderApartmentLabels = () => {
+    const labels = getApartmentLabels();
+
+    if (labels.length === 0) return null;
+
+    return (
+      <View style={styles.labelsContainer}>
+        <Text style={styles.sectionTitle}>מאפייני דירה:</Text>
+        <View style={styles.labelsGrid}>
+          {labels.map((label, index) => (
+            <View key={index} style={styles.labelItem}>
+              {React.cloneElement(labelToIcon[label], {
+                size: 24,
+                color: "#E3965A",
+              })}
+              <Text style={styles.labelText}>
+                {labelTranslations[label] || label}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </View>
+    );
   };
 
   const renderExtraDetails = () => {
@@ -267,7 +437,7 @@ export default function ApartmentDetails({ apt, onClose }) {
             <Text style={styles.title}>{apt.Location}</Text>
             <Text style={styles.price}>{apt.Price} ש"ח</Text>
             <Text style={styles.description}>{apt.Description}</Text>
-
+            {renderApartmentLabels()}
             <Text style={styles.sectionTitle}>
               סוג דירה: {getTypeName(apt.ApartmentType)}
             </Text>
@@ -470,4 +640,29 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#333",
   },
+  labelsContainer: {
+  marginTop: 20,
+  marginBottom: 10,
+},
+labelsGrid: {
+  flexDirection: "row-reverse", 
+  flexWrap: "wrap",
+  justifyContent: "flex-start",
+  marginTop: 10,
+},
+
+labelItem: {
+  width: "22%",
+  alignItems: "center",
+  marginVertical: 8,
+  flexDirection: "column",
+},
+
+labelText: {
+  fontSize: 12,
+  color: "#444",
+  marginTop: 4,
+  textAlign: "center",
+},
+
 });
