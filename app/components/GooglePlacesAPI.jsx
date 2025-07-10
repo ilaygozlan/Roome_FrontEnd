@@ -38,23 +38,25 @@ export default function GooglePlacesInput({ onLocationSelected }) {
       <GooglePlacesAutocomplete
         placeholder="הקלד מיקום..."
         onPress={(data, details = null) => {
-            if (details) {
-                const location = details.formatted_address;
-                const lat = details.geometry.location.lat;
-                const lng = details.geometry.location.lng;
-              
-                console.log("📍 Address:", location);
-                console.log("🌍 Latitude:", lat);
-                console.log("🌍 Longitude:", lng);
-                
-                const fullAdress = JSON.stringify({
-                    address: location,
-                    latitude: lat,
-                    longitude: lng
-                });
-
-                onLocationSelected(fullAdress);
-            }              
+          // Always call onLocationSelected when a suggestion is selected
+          if (details) {
+            const location = details.formatted_address;
+            const lat = details.geometry.location.lat;
+            const lng = details.geometry.location.lng;
+            // Pass full address object
+            onLocationSelected({
+              address: location,
+              latitude: lat,
+              longitude: lng
+            });
+          } else if (data && data.description) {
+            // Fallback: use only the address from data
+            onLocationSelected({
+              address: data.description,
+              latitude: null,
+              longitude: null
+            });
+          }
         }}
         fetchDetails={true}
         query={{

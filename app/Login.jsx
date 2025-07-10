@@ -41,8 +41,9 @@ export default function LoginScreen() {
   const [request, response, promptAsync] = Google.useAuthRequest({
     androidClientId: "182842175967-vgsq937kjmtv3bbnsckm4p7l8dbe3mgd.apps.googleusercontent.com",
     iosClientId: "182842175967-vgsq937kjmtv3bbnsckm4p7l8dbe3mgd.apps.googleusercontent.com",
-    webClientId: "182842175967-vgsq937kjmtv3bbnsckm4p7l8dbe3mgd.apps.googleusercontent.com",
+  webClientId: "541845970315-u3vj2nb8dd8ea104fr61maa9j8g5d8op.apps.googleusercontent.com",
     expoClientId: "182842175967-vgsq937kjmtv3bbnsckm4p7l8dbe3mgd.apps.googleusercontent.com",
+    scopes: ['openid', 'email', 'profile', 'https://www.googleapis.com/auth/calendar'],
   });
 
   
@@ -83,28 +84,41 @@ export default function LoginScreen() {
    * @function handleGoogleSignIn
    * @returns {Promise<void>}
    */
-  const handleGoogleSignIn = async () => {
-    try {
-      const result = await promptAsync();
-      if (result?.type === 'success') {
-        const { id_token } = result.params;
-        const credential = GoogleAuthProvider.credential(id_token);
-        await signInWithCredential(auth, credential);
-        const user = auth.currentUser;
-        if (user) {
-          const result = await checkIfUserExists(user.email);
-          if (result?.isNewUser) {
-            router.replace("/ProfileInfo");
-          } else {
-            router.replace("/(tabs)");
-          }
+const handleGoogleSignIn = async () => {
+  try {
+    const result = await promptAsync();
+    if (result?.type === 'success') {
+      const { id_token, access_token } = result.authentication;
+
+      const credential = GoogleAuthProvider.credential(id_token);
+      await signInWithCredential(auth, credential);
+
+      const user = auth.currentUser;
+      if (user) {
+        await fetch(`${API}User/SaveGoogleToken`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: user.uid,
+            token: access_token,
+          }),
+        });
+
+        const result = await checkIfUserExists(user.email);
+        if (result?.isNewUser) {
+          router.replace("/ProfileInfo");
+        } else {
+          router.replace("/(tabs)");
         }
       }
-    } catch (err) {
-      console.log("Google Sign-In error:", err);
-      setError("Failed to sign in with Google");
     }
-  };
+  } catch (err) {
+    console.log("Google Sign-In error:", err);
+    setError("Failed to sign in with Google");
+  }
+};
 
   /**
    * Handles email/password login
