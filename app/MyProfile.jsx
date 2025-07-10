@@ -177,16 +177,23 @@ const fetchOpenHouses = async () => {
       return;
     }
 
-    const formattedData = data.map(item => ({
-      id: item.ID,
-      apartmentId: item.ApartmentID,
-      location: 'לא צויין מיקום',
-      date: item.Date ? item.Date.split('T')[0] : '',
-      startTime: item.StartTime?.substring(0, 5) || '',
-      endTime: item.EndTime?.substring(0, 5) || '',
-      amountOfPeoples: item.AmountOfPeople ?? 0,
-      totalRegistrations: item.TotalRegistrations ?? 0,
-    }));
+     const formattedData = data.map(item => {
+      const apt = allApartments.find(
+        (a) => a.ApartmentID === item.ApartmentID
+      );
+      const location = apt ? apt.Location : 'לא צויין מיקום';
+
+      return {
+        id: item.ID,
+        apartmentId: item.ApartmentID,
+        location: location,
+        date: item.Date ? item.Date.split('T')[0] : '',
+        startTime: item.StartTime?.substring(0, 5) || '',
+        endTime: item.EndTime?.substring(0, 5) || '',
+        amountOfPeoples: item.AmountOfPeople ?? 0,
+        totalRegistrations: item.TotalRegistrations ?? 0,
+      };
+    });
 
     setOpenHouses(formattedData);
   } catch (err) {
