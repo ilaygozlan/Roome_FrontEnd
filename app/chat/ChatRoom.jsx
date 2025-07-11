@@ -42,14 +42,12 @@ const { recipientId } = route.params || {};
   const [userProfile, setUserProfile] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
 
-  // ✅ התחברות ל-SignalR ברגע שהמשתמש מחובר
   useEffect(() => {
     if (loginUserId) {
       startConnection(loginUserId.toString());
     }
   }, [loginUserId]);
 
-  // טען פרופיל משתמש
   useEffect(() => {
     fetch(API + "User/GetUserById/" + recipientId)
       .then((response) => response.json())
@@ -63,7 +61,6 @@ const { recipientId } = route.params || {};
       });
   }, [recipientId]);
 
-  // טען היסטוריית הודעות רק כאשר loginUserId קיים
   useEffect(() => {
     //if (!loginUserId) return;
     fetch(`${API}Chat/GetMessages/${loginUserId}/${recipient}`)
@@ -88,7 +85,6 @@ const { recipientId } = route.params || {};
       });
   }, [loginUserId, recipient]);
 
-  // מאזין להודעות חדשות בזמן אמת
   useEffect(() => {
     const handleIncoming = (senderId, message) => {
       const newMsg = {
@@ -105,7 +101,6 @@ const { recipientId } = route.params || {};
     onReceiveMessage(handleIncoming);
   }, [onReceiveMessage]);
 
-  // גלילה אוטומטית לסוף
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, [messages]);

@@ -4,6 +4,8 @@ import { userInfoContext } from "../contex/userInfoContext";
 import API from "../../config";
 import Swiper from 'react-native-deck-swiper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import AdminDashboardGraphs from "../AdminDashboardGraphs";
+import { checkIfAdmin } from "../../checkAdmin";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const CARD_WIDTH = SCREEN_WIDTH * 0.9;
@@ -17,7 +19,6 @@ const colors = {
   lightGray: '#86888A'
 };
 
-
 export default function ForYou() {
   const { loginUserId } = useContext(userInfoContext);
   const userId = loginUserId;
@@ -27,22 +28,27 @@ export default function ForYou() {
   const [interactedIds, setInteractedIds] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [imageErrors, setImageErrors] = useState({});
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    const fetchRecommendations = async () => {
+    const checkAdminAndFetch = async () => {
       try {
-        setIsLoading(true);
-        const res = await fetch(`${API}User/GetRecommendedApartments/${userId}`);
-        const data = res.ok ? await res.json() : [];
-        console.log("Fetched:", data);
-        setApartments(data);
+        const admin = await checkIfAdmin();
+        setIsAdmin(admin);
+
+        if (!admin) {
+          const res = await fetch(`${API}User/GetRecommendedApartments/${userId}`);
+          const data = res.ok ? await res.json() : [];
+          setApartments(data);
+        }
       } catch {
-        Alert.alert("שגיאה", "בעיה בטעינת ההמלצות");
+        Alert.alert("שגיאה", "לא ניתן לבדוק הרשאות או לטעון המלצות");
       } finally {
         setIsLoading(false);
       }
     };
-    fetchRecommendations();
+
+    checkAdminAndFetch();
   }, []);
 
   const swipeableApartments = useMemo(() => {
@@ -108,6 +114,10 @@ export default function ForYou() {
     return <ActivityIndicator size="large" color="#E3965A" style={{ marginTop: 100 }} />;
   }
 
+  if (isAdmin) {
+    return <AdminDashboardGraphs />;
+  }
+
   return (
     <View style={styles.container}>
       {swipeableApartments.length > 0 ? (
@@ -126,9 +136,8 @@ export default function ForYou() {
           verticalSwipe={false}
           cardStyle={styles.card}
           containerStyle={{ flex: 1 }}
-           backgroundColor={colors.background}
+          backgroundColor={colors.background}
           swipeAnimationDuration={350}
-
         />
       ) : (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
