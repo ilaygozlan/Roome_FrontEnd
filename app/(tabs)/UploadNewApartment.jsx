@@ -389,7 +389,7 @@ export default function UploadApartmentForm() {
   };
 
   if (isUploading) {
-    return <HouseLoading />;
+    return <HouseLoading  text="מעלה את הדירה והתמונות..." />;
   }
 
 return (

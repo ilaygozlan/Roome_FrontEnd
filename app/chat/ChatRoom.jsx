@@ -30,7 +30,7 @@ const { recipientId } = route.params || {};
   const {
     sendMessage: signalRSendMessage,
     onReceiveMessage,
-    startConnection, // ✅ נוסף כאן
+    startConnection, 
   } = useSignalR();
 
   const [messages, setMessages] = useState([]);
