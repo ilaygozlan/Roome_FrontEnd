@@ -227,7 +227,7 @@ export default function UploadApartmentForm() {
       userID: loginUserId,
       price: Number(price),
       amountOfRooms: Number(rooms),
-      location: location,
+      location: JSON.stringify(location),
       allowPet: allowPet,
       allowSmoking: allowSmoking,
       gardenBalcony: gardenBalcony,
