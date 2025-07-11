@@ -357,7 +357,7 @@ export default function UploadApartmentForm() {
                 const fileName = uri.split("/").pop();
                 return `/uploadedFiles/${fileName}`;
               });
-
+              console.log(imageLinks);
               apartmentData.Images = imageLinks.join(",");
               apartmentData.Price = price;
               apartmentData.Description = description;

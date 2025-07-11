@@ -2,7 +2,7 @@
  * @component Map
  * @description Interactive map component that displays apartment locations with markers.
  * Uses device location and apartment data to show available properties on a map interface.
- * 
+ *
  * Features:
  * - Current location detection
  * - Permission handling
@@ -10,15 +10,15 @@
  * - Price and description tooltips
  * - Back navigation
  * - Loading state handling
- * 
+ *
  * Dependencies:
  * - react-native-maps
  * - expo-location
  * - expo-router
- * 
+ *
  * Context:
  * - ActiveApartmentContext for apartment data
- * 
+ *
  * @requires react-native-maps
  * @requires expo-location
  * @requires expo-router
@@ -38,6 +38,7 @@ import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
 import * as Location from "expo-location";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { Callout } from "react-native-maps";
 
 export default function Map() {
   const { mapLocationAllApt, setAllApartments } = useContext(
@@ -79,7 +80,7 @@ export default function Map() {
    * Renders apartment markers on the map
    * @function renderMarkers
    * @returns {Array<JSX.Element>} Array of Marker components
-   * 
+   *
    * Marker Properties:
    * - Location coordinates
    * - Price display
@@ -87,22 +88,38 @@ export default function Map() {
    */
   const renderMarkers = () => {
     return mapLocationAllApt.map((apt, index) => {
-      if (apt.Location && typeof apt.Location === "string" && apt.Location.trim().startsWith("{")) {
+      if (
+        apt.Location &&
+        typeof apt.Location === "string" &&
+        apt.Location.trim().startsWith("{")
+      ) {
         const address = JSON.parse(apt.Location);
         const lat = address.latitude;
         const lng = address.longitude;
-      
+
         if (lat && lng) {
           return (
-            <Marker
-              key={index}
-              coordinate={{ latitude: lat, longitude: lng }}
-              title={apt.Price.toLocaleString('he-IL') + " ₪"}
-              description={apt.Description || "Apartment"}
-            />
+            <Marker key={index} coordinate={{ latitude: lat, longitude: lng }}>
+              <Callout tooltip={false}>
+                <View style={styles.callout}>
+                  <Text style={styles.calloutTitle}>
+                    {apt.Price?.toLocaleString("he-IL")} ₪
+                  </Text>
+                  <Text style={styles.calloutDescription}>
+                    {apt.Description || "אין תיאור"}
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.calloutButton}
+                    onPress={() => router.push(`/apartment/${apt.ApartmentID}`)} // לסדר את זה
+                  >
+                    <Text style={styles.calloutButtonText}>מעבר לדירה</Text>
+                  </TouchableOpacity>
+                </View>
+              </Callout>
+            </Marker>
           );
         }
-      } 
+      }
     });
   };
 
@@ -154,4 +171,34 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 30,
   },
+  callout: {
+  width: 200,
+  padding: 10,
+  backgroundColor: "#fff",
+  borderRadius: 8,
+},
+calloutTitle: {
+  fontSize: 16,
+  fontWeight: "bold",
+  marginBottom: 5,
+  textAlign: "right",
+  color: "#333",
+},
+calloutDescription: {
+  fontSize: 14,
+  color: "#666",
+  marginBottom: 10,
+  textAlign: "right",
+},
+calloutButton: {
+  backgroundColor: "#5C67F2",
+  paddingVertical: 8,
+  borderRadius: 5,
+},
+calloutButtonText: {
+  color: "#fff",
+  textAlign: "center",
+  fontWeight: "bold",
+},
+
 });
