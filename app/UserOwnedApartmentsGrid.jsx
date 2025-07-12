@@ -36,6 +36,7 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
   const [endTime, setEndTime] = useState("");
   const [ownedApartments, setOwnedApartments] = useState([]);
   const [peopleCount, setPeopleCount] = useState("");
+  const [labels, setLabels] = useState([]);
   const navigation = useNavigation();
   const handleEdit = (apartment) => {
     navigation.navigate("EditApartment", {
@@ -326,6 +327,40 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
     const minutes = String(dateObj.getMinutes()).padStart(2, "0");
     return `${hours}:${minutes}`;
   };
+const handleUpdateApartment = (updatedApt, labels) => {
+  // First, prepare the labels in the correct format
+  const formattedLabelsJson = labels
+    .map((label) => `{"value":"${label}"}`)
+    .join(",");
+
+  // Now, find the apartment to update and merge the labels JSON properly
+  const updatedOwnedApartments = allApartments.map((apt) => {
+    if (apt.ApartmentID === updatedApt.id) {
+      const existing = apt.LabelsJson?.trim();
+      const combinedLabelsJson =
+        existing && existing.length > 0
+          ? `${existing},${formattedLabelsJson}`
+          : formattedLabelsJson;
+
+      return {
+        ...apt,
+        ...updatedApt,
+        LabelsJson: combinedLabelsJson,
+      };
+    }
+    return apt;
+  });
+
+  // Filter only apartments owned by this user
+  const filtered = updatedOwnedApartments.filter(
+    (apt) => apt.UserID === Number(userId)
+  );
+
+  // Update state
+  setOwnedApartments(filtered);
+};
+
+
 
   if (ownedApartments.length === 0) {
     return (
@@ -338,41 +373,58 @@ const getApartmentLabels = (apt) => {
   if (!apt.LabelsJson) return [];
 
   try {
-    const labelsArr = JSON.parse(apt.LabelsJson);
-    return labelsArr
-      .map((item) => item.Label?.toLowerCase())
-      .filter((label) => label && labelToIcon[label]);
+ 
+    let fixedJson = apt.LabelsJson.trim();
+    if (!fixedJson.startsWith("[")) {
+      fixedJson = `[${fixedJson}]`;
+    }
+
+    const labelsArr = JSON.parse(fixedJson);
+
+  
+    const labels = labelsArr
+      .flatMap(item =>
+        item.value
+          ? item.value.split(",").map(l => l.trim().toLowerCase())
+          : []
+      );
+
+
+    return labels.filter(label => label && labelToIcon[label]);
   } catch (e) {
-    console.error("Error parsing LabelsJson:", e);
+    console.error("Error parsing LabelsJson:", e, apt.LabelsJson);
     return [];
   }
 };
 
-const renderApartmentLabels = (apt) => {
-  const labels = getApartmentLabels(apt);
 
-  if (labels.length === 0) return null;
 
-  return (
-    <View style={styles.labelsContainer}>
-      <Text style={styles.sectionTitle}>מאפייני דירה:</Text>
-      <View style={styles.labelsGrid}>
-        {labels.map((label, index) => (
-          <View key={index} style={styles.labelItem}>
-            {React.cloneElement(labelToIcon[label], {
-              size: 24,
-              color: "#E3965A",
-            })}
-            <Text style={styles.labelText}>
-              {labelTranslations[label] || label}
-            </Text>
-          </View>
-        ))}
+
+
+  const renderApartmentLabels = (apt) => {
+    const labels = getApartmentLabels(apt);
+
+    if (labels.length === 0) return null;
+
+    return (
+      <View style={styles.labelsContainer}>
+        <Text style={styles.sectionTitle}>מאפייני דירה:</Text>
+        <View style={styles.labelsGrid}>
+          {labels.map((label, index) => (
+            <View key={index} style={styles.labelItem}>
+              {React.cloneElement(labelToIcon[label], {
+                size: 24,
+                color: "#E3965A",
+              })}
+              <Text style={styles.labelText}>
+                {labelTranslations[label] || label}
+              </Text>
+            </View>
+          ))}
+        </View>
       </View>
-    </View>
-  );
-};
-
+    );
+  };
 
   return (
     <View style={styles.wrapper}>
@@ -489,6 +541,8 @@ const renderApartmentLabels = (apt) => {
               <ApartmentLabelsPopup
                 apartmentId={apt.ApartmentID}
                 onClose={() => setVisibleLabelsPopupId(null)}
+                onUpdateApartment={handleUpdateApartment}
+                setLabelsP={setLabels}
               />
             )}
           </View>
@@ -818,37 +872,37 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-   labelsContainer: {
-  marginTop: 20,
-  marginBottom: 10,
-},
-labelsGrid: {
-  flexDirection: "row-reverse", 
-  flexWrap: "wrap",
-  justifyContent: "flex-start",
-  marginTop: 10,
-},
+  labelsContainer: {
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  labelsGrid: {
+    flexDirection: "row-reverse",
+    flexWrap: "wrap",
+    justifyContent: "flex-start",
+    marginTop: 10,
+  },
 
-labelItem: {
-  width: "22%",
-  alignItems: "center",
-  marginVertical: 8,
-  flexDirection: "column",
-},
+  labelItem: {
+    width: "22%",
+    alignItems: "center",
+    marginVertical: 8,
+    flexDirection: "column",
+  },
 
-labelText: {
-  fontSize: 12,
-  color: "#444",
-  marginTop: 4,
-  textAlign: "center",
-},
-sectionTitle: {
-  fontSize: 14,
-  fontWeight: "bold",
-  marginBottom: 6,
-  textAlign: "right",
-  color: "#333",
-},
+  labelText: {
+    fontSize: 12,
+    color: "#444",
+    marginTop: 4,
+    textAlign: "center",
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 6,
+    textAlign: "right",
+    color: "#333",
+  },
 });
 
 export default UserOwnedApartmentsGrid;
