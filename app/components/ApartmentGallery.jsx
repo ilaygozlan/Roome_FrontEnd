@@ -101,10 +101,10 @@ export default function ApartmentGallery({ images }) {
 const styles = StyleSheet.create({
   scrollView: {
     height: 200,
-    width: width
+    width: width-40
   },
   image: {
-    width: width,
+    width: width -40,
     height: 200,
     resizeMode: "cover",
   },
