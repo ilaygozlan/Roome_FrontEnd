@@ -65,7 +65,6 @@ const ProfilePage = () => {
   return (
     <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <MyProfile myId={loginUserId} />
         {isAdmin ? <AdminScreen /> : <MyProfile myId={loginUserId} />}
       </ScrollView>
     </View>
