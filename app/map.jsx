@@ -39,7 +39,7 @@ import * as Location from "expo-location";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Callout } from "react-native-maps";
-
+import HouseLoading from "./components/LoadingHouseSign";
 export default function Map() {
   const { mapLocationAllApt, setAllApartments } = useContext(
     ActiveApartmentContext
@@ -125,10 +125,9 @@ export default function Map() {
 
   if (loading || !region) {
     return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#000" />
-        <Text>Loading map...</Text>
-      </View>
+    
+     <HouseLoading  text="מעלה דירות על המפה" />
+      
     );
   }
 

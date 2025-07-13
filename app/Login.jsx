@@ -56,27 +56,31 @@ export default function LoginScreen() {
    * @property {number} userId - User's ID if exists
    * @property {boolean} isNewUser - Whether the user is new
    */
-  const checkIfUserExists = async (email) => {
-    try {
-      const res = await fetch(`${API}User/CheckIfExists?email=${encodeURIComponent(email)}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json"
-        }
-      });
+const checkIfUserExists = async (email) => {
+  try {
+    const res = await fetch(`${API}User/CheckIfExists?email=${encodeURIComponent(email)}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
 
-      if (!res.ok) throw new Error(`Server responded with status ${res.status}`);
+    if (!res.ok) throw new Error(`Server responded with status ${res.status}`);
 
-      const data = await res.json();
-      return {
-        userId: data.userId,
-        isNewUser: !data.exists 
-      };
-    } catch (err) {
-      console.error("Error checking if user exists:", err);
-      return null;
-    }
-  };
+    const data = await res.json();
+
+    return {
+      userId: data.userId,
+      isNewUser: data.status === "not_found",
+      isInactive: data.status === "inactive",
+      isActive: data.status === "active"
+    };
+  } catch (err) {
+    console.error("Error checking if user exists:", err);
+    return null;
+  }
+};
+
 
   /**
    * Handles Google Sign-In process
@@ -134,44 +138,52 @@ const handleGoogleSignIn = async () => {
    * - auth/wrong-password
    */
   const handleLogin = async () => {
-    if (!email || !password) {
-      setError("Please fill in all fields");
-      return;
-    }
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      const user = auth.currentUser;
-      if (user) {
-        const result = await checkIfUserExists(user.email);
-        if (result?.isNewUser) {
-          router.replace("/ProfileInfo");
-        } else {
-          router.replace("/(tabs)");
-        }
+  if (!email || !password) {
+    setError("Please fill in all fields");
+    return;
+  }
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    const user = auth.currentUser;
+
+    if (user) {
+      const result = await checkIfUserExists(user.email);
+
+      if (result?.isInactive) {
+        setError("המשתמש שלך נחסם. אנא פנה לשירות לקוחות.");
+        return; // עצירה – לא ממשיכים לניווט
       }
-    } catch (err) {
-      console.log("Login error:", err.code);
-      switch (err.code) {
-        case "auth/invalid-credential":
-          setError("Invalid email or password");
-          break;
-        case "auth/invalid-email":
-          setError("Invalid email address");
-          break;
-        case "auth/user-disabled":
-          setError("This account has been disabled");
-          break;
-        case "auth/user-not-found":
-          setError("No account found with this email");
-          break;
-        case "auth/wrong-password":
-          setError("Incorrect password");
-          break;
-        default:
-          setError("Login failed. Please check your credentials");
+
+      if (result?.isNewUser) {
+        router.replace("/ProfileInfo");
+      } else {
+        router.replace("/(tabs)");
       }
     }
-  };
+  } catch (err) {
+    console.log("Login error:", err.code);
+    switch (err.code) {
+      case "auth/invalid-credential":
+        setError("Invalid email or password");
+        break;
+      case "auth/invalid-email":
+        setError("Invalid email address");
+        break;
+      case "auth/user-disabled":
+        setError("This account has been disabled");
+        break;
+      case "auth/user-not-found":
+        setError("No account found with this email");
+        break;
+      case "auth/wrong-password":
+        setError("Incorrect password");
+        break;
+      default:
+        setError("Login failed. Please check your credentials");
+    }
+  }
+};
 
   return (
     <KeyboardAvoidingView 

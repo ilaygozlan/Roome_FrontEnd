@@ -6,16 +6,15 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  Linking,
+  Image,
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import ApartmentGallery from "./ApartmentGallery";
 import ApartmentDetails from "../ApartmentDetails";
 import { userInfoContext } from "../contex/userInfoContext";
-import OpenHouseButton from "./OpenHouseButton";
 import API from "../../config";
+import { useRouter } from "expo-router";
 
 export default function AdminApartmentsList() {
   const { loginUserId } = useContext(userInfoContext);
@@ -23,6 +22,26 @@ export default function AdminApartmentsList() {
   const [loading, setLoading] = useState(true);
   const [selectedApartment, setSelectedApartment] = useState(null);
   const [showApartmentDetails, setShowApartmentDetails] = useState(false);
+  const router = useRouter();
+const sendChatMessage = async (receiverId, message) => {
+  try {
+    await fetch(`${API}Chat/SaveMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fromUserId: loginUserId,
+        toUserId: receiverId,
+        content: message,
+      }),
+    });
+if (receiverId) {
+  router.push(`/chat/${receiverId}`);
+}
+ 
+  } catch (err) {
+    console.error("Failed to send message:", err);
+  }
+};
 
   useEffect(() => {
     const fetchApartments = async () => {
@@ -40,27 +59,50 @@ export default function AdminApartmentsList() {
     fetchApartments();
   }, []);
 
-  const toggleActiveStatus = async (apartmentId) => {
-    try {
-      const response = await fetch(`${API}Admin/ToggleActive/${apartmentId}`, {
-        method: "PUT",
-      });
+  const toggleActiveStatus = async (apartmentId, userId, isActive) => {
+    const statusText = isActive
+      ? "האם אתה בטוח שאתה רוצה להפוך את הדירה ללא פעילה?"
+      : "האם אתה בטוח שאתה רוצה להחזיר את הדירה לפעילה?";
+    Alert.alert("אישור פעולה", statusText, [
+      {
+        text: "ביטול",
+        style: "cancel",
+      },
+      {
+        text: "אישור",
+        onPress: async () => {
+          try {
+            const response = await fetch(
+              `${API}Admin/ToggleActive/${apartmentId}`,
+              {
+                method: "PUT",
+              }
+            );
 
-      if (response.ok) {
-        setApartments((prev) =>
-          prev.map((apt) =>
-            apt.ApartmentID === apartmentId
-              ? { ...apt, IsActive: !apt.IsActive }
-              : apt
-          )
-        );
-      } else {
-        Alert.alert("שגיאה", "לא ניתן לעדכן את הסטטוס כרגע.");
-      }
-    } catch (error) {
-      console.error("Toggle error:", error);
-      Alert.alert("שגיאה", "אירעה תקלה בתקשורת עם השרת.");
-    }
+            if (response.ok) {
+              setApartments((prev) =>
+                prev.map((apt) =>
+                  apt.ApartmentID === apartmentId
+                    ? { ...apt, IsActive: !apt.IsActive }
+                    : apt
+                )
+              );
+
+              const message = isActive
+                ? "היי, הדירה שפרסמת לא עמדה בכללי האפלקציה ולכן נחסמה."
+                : "היי, קיבלנו את הערעור שלך והדירה שפרסמת חזרה להיות פעילה";
+
+              await sendChatMessage(userId, message);
+            } else {
+              Alert.alert("שגיאה", "לא ניתן לעדכן את הסטטוס כרגע.");
+            }
+          } catch (error) {
+            console.error("Toggle error:", error);
+            Alert.alert("שגיאה", "אירעה תקלה בתקשורת עם השרת.");
+          }
+        },
+      },
+    ]);
   };
 
   const getBorderColor = (type) => {
@@ -89,18 +131,6 @@ export default function AdminApartmentsList() {
     }
   };
 
-  const handleShare = async (apt) => {
-    const message = `דירה שווה באפליקציה:\n\nמיקום: ${apt.Location}\nמחיר: ${apt.Price} ש"ח\n\n${apt.Description}`;
-    const url = `whatsapp://send?text=${encodeURIComponent(message)}`;
-
-    const supported = await Linking.canOpenURL(url);
-    if (supported) {
-      Linking.openURL(url);
-    } else {
-      alert("WhatsApp is not installed");
-    }
-  };
-
   if (loading) {
     return (
       <View style={styles.loader}>
@@ -115,13 +145,41 @@ export default function AdminApartmentsList() {
         {apartments.map((apt) => (
           <View
             key={apt.ApartmentID}
-            style={[styles.card, { borderColor: getBorderColor(apt.ApartmentType) }]}
+            style={[
+              styles.card,
+              { borderColor: getBorderColor(apt.ApartmentType) },
+            ]}
           >
             <View
-              style={[styles.typeLabel, { backgroundColor: getBorderColor(apt.ApartmentType) }]}
+              style={[
+                styles.typeLabel,
+                { backgroundColor: getBorderColor(apt.ApartmentType) },
+              ]}
             >
-              <Text style={styles.typeText}>{getTypeName(apt.ApartmentType)}</Text>
+              <Text style={styles.typeText}>
+                {getTypeName(apt.ApartmentType)}
+              </Text>
             </View>
+            <TouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: "UserProfile",
+                  params: { userId: apt.Creator_ID },
+                })
+              }
+            >
+              <View style={styles.creatorContainer}>
+                <Image
+                  source={{
+                    uri:
+                      apt.Creator_ProfilePicture ||
+                      "https://example.com/default-profile.png",
+                  }}
+                  style={styles.creatorImage}
+                />
+                <Text style={styles.creatorName}>{apt.Creator_FullName}</Text>
+              </View>
+            </TouchableOpacity>
 
             <View style={styles.cardContent}>
               <ApartmentGallery images={apt.Images} />
@@ -133,29 +191,25 @@ export default function AdminApartmentsList() {
                 }}
               >
                 <View style={styles.details}>
-                  <Text style={styles.title}>{apt.Location}</Text>
+                  <Text style={styles.title}>
+                    {typeof apt.Location === "string" &&
+                    apt.Location.trim().startsWith("{")
+                      ? JSON.parse(apt.Location).address
+                      : apt.Location}
+                  </Text>
                   <Text style={styles.description}>{apt.Description}</Text>
                   <Text style={styles.price}>{apt.Price} ש"ח</Text>
                 </View>
               </TouchableOpacity>
             </View>
 
-            <View style={styles.iconRow}>
-              <TouchableOpacity onPress={() => handleShare(apt)}>
-                <MaterialCommunityIcons name="share-outline" size={24} color="gray" />
-              </TouchableOpacity>
-              <OpenHouseButton
-                apartmentId={apt.ApartmentID}
-                userId={loginUserId}
-                location={apt.Location}
-                userOwnerId={apt.UserID}
-              />
-            </View>
-
             <TouchableOpacity
-              onPress={() => toggleActiveStatus(apt.ApartmentID)}
+              onPress={() =>
+                toggleActiveStatus(apt.ApartmentID, apt.UserID, apt.IsActive)
+              }
               style={{
-                marginTop: 10,
+                marginTop: 0,
+                marginBottom: 10,
                 backgroundColor: apt.IsActive ? "#FF3B30" : "#34C759",
                 padding: 10,
                 borderRadius: 6,
@@ -196,6 +250,7 @@ export default function AdminApartmentsList() {
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 20,
+    backgroundColor: "#F0F0F0",
   },
   loader: {
     flex: 1,
@@ -208,8 +263,12 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 10,
     overflow: "hidden",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
     borderWidth: 3,
-    marginBottom: 20,
+    shadowRadius: 5,
+    elevation: 3,
+    margin: 10,
   },
   cardContent: {
     paddingBottom: 10,
@@ -217,16 +276,18 @@ const styles = StyleSheet.create({
   typeLabel: {
     position: "absolute",
     zIndex: 2,
-    top: 5,
-    left: 5,
+    top: 12,
+    left: 10,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 5,
+    alignSelf: "flex-start",
   },
   typeText: {
     fontWeight: "bold",
     fontSize: 14,
     color: "#000",
+    textTransform: "uppercase",
   },
   details: {
     padding: 10,
@@ -247,9 +308,22 @@ const styles = StyleSheet.create({
     marginTop: 5,
     textAlign: "right",
   },
-  iconRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    padding: 5,
+  creatorContainer: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    margin: 10,
+  },
+  creatorImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginLeft: 10,
+    borderWidth: 1,
+    borderColor: "#E3965A",
+  },
+  creatorName: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
   },
 });

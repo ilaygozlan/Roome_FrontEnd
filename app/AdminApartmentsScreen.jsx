@@ -1,13 +1,12 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
-import AdminUsersList from "./components/AdminUsersList";
+import AdminApartmentsList from "./components/AdminApartmentsList";
 import { Feather } from "@expo/vector-icons";
 import { signOut } from "firebase/auth";
 import { auth } from "./firebase";
 import { useRouter } from "expo-router";
 
-export default function AdminScreen() {
-  const [showUsers, setShowUsers] = useState(true); 
+export default function AdminApartmentsScreen() {
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -26,11 +25,11 @@ export default function AdminScreen() {
         <TouchableOpacity style={styles.logoutIcon} onPress={handleLogout}>
           <Feather name="log-out" size={24} color="#A1A7B3" />
         </TouchableOpacity>
-        <Text style={styles.title}>Admin - רשימת משתמשים</Text>
+        <Text style={styles.title}>Admin - דירות</Text>
       </View>
 
       <View style={{ flex: 1, padding: 20 }}>
-        {showUsers && <AdminUsersList />}
+        <AdminApartmentsList />
       </View>
     </View>
   );

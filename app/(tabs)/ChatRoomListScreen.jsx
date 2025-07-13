@@ -13,6 +13,7 @@ import { userInfoContext } from "../contex/userInfoContext";
 import API from "../../config";
 import { useRouter, useFocusEffect } from "expo-router";
 import SignalRService from "../contex/SignalRService";
+import HouseLoading from "../components/LoadingHouseSign"
 
 const ChatRoomListScreen = () => {
   const { loginUserId } = useContext(userInfoContext);
@@ -92,9 +93,8 @@ const ChatRoomListScreen = () => {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#4A90E2" />
-      </View>
+             <HouseLoading  text="הצאטים שלי "/>
+      
     );
   }
 
