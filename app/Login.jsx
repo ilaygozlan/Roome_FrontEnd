@@ -150,7 +150,7 @@ const handleGoogleSignIn = async () => {
     if (user) {
       const result = await checkIfUserExists(user.email);
 
-      if (result.userId=-2) {
+      if (result.userId==-2) {
         setError("המשתמש שלך נחסם. אנא פנה לשירות לקוחות.");
         return; // עצירה – לא ממשיכים לניווט
       }
