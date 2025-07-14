@@ -106,7 +106,7 @@ export default function Map() {
                     {apt.Price?.toLocaleString("he-IL")} ₪
                   </Text>
                   <Text style={styles.calloutDescription}>
-                    {apt.Description || "אין תיאור"}
+                    {apt.Description || "אין תיאור"} 
                   </Text>
                   <TouchableOpacity
                     style={styles.calloutButton}

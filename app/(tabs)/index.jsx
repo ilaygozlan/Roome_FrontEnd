@@ -59,9 +59,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         {isAdmin ? <AdminApartmentsScreen /> : <Apartment />}
-      </ScrollView>
     </SafeAreaView>
   );
 }
