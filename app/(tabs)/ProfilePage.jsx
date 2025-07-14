@@ -1,12 +1,11 @@
 import React, { useContext, useEffect, useState } from "react";
-import { View, ScrollView } from "react-native";
+import { View, ScrollView, ActivityIndicator } from "react-native";
 import MyProfile from "../MyProfile";
 import { userInfoContext } from "../contex/userInfoContext";
 import AdminScreen from "../AdminScreen";
 import { useRouter } from "expo-router";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebase";
-import { ActivityIndicator } from "react-native";
 import { checkIfAdmin } from "../../checkAdmin";
 
 /**
@@ -35,7 +34,7 @@ import { checkIfAdmin } from "../../checkAdmin";
 */
 
 const ProfilePage = () => {
-  const { loginUserId } = useContext(userInfoContext);
+  const { loginUserId, isLoading } = useContext(userInfoContext);
   const [checking, setChecking] = useState(true);
   const [isAdmin, setIsAdmin] = useState(null);
   const router = useRouter();
@@ -53,7 +52,9 @@ const ProfilePage = () => {
     });
     return () => unsubscribe();
   }, []);
-
+if (isLoading || !loginUserId) {
+  return <ActivityIndicator size="large" style={{ flex: 1, justifyContent: "center" }} />;
+}
   if (checking || isAdmin === null) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>

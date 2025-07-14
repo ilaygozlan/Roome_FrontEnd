@@ -43,7 +43,7 @@ export default function EditApartmentModal() {
       </View>
     );
   }
-
+  const [imagesToDelete, setImagesToDelete] = useState([]);
   const [price, setPrice] = useState("");
   const [rooms, setRooms] = useState("");
   const [description, setDescription] = useState("");
@@ -124,66 +124,84 @@ export default function EditApartmentModal() {
       setImages([...images, ...result.assets.map((a) => a.uri)]);
     }
   };
+const removeImage = (uriToRemove) => {
+  const fileName = uriToRemove.split("/").pop();
+  const isServerImage = uriToRemove.includes("/uploadedFiles/");
 
-  const removeImage = (uriToRemove) => {
-    setImages(images.filter((uri) => uri !== uriToRemove));
-  };
+  setImages((prev) =>
+    prev.filter((uri) => {
+      const currentName = uri.split("/").pop();
+      return currentName !== fileName;
+    })
+  );
+
+  if (isServerImage) {
+    setImagesToDelete((prev) => [...prev, uriToRemove]);
+  }
+};
 
 const handleUpdate = async () => {
+  // Basic validation
   if (!location || !price || !rooms) {
-    Alert.alert("שגיאה", "אנא מלא את כל השדות הנדרשים");
+    Alert.alert("Error", "Please fill in all required fields");
     return;
   }
 
-const parsedLocation = 
-  location && location !== "" 
-    ? (typeof location === "string" ? JSON.parse(location) : location) 
-    : {
-        address: apartment.Location,
-        latitude: apartment.Latitude,
-        longitude: apartment.Longitude,
-      };
+  // Parse location if necessary
+  const parsedLocation =
+    location && location !== ""
+      ? typeof location === "string"
+        ? JSON.parse(location)
+        : location
+      : {
+          address: apartment.Location,
+          latitude: apartment.Latitude,
+          longitude: apartment.Longitude,
+        };
 
-const commonFields = {
-  Id: apartment.ApartmentID,
-  UserID: apartment.UserID,
-  Price: Number(price),
-  AmountOfRooms: Number(rooms),
-  Location: parsedLocation?.address,
-  AllowPet: allowPet,
-  AllowSmoking: allowSmoking,
-  GardenBalcony: gardenBalcony,
-  ParkingSpace: Number(parkingSpace),
-  EntryDate: entryDate,
-  ExitDate: exitDate,
-  IsActive: true,
-  Floor: Number(floor),
-  ApartmentType: apartment.ApartmentType,
-  Description: description,
-  PropertyTypeID: propertyTypeID,
-};
-
-let updatedApartment = {};
-
-if (apartment.ApartmentType === 0) {
-  updatedApartment = {
-    ...commonFields,
-    ContractLength: Number(contractLength),
-    ExtensionPossible: extensionPossible,
+  // Shared fields for all apartment types
+  const commonFields = {
+    Id: apartment.ApartmentID,
+    UserID: apartment.UserID,
+    Price: Number(price),
+    AmountOfRooms: Number(rooms),
+    Location: parsedLocation?.address,
+    AllowPet: allowPet,
+    AllowSmoking: allowSmoking,
+    GardenBalcony: gardenBalcony,
+    ParkingSpace: Number(parkingSpace),
+    EntryDate: entryDate,
+    ExitDate: exitDate,
+    IsActive: true,
+    Floor: Number(floor),
+    ApartmentType: apartment.ApartmentType,
+    Description: description,
+    PropertyTypeID: propertyTypeID,
   };
-} else if (apartment.ApartmentType === 1) {
-  updatedApartment = {
-    ...commonFields,
-    NumberOfRoommates: Number(numberOfRoommates),
-  };
-} else if (apartment.ApartmentType === 2) {
-  updatedApartment = {
-    ...commonFields,
-    CanCancelWithoutPenalty: canCancelWithoutPenalty,
-    IsWholeProperty: isWholeProperty,
-  };
-}
 
+  // Add apartment-type-specific fields
+  let updatedApartment = {};
+
+  if (apartment.ApartmentType === 0) {
+    updatedApartment = {
+      ...commonFields,
+      ContractLength: Number(contractLength),
+      ExtensionPossible: extensionPossible,
+    };
+  } else if (apartment.ApartmentType === 1) {
+    updatedApartment = {
+      ...commonFields,
+      NumberOfRoommates: Number(numberOfRoommates),
+    };
+  } else if (apartment.ApartmentType === 2) {
+    updatedApartment = {
+      ...commonFields,
+      CanCancelWithoutPenalty: canCancelWithoutPenalty,
+      IsWholeProperty: isWholeProperty,
+    };
+  }
+
+  // Determine the correct endpoint based on apartment type
   let endpoint = "";
   if (apartment.ApartmentType === 0)
     endpoint = `${API}Apartment/EditRentalApartment`;
@@ -195,17 +213,36 @@ if (apartment.ApartmentType === 0) {
   try {
     setIsUploading(true);
 
+    // Step 1: Update the apartment data (excluding images)
     const res = await fetch(endpoint, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updatedApartment),
     });
 
-    if (!res.ok) throw new Error("שגיאה בעדכון הדירה");
+    if (!res.ok) throw new Error("Failed to update apartment");
 
+    // Step 2: Delete removed images from server
+    for (const imgUri of imagesToDelete) {
+      const encoded = encodeURIComponent(imgUri);
+      try {
+        await fetch(
+          `${API}UploadImageCpntroller/deleteApartmentImage?imageUrl=${encoded}`,
+          {
+            method: "DELETE",
+          }
+        );
+      } catch (err) {
+        console.warn("Failed to delete image:", imgUri, err);
+      }
+    }
+
+    // Step 3: Upload newly added images (local images only)
     const formData = new FormData();
     images.forEach((uri) => {
-      if (!uri.startsWith("/uploadedFiles")) {
+      const isNewImage =
+        !uri.startsWith("/uploadedFiles") && !uri.includes("http");
+      if (isNewImage) {
         const fileName = uri.split("/").pop();
         const fileType = fileName.split(".").pop();
         const mimeType = fileType === "png" ? "image/png" : "image/jpeg";
@@ -218,6 +255,7 @@ if (apartment.ApartmentType === 0) {
       }
     });
 
+    // Step 4: Upload the new images if any were added
     if (formData._parts.length > 0) {
       await fetch(
         `${API}UploadImageCpntroller/uploadApartmentImage/${apartment.ApartmentID}`,
@@ -229,17 +267,22 @@ if (apartment.ApartmentType === 0) {
     }
 
     setIsUploading(false);
-Alert.alert("הצלחה", "הדירה עודכנה בהצלחה", [
-  {
-    text: "אישור",
-    onPress: () => router.push("(tabs)/ProfilePage"),
-  },
-]);    
-    // onSave && onSave(); // Removed as per edit hint
-    // onClose(); // Removed as per edit hint
+
+    // Notify user and redirect
+   Alert.alert(
+  "איזה כיף!",
+  "הדירה עודכנה בהצלחה",
+  [
+    {
+      text: "OK",
+      onPress: () => router.push("(tabs)/ProfilePage"),
+    },
+  ]
+);
+
   } catch (err) {
     setIsUploading(false);
-    Alert.alert("שגיאה", err.message);
+    Alert.alert("Error", err.message);
   }
 };
 
@@ -441,7 +484,7 @@ return (
 
               <Text style={styles.label}>תמונות שהועלו:</Text>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-                <ApartmentGalleryWithDelete images={apartment.Images} />
+                <ApartmentGalleryWithDelete images={images} removeImage={removeImage} />
               </View>
 
               <TouchableOpacity onPress={pickImage} style={styles.cameraButton}>
