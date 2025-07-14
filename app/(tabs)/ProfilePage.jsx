@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { View, ScrollView } from "react-native";
+import { View, ScrollView, ActivityIndicator } from "react-native";
 import MyProfile from "../MyProfile";
 import { userInfoContext } from "../contex/userInfoContext";
 import AdminScreen from "../AdminScreen";
@@ -34,7 +34,7 @@ import { checkIfAdmin } from "../../checkAdmin";
 */
 
 const ProfilePage = () => {
-  const { loginUserId } = useContext(userInfoContext);
+  const { loginUserId, isLoading } = useContext(userInfoContext);
   const [checking, setChecking] = useState(true);
   const [isAdmin, setIsAdmin] = useState(null);
   const router = useRouter();

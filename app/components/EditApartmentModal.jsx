@@ -269,12 +269,17 @@ const handleUpdate = async () => {
     setIsUploading(false);
 
     // Notify user and redirect
-    Alert.alert("הדירה עודכנה בהצלחה", [
-      {
-        text: "OK",
-        onPress: () => router.push("(tabs)/ProfilePage"),
-      },
-    ]);
+   Alert.alert(
+  "איזה כיף!",
+  "הדירה עודכנה בהצלחה",
+  [
+    {
+      text: "OK",
+      onPress: () => router.push("(tabs)/ProfilePage"),
+    },
+  ]
+);
+
   } catch (err) {
     setIsUploading(false);
     Alert.alert("Error", err.message);
