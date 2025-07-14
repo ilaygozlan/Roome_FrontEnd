@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   ScrollView,
@@ -14,7 +14,7 @@ import API from "../../config";
 
 const { width } = Dimensions.get("window");
 const baseUrl = "https://roomebackend20250414140006.azurewebsites.net";
-
+//hey
 const prepareImages = (images) => {
   if (!images) return [];
 
@@ -47,45 +47,58 @@ const prepareImages = (images) => {
   return [];
 };
 
-export default function ApartmentGalleryWithDelete({ images, removeImage }) {
+
+export default function ApartmentGalleryWithDelete({ images , removeImage}) {
   const scrollRef = useRef();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const prepared = prepareImages(images);
+  const [imageArray, setImageArray] = useState([]);
+
+  useEffect(() => {
+    setImageArray(prepareImages(images));
+  }, [images]);
 
   const handleScroll = (event) => {
     const x = event.nativeEvent.contentOffset.x;
-    setCurrentIndex(Math.round(x / width));
+    const index = Math.round(x / width);
+    setCurrentIndex(index);
   };
+const confirmDeleteImage = (originalPath) => {
+  Alert.alert("מחיקת תמונה", "האם אתה בטוח שברצונך למחוק את התמונה?", [
+    { text: "בטל", style: "cancel" },
+    {
+      text: "מחק",
+      style: "destructive",
+      onPress: async () => {
+        if (typeof removeImage === "function") {
+          removeImage(originalPath);
+          return;
+        }
 
-  const confirmDeleteImage = (originalPath) => {
-    Alert.alert("מחיקת תמונה", "האם למחוק תמונה זו?", [
-      { text: "ביטול", style: "cancel" },
-      {
-        text: "מחק",
-        style: "destructive",
-        onPress: async () => {
-          if (typeof removeImage === "function") {
-            removeImage(originalPath);
-            return;
-          }
-
-          try {
-            await fetch(
-              `${API}UploadImageCpntroller/deleteApartmentImage?imageUrl=${encodeURIComponent(originalPath)}`,
-              { method: "DELETE" }
-            );
-          } catch (err) {
-            console.error("Delete failed:", err);
-          }
-        },
+        try {
+          await fetch(
+            `${API}UploadImageCpntroller/deleteApartmentImage?imageUrl=${encodeURIComponent(originalPath)}`,
+            {
+              method: "DELETE",
+            }
+          );
+        } catch (error) {
+          console.error("Error deleting image:", error);
+        } finally {
+          setImageArray((prev) =>
+            prev.filter((img) => img.original !== originalPath)
+          );
+        }
       },
-    ]);
-  };
+    },
+  ]);
+};
 
-  if (!prepared.length) {
+
+
+  if (imageArray.length === 0) {
     return (
       <View style={styles.placeholder}>
-        <Text style={styles.placeholderText}>אין תמונות להצגה</Text>
+        <Text style={styles.placeholderText}>No images available</Text>
       </View>
     );
   }
@@ -101,7 +114,7 @@ export default function ApartmentGalleryWithDelete({ images, removeImage }) {
         ref={scrollRef}
         style={styles.scrollView}
       >
-        {prepared.map((img, index) => (
+        {imageArray.map((img, index) => (
           <View key={index} style={styles.imageWrapper}>
             <Image source={{ uri: img.fullUrl }} style={styles.image} />
             <TouchableOpacity
@@ -118,9 +131,9 @@ export default function ApartmentGalleryWithDelete({ images, removeImage }) {
         ))}
       </ScrollView>
 
-      {prepared.length > 1 && (
+      {imageArray.length > 1 && (
         <View style={styles.dotsContainer}>
-          {prepared.map((_, index) => (
+          {imageArray.map((_, index) => (
             <View
               key={index}
               style={[styles.dot, index === currentIndex && styles.activeDot]}
