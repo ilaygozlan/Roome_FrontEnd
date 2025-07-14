@@ -8,6 +8,7 @@ import {
   Modal,
   TextInput,
   Platform,
+  Alert,
 } from "react-native";
 import ApartmentGallery from "./components/ApartmentGallery";
 import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
@@ -19,7 +20,7 @@ import ApartmentLabelsPopup from "./components/ApartmentLabelsPopup";
 import OpenHouseButton from "./components/OpenHouseButton";
 import EditApartmentModal from "./components/EditApartmentModal";
 import { useNavigation } from "@react-navigation/native";
-//hey
+
 const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
   const { allApartments } = useContext(ActiveApartmentContext);
   const [openHouseModalVisible, setOpenHouseModalVisible] = useState(false);
@@ -245,6 +246,25 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
     setSelectedApartmentId(apartmentId);
     setOpenHouseModalVisible(true);
   };
+  const handleDeleteApartment = async (apartmentId) => {
+    try {
+      const res = await fetch(`${API}Admin/ToggleActive/${apartmentId}`, {
+        method: "PUT",
+      });
+
+      if (!res.ok) {
+        throw new Error("שגיאה במחיקת הדירה");
+      }
+
+      const updatedApartments = ownedApartments.filter(
+        (apt) => apt.ApartmentID !== apartmentId
+      );
+      setOwnedApartments(updatedApartments);
+    } catch (error) {
+      console.error("שגיאה במחיקה:", error);
+      alert("❌ שגיאה במחיקת הדירה:\n" + error.message);
+    }
+  };
 
   const submitOpenHouse = async () => {
     if (!startTime || !endTime || !peopleCount || !openHouseDate) {
@@ -327,40 +347,38 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
     const minutes = String(dateObj.getMinutes()).padStart(2, "0");
     return `${hours}:${minutes}`;
   };
-const handleUpdateApartment = (updatedApt, labels) => {
-  // First, prepare the labels in the correct format
-  const formattedLabelsJson = labels
-    .map((label) => `{"value":"${label}"}`)
-    .join(",");
+  const handleUpdateApartment = (updatedApt, labels) => {
+    // First, prepare the labels in the correct format
+    const formattedLabelsJson = labels
+      .map((label) => `{"value":"${label}"}`)
+      .join(",");
 
-  // Now, find the apartment to update and merge the labels JSON properly
-  const updatedOwnedApartments = allApartments.map((apt) => {
-    if (apt.ApartmentID === updatedApt.id) {
-      const existing = apt.LabelsJson?.trim();
-      const combinedLabelsJson =
-        existing && existing.length > 0
-          ? `${existing},${formattedLabelsJson}`
-          : formattedLabelsJson;
+    // Now, find the apartment to update and merge the labels JSON properly
+    const updatedOwnedApartments = allApartments.map((apt) => {
+      if (apt.ApartmentID === updatedApt.id) {
+        const existing = apt.LabelsJson?.trim();
+        const combinedLabelsJson =
+          existing && existing.length > 0
+            ? `${existing},${formattedLabelsJson}`
+            : formattedLabelsJson;
 
-      return {
-        ...apt,
-        ...updatedApt,
-        LabelsJson: combinedLabelsJson,
-      };
-    }
-    return apt;
-  });
+        return {
+          ...apt,
+          ...updatedApt,
+          LabelsJson: combinedLabelsJson,
+        };
+      }
+      return apt;
+    });
 
-  // Filter only apartments owned by this user
-  const filtered = updatedOwnedApartments.filter(
-    (apt) => apt.UserID === Number(userId)
-  );
+    // Filter only apartments owned by this user
+    const filtered = updatedOwnedApartments.filter(
+      (apt) => apt.UserID === Number(userId)
+    );
 
-  // Update state
-  setOwnedApartments(filtered);
-};
-
-
+    // Update state
+    setOwnedApartments(filtered);
+  };
 
   if (ownedApartments.length === 0) {
     return (
@@ -369,37 +387,29 @@ const handleUpdateApartment = (updatedApt, labels) => {
       </Text>
     );
   }
-const getApartmentLabels = (apt) => {
-  if (!apt.LabelsJson) return [];
+  const getApartmentLabels = (apt) => {
+    if (!apt.LabelsJson) return [];
 
-  try {
- 
-    let fixedJson = apt.LabelsJson.trim();
-    if (!fixedJson.startsWith("[")) {
-      fixedJson = `[${fixedJson}]`;
-    }
+    try {
+      let fixedJson = apt.LabelsJson.trim();
+      if (!fixedJson.startsWith("[")) {
+        fixedJson = `[${fixedJson}]`;
+      }
 
-    const labelsArr = JSON.parse(fixedJson);
+      const labelsArr = JSON.parse(fixedJson);
 
-  
-    const labels = labelsArr
-      .flatMap(item =>
+      const labels = labelsArr.flatMap((item) =>
         item.value
-          ? item.value.split(",").map(l => l.trim().toLowerCase())
+          ? item.value.split(",").map((l) => l.trim().toLowerCase())
           : []
       );
 
-
-    return labels.filter(label => label && labelToIcon[label]);
-  } catch (e) {
-    console.error("Error parsing LabelsJson:", e, apt.LabelsJson);
-    return [];
-  }
-};
-
-
-
-
+      return labels.filter((label) => label && labelToIcon[label]);
+    } catch (e) {
+      console.error("Error parsing LabelsJson:", e, apt.LabelsJson);
+      return [];
+    }
+  };
 
   const renderApartmentLabels = (apt) => {
     const labels = getApartmentLabels(apt);
@@ -440,16 +450,44 @@ const getApartmentLabels = (apt) => {
           >
             {isMyProfile && (
               <View style={styles.rightButtonsContainer}>
-                <TouchableOpacity
-                  style={styles.editIconButton}
-                  onPress={() => handleEdit(apt)}
-                >
-                  <MaterialCommunityIcons
-                    name="pencil"
-                    size={20}
-                    color="white"
-                  />
-                </TouchableOpacity>
+                <View style={styles.inlineIcons}>
+                  <TouchableOpacity
+                    style={styles.iconOnlyButton}
+                    onPress={() => handleEdit(apt)}
+                  >
+                    <MaterialCommunityIcons
+                      name="pencil"
+                      size={22}
+                      color="#5C67F2"
+                    />
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.iconOnlyButton}
+                    onPress={() =>
+                      Alert.alert(
+                        "אישור מחיקה",
+                        "האם אתה בטוח שברצונך למחוק את הדירה?",
+                        [
+                          { text: "ביטול", style: "cancel" },
+                          {
+                            text: "מחק",
+                            style: "destructive",
+                            onPress: () =>
+                              handleDeleteApartment(apt.ApartmentID),
+                          },
+                        ]
+                      )
+                    }
+                  >
+                    <MaterialCommunityIcons
+                      name="trash-can-outline"
+                      size={22}
+                      color="#5C67F2"
+                    />
+                  </TouchableOpacity>
+                </View>
+
                 <TouchableOpacity
                   style={styles.aiButton}
                   onPress={() => setVisibleLabelsPopupId(apt.ApartmentID)}
@@ -902,6 +940,23 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     textAlign: "right",
     color: "#333",
+  },
+ iconOnlyButton: {
+  backgroundColor: "#fff",
+  padding: 6,
+  marginLeft: 6,
+  borderRadius: 6, // מרובע עם פינות מעוגלות קלות
+  elevation: 2, // צל לאנדרואיד
+  shadowColor: "#000", // צל לאייפון
+  shadowOpacity: 0.1,
+  shadowRadius: 2,
+  shadowOffset: { width: 0, height: 1 },
+},
+
+
+  inlineIcons: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
   },
 });
 
