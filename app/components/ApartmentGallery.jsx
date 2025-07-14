@@ -111,5 +111,5 @@ const styles = StyleSheet.create({
   },
   activeDot: {
     backgroundColor: "#E3965A",
-  },
+  },
 });
