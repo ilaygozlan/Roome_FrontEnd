@@ -254,19 +254,25 @@ export default function ApartmentDetails({ apt, onClose }) {
       return details;
     });
   };
-  const getApartmentLabels = () => {
-    if (!apt.LabelsJson) return [];
-///f
-    try {
-      const labelsArr = JSON.parse(apt.LabelsJson);
-      return labelsArr
-        .map((item) => item.Label?.toLowerCase())
-        .filter((label) => label && labelToIcon[label]);
-    } catch (e) {
-      console.error("Error parsing LabelsJson:", e);
-      return [];
-    }
-  };
+const getApartmentLabels = () => {
+  if (!apt.LabelsJson) return [];
+
+  try {
+
+    const parsed = JSON.parse(apt.LabelsJson);
+
+    const labelsArr = Array.isArray(parsed) ? parsed : [parsed];
+
+    return labelsArr
+      .map((item) => item.value?.toLowerCase())
+      .filter((value) => value && labelToIcon[value]);
+  } catch (e) {
+    console.error("Error parsing LabelsJson:", e);
+    return [];
+  }
+};
+
+
   const renderApartmentLabels = () => {
     const labels = getApartmentLabels();
 
