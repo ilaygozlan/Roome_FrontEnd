@@ -10,78 +10,15 @@ import {
   Image,
   ScrollView,
   ActivityIndicator,
+  I18nManager,
 } from "react-native";
-import { FontAwesome5, MaterialIcons, Feather } from "@expo/vector-icons";
+import { FontAwesome5, Feather } from "@expo/vector-icons";
 import UserOwnedApartmentsGrid from "./UserOwnedApartmentsGrid";
 import API from "../config";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { userInfoContext } from "./contex/userInfoContext";
 import LogoutButton from "./components/LogoutButton";
-import { useLocalSearchParams } from "expo-router";
-
-/**
- * @module UserProfile
- * @description Component for displaying user profile information and managing user relationships
- *
- * Features:
- * - Profile information display
- * - Friend management (add/remove friends)
- * - Profile editing capabilities
- * - User apartment listings
- * - Friends list with horizontal scrolling
- * - Profile image handling
- *
- * @requires expo-router
- * @requires @expo/vector-icons
- *
- * State Management:
- * @state {Object} userProfile - User's profile data
- * @state {boolean} loading - Loading state indicator
- * @state {Object} error - Error state
- * @state {boolean} modalVisible - Edit modal visibility
- * @state {Object} updatedProfile - Temporary profile data for editing
- * @state {Array} friends - User's friends list
- * @state {boolean} isFriend - Friendship status with viewed profile
- *
- * Props:
- * @prop {string} userId - User ID to display (optional)
- * @prop {Function} onClose - Callback for closing profile view
- * @prop {Function} onAddFriend - Callback when adding friend
- * @prop {Function} onRemoveFriend - Callback when removing friend
- *
- * Components:
- * @component InfoCard - Displays individual profile information fields
- *
- * API Integration:
- * - User profile fetching
- * - Friend list management
- * - Profile updates
- *
- * Context Usage:
- * - userInfoContext for authentication
- *
- * Features:
- * 1. Profile Information Display:
- *    - Profile picture
- *    - Basic user information
- *    - Contact details
- *    - Personal preferences (smoking, pets)
- *
- * 2. Friend Management:
- *    - Add/Remove friends
- *    - View friends list
- *    - Navigate to friend profiles
- *
- * 3. Profile Editing:
- *    - Edit personal information
- *    - Update profile picture
- *    - Save profile changes
- *
- * 4. Responsive Layout:
- *    - Scrollable content
- *    - Horizontal scrolling friends list
- *    - Modal forms for editing
- */
+import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
 
 const UserProfile = (props) => {
   const { loginUserId } = useContext(userInfoContext);
@@ -98,9 +35,14 @@ const UserProfile = (props) => {
   const [updatedProfile, setUpdatedProfile] = useState({});
   const [friends, setFriends] = useState([]);
   const [isFriend, setIsFriend] = useState(false);
-//hey
+  const [showFriendsModal, setShowFriendsModal] = useState(false);
+  const [showPhoneError, setShowPhoneError] = useState(false);
+  const [ownedApartmentsNum, setOwnedApartmentsNum] = useState(0);
+   const { allApartments } = useContext(ActiveApartmentContext);
+  
+  const rtl = I18nManager.isRTL;
+
   useEffect(() => {
-    console.log(finalUserId);
     fetch(API + "User/GetUserById/" + finalUserId)
       .then((res) => {
         if (!res.ok) throw new Error("שגיאה בטעינת פרופיל");
@@ -127,6 +69,13 @@ const UserProfile = (props) => {
         })
         .catch((err) => console.error("שגיאה בטעינת חברים", err));
     }
+  }, [finalUserId, loginUserId]);
+
+  useEffect(() => {
+       const filtered = allApartments.filter(
+      (apt) => apt.UserID === Number(finalUserId)
+    );
+    setOwnedApartmentsNum(filtered.length);
   }, [finalUserId]);
 
   const handleFriendToggle = () => {
@@ -172,19 +121,28 @@ const UserProfile = (props) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedUser),
       });
-
       if (!res.ok) throw new Error("Failed to update profile");
-
-      console.log("✔️ profile updated");
       setModalVisible(false);
+      setUserProfile(updatedUser);
+      setUpdatedProfile(updatedUser);
     } catch (err) {
-      console.error("❌", err);
+      setError(err);
+    }
+  };
+
+  const HandlePhoneNumber = (phoneNumber) => {
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phoneRegex.test(phoneNumber)) {
+      setShowPhoneError(true);
+      return;
+    } else {
+      setShowPhoneError(false);
     }
   };
 
   if (loading)
     return (
-      <ActivityIndicator size="large" color="#2661A1" style={{ flex: 1 }} />
+      <ActivityIndicator size="large" color="#7C83FD" style={{ flex: 1 }} />
     );
   if (error || !userProfile)
     return (
@@ -194,477 +152,445 @@ const UserProfile = (props) => {
     );
 
   return (
-    <View style={{ flex: 1 }}>
-      <ScrollView style={styles.container}>
-        <View style={styles.headerBackground} />
-        <View style={styles.profileContainer}>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: "#F6F7FB" }}
+      contentContainerStyle={{ paddingBottom: 40 }}
+    >
+      {/* Header */}
+      <View style={styles.headerContainer}>
+        {/* כפתורי חבר/צ'אט בפינה הימנית העליונה */}
+        {!isMyProfile && (
+          <View style={styles.topRightActions}>
+            <TouchableOpacity
+              style={styles.actionIcon}
+              onPress={handleFriendToggle}
+            >
+              <FontAwesome5
+                name={isFriend ? "user-minus" : "user-plus"}
+                size={18}
+                color="#7C83FD"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionIcon}
+              onPress={() => router.push(`/chat/${finalUserId}`)}
+            >
+              <FontAwesome5 name="comments" size={18} color="#7C83FD" />
+            </TouchableOpacity>
+          </View>
+        )}
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Feather name="arrow-left" size={24} color="#A1A7B3" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.avatarWrapper}
+          onPress={isMyProfile ? () => setModalVisible(true) : undefined}
+        >
           <Image
             source={
               userProfile.profilePicture
                 ? { uri: userProfile.profilePicture }
                 : { uri: "https://www.w3schools.com/howto/img_avatar.png" }
             }
-            style={styles.profileImage}
+            style={styles.avatar}
           />
-          {isMyProfile ? (
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => {
-            
-                  router.back();
-          
-              }}
-            >
-              <Feather name="arrow-left" size={24} color="#fff" />
-            </TouchableOpacity>
-          ) : (
-            <>
-              <TouchableOpacity
-                style={styles.editIcon}
-                onPress={handleFriendToggle}
-              >
-                <FontAwesome5
-                  name={isFriend ? "user-minus" : "user-plus"}
-                  size={18}
-                  color="#fff"
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.chatButton}
-                onPress={() => router.push(`/chat/${finalUserId}`)}
-
-              >
-                <FontAwesome5 name="comments" size={18} color="#fff" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.backButton}
-                 onPress={() => router.back()}
-              >
-                <Feather name="arrow-left" size={24} color="#fff" />
-              </TouchableOpacity>
-            </>
-          )}
-
-          <Text style={styles.profileName}>{userProfile.fullName}</Text>
-
-          <View style={styles.infoGrid}>
-            <InfoCard
-              icon={<FontAwesome5 name="envelope" size={18} color="#2661A1" />}
-              value={userProfile.email}
-            />
-            <InfoCard
-              icon={<FontAwesome5 name="phone" size={18} color="#2661A1" />}
-              value={userProfile.phoneNumber}
-            />
-            <InfoCard
-              icon={
-                <FontAwesome5 name="venus-mars" size={18} color="#2661A1" />
-              }
-              value={userProfile.gender === "F" ? "נקבה" : "זכר"}
-            />
-            <InfoCard
-              icon={
-                <FontAwesome5 name="birthday-cake" size={18} color="#2661A1" />
-              }
-              value={new Date(userProfile.birthDate).toLocaleDateString(
-                "he-IL"
-              )}
-            />
-            <InfoCard
-              icon={<FontAwesome5 name="dog" size={18} color="#2661A1" />}
-              value={userProfile.ownPet ? "בעל חיית מחמד" : "אין חיה"}
-            />
-            <InfoCard
-              icon={<FontAwesome5 name="smoking" size={18} color="#2661A1" />}
-              value={userProfile.smoke ? "מעשן" : "לא מעשן"}
-            />
-            <InfoCard
-              icon={<FontAwesome5 name="briefcase" size={18} color="#2661A1" />}
-              value={userProfile.jobStatus}
-            />
-          </View>
-        </View>
-
-        <View style={styles.friendsSection}>
-          <Text style={styles.sectionTitle}>
-            {isMyProfile
-              ? "החברים שלי"
-              : userProfile?.fullName
-                ? `החברים של ${userProfile.fullName}`
-                : "החברים"}
-          </Text>
-
-          {friends.length === 0 ? (
-            <Text
-              style={{ textAlign: "right", marginRight: 20, color: "#888" }}
-            >
-              אין חברים להצגה כרגע.
-            </Text>
-          ) : (
-            <View style={{ alignItems: "flex-end" }}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{
-                  flexDirection: "row-reverse",
-                  alignItems: "center",
-                }}
-              >
-                {friends.map((friend) => (
-                  <TouchableOpacity
-                    key={friend.id}
-                    style={styles.friendCard}
-                    onPress={() => {
-                      setFriendProfile(true);
-                      setFriendId(friend.id);
-                    }}
-                  >
-                    <Image
-                      source={{
-                        uri:
-                          friend.profilePicture ||
-                          "https://www.w3schools.com/howto/img_avatar.png",
-                      }}
-                      style={styles.friendCardImage}
-                    />
-                    <Text style={styles.friendCardName}>{friend.fullName}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+          {isMyProfile && (
+            <View style={styles.editIconCircle}>
+              <Feather name="edit" size={16} color="#fff" />
             </View>
           )}
-        </View>
+        </TouchableOpacity>
+        <Text style={styles.profileName}>{userProfile.fullName}</Text>
+        {/* אל תציג אימייל */}
+      </View>
 
-        {showFriendProfile && (
-          <Modal
-            visible={true}
-            animationType="slide"
-            onRequestClose={() => setFriendProfile(false)}>
-
-            <UserProfile
-              userId={selectedFriendId}
-              onClose={() => setFriendProfile(false)}
-              onRemoveFriend={props.onRemoveFriend}
-              onAddFriend={props.onAddFriend} />
-
-          </Modal>
-        )}
-
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            paddingTop: 50,
-          }}
+      {/* Counters Row */}
+      <View
+        style={[styles.countersRow, rtl && { flexDirection: "row-reverse" }]}
+      >
+        <TouchableOpacity
+          style={[styles.counterCard, styles.counterCardActive]}
+          onPress={() => setShowFriendsModal(true)}
         >
-          <UserOwnedApartmentsGrid userId={finalUserId} isMyProfile={false} loginUserId={loginUserId} />
+          <Text style={styles.counterNumber}>{friends.length}</Text>
+          <Text style={styles.counterLabel}>חברים</Text>
+        </TouchableOpacity>
+        <View style={styles.counterCard}>
+          <Text style={styles.counterNumber}>{ownedApartmentsNum}</Text>
+          <Text style={styles.counterLabel}>הדירות</Text>
         </View>
-        {isMyProfile && (
-          <View
+      </View>
+
+      {/* Friends Modal */}
+      <Modal
+        visible={showFriendsModal}
+        animationType="slide"
+        onRequestClose={() => setShowFriendsModal(false)}
+      >
+        <View style={styles.friendsModalContainer}>
+          <Text style={styles.friendsModalTitle}>החברים</Text>
+          <ScrollView>
+            {friends.map((friend) => (
+              <TouchableOpacity
+                key={friend.id}
+                style={styles.friendRow}
+                onPress={() => {
+                  setShowFriendsModal(false);
+                  setFriendProfile(true);
+                  setFriendId(friend.id);
+                }}
+              >
+                <Image
+                  source={{
+                    uri:
+                      friend.profilePicture ||
+                      "https://www.w3schools.com/howto/img_avatar.png",
+                  }}
+                  style={styles.friendAvatar}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.friendName}>{friend.fullName}</Text>
+                  <Text style={styles.friendUsername}>@{friend.username}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+          <TouchableOpacity
+            style={styles.closeModalBtn}
+            onPress={() => setShowFriendsModal(false)}
+          >
+            <Text style={{ color: "#fff", fontSize: 18 }}>סגור</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
+      {/* Friend Profile Modal */}
+      {showFriendProfile && (
+        <Modal
+          visible={true}
+          animationType="slide"
+          onRequestClose={() => setFriendProfile(false)}
+        >
+          <UserProfile
+            userId={selectedFriendId}
+            onClose={() => setFriendProfile(false)}
+            onRemoveFriend={props.onRemoveFriend}
+            onAddFriend={props.onAddFriend}
+          />
+        </Modal>
+      )}
+
+      {/* Profile Info Card */}
+      <View style={styles.infoCard}>
+        {/* מגדר */}
+        <View style={styles.infoRow}>
+          <FontAwesome5
+            name="venus-mars"
+            size={18}
+            color="#7C83FD"
+            style={{ marginLeft: 8 }}
+          />
+          <Text
             style={{
-              flex: 1,
-              justifyContent: "center",
-              alignItems: "center",
-              paddingTop: 150,
+              color: "#7C83FD",
+              fontWeight: "600",
+              fontSize: 15,
+              textAlign: "right",
             }}
           >
-            <LogoutButton />
-          </View>
-        )}
-      </ScrollView>
-    </View>
+            {userProfile.gender === "F"
+              ? "נקבה"
+              : userProfile.gender === "M"
+                ? "זכר"
+                : "אחר"}
+          </Text>
+        </View>
+
+        {/* תאריך לידה */}
+        <View style={styles.infoRow}>
+          <FontAwesome5
+            name="birthday-cake"
+            size={18}
+            color="#7C83FD"
+            style={{ marginLeft: 8 }}
+          />
+          <Text
+            style={{
+              color: "#7C83FD",
+              fontWeight: "600",
+              fontSize: 15,
+              textAlign: "right",
+            }}
+          >
+            {new Date(userProfile.birthDate).toLocaleDateString("he-IL")}
+          </Text>
+        </View>
+
+        {/* חיית מחמד */}
+        <View style={styles.infoRow}>
+          <FontAwesome5
+            name="dog"
+            size={18}
+            color="#7C83FD"
+            style={{ marginLeft: 8 }}
+          />
+          <Text
+            style={{
+              color: "#7C83FD",
+              fontWeight: "600",
+              fontSize: 15,
+              textAlign: "right",
+            }}
+          >
+            {userProfile.ownPet ? "יש לי חיית מחמד" : "אין לי חיית מחמד"}
+          </Text>
+        </View>
+
+        {/* עישון */}
+        <View style={styles.infoRow}>
+          <FontAwesome5
+            name="smoking"
+            size={18}
+            color="#7C83FD"
+            style={{ marginLeft: 8 }}
+          />
+          <Text
+            style={{
+              color: "#7C83FD",
+              fontWeight: "600",
+              fontSize: 15,
+              textAlign: "right",
+            }}
+          >
+            {userProfile.smoke ? "מעשן" : "לא מעשן"}
+          </Text>
+        </View>
+
+        {/* סטטוס תעסוקתי */}
+        <View style={styles.infoRow}>
+          <FontAwesome5
+            name="briefcase"
+            size={18}
+            color="#7C83FD"
+            style={{ marginLeft: 8 }}
+          />
+          <Text
+            style={{
+              color: "#7C83FD",
+              fontWeight: "600",
+              fontSize: 15,
+              textAlign: "right",
+            }}
+          >
+            {userProfile.jobStatus}
+          </Text>
+        </View>
+      </View>
+
+      {/* Apartments Grid */}
+      <View style={{ width: "100%", alignItems: "center", marginTop: 30 }}>
+        <UserOwnedApartmentsGrid
+          userId={finalUserId}
+          isMyProfile={isMyProfile}
+          loginUserId={loginUserId}
+        />
+      </View>
+      {isMyProfile && (
+        <View style={styles.logoutContainer}>
+          <LogoutButton />
+        </View>
+      )}
+    </ScrollView>
   );
 };
 
-const InfoCard = ({ icon, value }) => (
-  <View
-    style={{
-      flexDirection: "row-reverse",
-      alignItems: "center",
-      marginBottom: 10,
-    }}
-  >
-    <View style={{ marginLeft: 10 }}>{icon}</View>
-    <Text style={{ fontSize: 16 }}>{value}</Text>
+const InfoRow = ({ icon, label, value }) => (
+  <View style={styles.infoRow}>
+    <View style={styles.infoLabelContainer}>
+      {icon}
+      <Text style={styles.infoLabel}>{label}</Text>
+    </View>
+    <Text style={styles.infoValue}>{value}</Text>
   </View>
 );
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f5f7fa",
+  headerContainer: {
+    alignItems: "center",
+    paddingTop: 40,
+    paddingBottom: 16,
+    backgroundColor: "#F6F7FB",
+    position: "relative",
   },
-  headerBackground: {
-    width: "100%",
-    height: 220,
-    backgroundColor: "#4A90E2",
-    position: "absolute",
-    top: 0,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 7,
-  },
-  profileContainer: {
-    marginTop: 140,
+  backButton: { position: "absolute", top: 40, left: 24, zIndex: 10 },
+  avatarWrapper: {
+    marginBottom: 12,
     backgroundColor: "#fff",
-    marginHorizontal: 20,
-    borderRadius: 20,
-    padding: 25,
-    elevation: 6,
+    borderRadius: 60,
+    padding: 6,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
     shadowRadius: 8,
+    elevation: 4,
   },
-  closeButton: {
+  avatar: { width: 100, height: 100, borderRadius: 50 },
+  editIconCircle: {
     position: "absolute",
-    top: 15,
-    left: 15,
-    padding: 8,
-    zIndex: 10,
-  },
-  profileImage: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
-    alignSelf: "center",
-    marginTop: -85,
-    borderWidth: 5,
+    bottom: 0,
+    right: 0,
+    backgroundColor: "#E3965A",
+    borderRadius: 12,
+    padding: 4,
+    borderWidth: 2,
     borderColor: "#fff",
-    backgroundColor: "#eee",
-  },
-  editIcon: {
-    position: "absolute",
-    top: 25,
-    right: 25,
-    backgroundColor: "#4A90E2",
-    padding: 7,
-    borderRadius: 25,
-    shadowColor: "#4A90E2",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
   },
   profileName: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: "700",
-    color: "#2c3e50",
-    textAlign: "center",
-    marginTop: 15,
-    letterSpacing: 0.5,
-  },
-  infoGrid: {
-    marginTop: 25,
-    gap: 15,
-  },
-  buttonsContainer: {
-    flexDirection: "row-reverse",
-    justifyContent: "flex-start",
-    alignItems: "center",
-    marginTop: 25,
-  },
-  smallButton: {
-    backgroundColor: "#4A90E2",
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-    borderRadius: 10,
-    shadowColor: "#4A90E2",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 7,
-  },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 16,
-    textAlign: "center",
-  },
-  friendsSection: {
-    marginHorizontal: 20,
-    marginTop: 35,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    marginBottom: 15,
-    textAlign: "right",
-    color: "#34495e",
-  },
-  friendsGrid: {
-    flexDirection: "row-reverse",
-    paddingHorizontal: 20,
-  },
-  friendCard: {
-    alignItems: "center",
-    marginLeft: 15,
-    backgroundColor: "#fff",
-    padding: 15,
-    borderRadius: 15,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    width: 85,
-  },
-  friendCardImage: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-  },
-  friendCardName: {
+    color: "#222B45",
     marginTop: 8,
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#2c3e50",
     textAlign: "center",
   },
-  modalContainer: {
-    flex: 1,
+  profileEmail: {
+    fontSize: 15,
+    color: "#A1A7B3",
+    marginTop: 2,
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  profileActionsRow: {
+    flexDirection: "row-reverse",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.35)",
+    marginTop: 10,
+    gap: 18,
   },
-  modalContent: {
+  actionIcon: {
     backgroundColor: "#fff",
     borderRadius: 20,
-    padding: 25,
-    width: "85%",
-    direction: "rtl",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 15,
+    padding: 10,
+    marginHorizontal: 5,
+    shadowColor: "#7C83FD",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  modalTitle: {
+  countersRow: {
+    flexDirection: "row-reverse",
+    justifyContent: "space-between",
+    width: "90%",
+    alignSelf: "center",
+    marginBottom: 18,
+  },
+  counterCard: {
+    flex: 1,
+    marginHorizontal: 6,
+    borderRadius: 18,
+    alignItems: "center",
+    paddingVertical: 18,
+    backgroundColor: "#F3F4F8",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  counterCardActive: { backgroundColor: "#E6E6FA" },
+  counterNumber: {
     fontSize: 22,
     fontWeight: "700",
-    marginBottom: 25,
-    textAlign: "right",
-    color: "#34495e",
-  },
-  input: {
-    borderBottomWidth: 1,
-    borderColor: "#ccc",
-    marginBottom: 20,
-    paddingVertical: 8,
-    fontSize: 16,
-    color: "#34495e",
-  },
-  inputDisabled: {
-    backgroundColor: "#f0f0f0",
-    paddingVertical: 14,
-    paddingHorizontal: 10,
-    borderRadius: 12,
-    marginBottom: 20,
-    color: "#999",
-    fontSize: 16,
+    color: "#E3965A",
+    marginBottom: 2,
     textAlign: "right",
   },
-  saveButton: {
-    backgroundColor: "#4A90E2",
-    paddingVertical: 14,
-    borderRadius: 14,
-    marginTop: 15,
-    shadowColor: "#4A90E2",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-  },
-  backButton: {
-    position: "absolute",
-    top: 25,
-    left: 25,
-    backgroundColor: "#4A90E2",
-    padding: 8,
-    borderRadius: 25,
-    zIndex: 10,
-    shadowColor: "#4A90E2",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.35,
-    shadowRadius: 6,
-  },
-  photoContainer: {
-    alignItems: "center",
-    marginBottom: 25,
-  },
-  profilePhoto: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
-    backgroundColor: "#eee",
-  },
-  photoPlaceholder: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
-    backgroundColor: "#d9d9d9",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  photoText: {
-    color: "#666",
+  counterLabel: {
+    fontSize: 13,
+    color: "#A1A7B3",
     fontWeight: "500",
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 8,
     textAlign: "right",
-    fontWeight: "600",
-    color: "#34495e",
   },
-  picker: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 12,
-    marginBottom: 20,
-    paddingHorizontal: 10,
-    fontSize: 16,
-    color: "#34495e",
-  },
-  dateButton: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 20,
+  friendsModalContainer: {
+    flex: 1,
     backgroundColor: "#fff",
+    paddingTop: 40,
+    paddingHorizontal: 18,
   },
-  dateButtonText: {
+  friendsModalTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 18,
     textAlign: "right",
-    fontSize: 16,
-    color: "#34495e",
   },
-  toggleContainer: {
+  friendRow: {
     flexDirection: "row-reverse",
-    justifyContent: "space-around",
-    marginBottom: 30,
-  },
-  toggleButton: {
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    width: "45%",
     alignItems: "center",
-    backgroundColor: "#fff",
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F8",
   },
-  toggleButtonActive: {
-    backgroundColor: "#4A90E2",
-    borderColor: "#4A90E2",
-  },
-  toggleText: {
+  friendAvatar: { width: 48, height: 48, borderRadius: 24, marginLeft: 16 },
+  friendName: {
     fontSize: 16,
-    color: "#34495e",
+    fontWeight: "600",
+    color: "#222B45",
+    textAlign: "right",
   },
-  toggleTextActive: {
-    color: "#fff",
-    fontWeight: "700",
+  friendUsername: { fontSize: 13, color: "#A1A7B3", textAlign: "right" },
+  closeModalBtn: {
+    backgroundColor: "#7C83FD",
+    padding: 14,
+    borderRadius: 12,
+    marginTop: 18,
+    marginBottom: 18,
+    alignItems: "center",
+  },
+  infoCard: {
+    backgroundColor: "#fff",
+    borderRadius: 22,
+    marginTop: 18,
+    marginHorizontal: 18,
+    paddingVertical: 18,
+    paddingHorizontal: 18,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+    direction: "rtl",
+  },
+  infoRow: {
+    flexDirection: "row",
+    direction: "rtl",
+    alignItems: "center",
+    marginBottom: 14,
+    paddingBottom: 6,
+  },
+  infoLabelContainer: {
+    flexDirection: "row-reverse",
+    direction: "rtl",
+    alignItems: "center",
+    gap: 8,
+    minWidth: 110,
+  },
+  infoLabel: {
+    fontSize: 15,
+    color: "#7C83FD",
+    fontWeight: "600",
+    marginRight: 8,
+    textAlign: "right",
+    marginLeft: 12,
+  },
+  infoValue: {
+    fontSize: 15,
+    color: "#A1A7B3",
+    fontWeight: "500",
+    textAlign: "right",
+    flex: 1,
   },
   logoutContainer: {
     alignItems: "center",
@@ -672,18 +598,13 @@ const styles = StyleSheet.create({
     marginTop: 30,
     marginBottom: 40,
   },
-  chatButton: {
+  topRightActions: {
     position: "absolute",
-    top: 25,
-    right: 70,
-    backgroundColor: "#4A90E2",
-    padding: 8,
-    borderRadius: 25,
-    zIndex: 10,
-    shadowColor: "#4A90E2",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.35,
-    shadowRadius: 6,
+    top: 40,
+    right: 24,
+    flexDirection: "row-reverse",
+    zIndex: 20,
+    gap: 4,
   },
 });
 
