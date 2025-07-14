@@ -256,7 +256,7 @@ export default function ApartmentDetails({ apt, onClose }) {
   };
   const getApartmentLabels = () => {
     if (!apt.LabelsJson) return [];
-
+///f
     try {
       const labelsArr = JSON.parse(apt.LabelsJson);
       return labelsArr
