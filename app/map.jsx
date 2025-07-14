@@ -32,6 +32,7 @@ import {
   StyleSheet,
   Dimensions,
   TouchableOpacity,
+  Modal,
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
@@ -40,13 +41,17 @@ import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Callout } from "react-native-maps";
 import HouseLoading from "./components/LoadingHouseSign";
+import ApartmentDetails from "./ApartmentDetails";
+
 export default function Map() {
-  const { mapLocationAllApt, setAllApartments } = useContext(
+  const { mapLocationAllApt, allApartments } = useContext(
     ActiveApartmentContext
   );
   const [region, setRegion] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const [selectedApartment, setSelectedApartment] = useState();
+  const [openAptButton, setOpenAptButton] = useState(false);
 
   /**
    * Location permission and initialization effect
@@ -88,6 +93,7 @@ export default function Map() {
    */
   const renderMarkers = () => {
     return mapLocationAllApt.map((apt, index) => {
+     
       if (
         apt.Location &&
         typeof apt.Location === "string" &&
@@ -99,24 +105,19 @@ export default function Map() {
 
         if (lat && lng) {
           return (
-            <Marker key={index} coordinate={{ latitude: lat, longitude: lng }}>
-              <Callout tooltip={false}>
-                <View style={styles.callout}>
-                  <Text style={styles.calloutTitle}>
-                    {apt.Price?.toLocaleString("he-IL")} ₪
-                  </Text>
-                  <Text style={styles.calloutDescription}>
-                    {apt.Description || "אין תיאור"}
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.calloutButton}
-                    onPress={() => router.push(`/apartment/${apt.ApartmentID}`)} // לסדר את זה
-                  >
-                    <Text style={styles.calloutButtonText}>מעבר לדירה</Text>
-                  </TouchableOpacity>
-                </View>
-              </Callout>
-            </Marker>
+            <Marker
+              key={index}
+              coordinate={{ latitude: lat, longitude: lng }}
+              title={apt.Price?.toLocaleString("he-IL") + " ₪"}
+              description={apt.Description || "אין תיאור"}
+              onPress={() => {
+                const selectedApt = allApartments.find(
+                  (apartment) => apartment.ApartmentID === apt.ApartmentID
+                );
+                console.log("DD",selectedApt)
+                setSelectedApartment(selectedApt);
+              }}
+            ></Marker>
           );
         }
       }
@@ -124,11 +125,7 @@ export default function Map() {
   };
 
   if (loading || !region) {
-    return (
-    
-     <HouseLoading  text="מעלה דירות על המפה" />
-      
-    );
+    return <HouseLoading text="מעלה דירות על המפה" />;
   }
 
   return (
@@ -141,6 +138,25 @@ export default function Map() {
       <MapView style={styles.map} region={region}>
         {renderMarkers()}
       </MapView>
+
+      {selectedApartment && (
+        <Modal
+          visible={true}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setSelectedApartment(null)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <ApartmentDetails
+                key={selectedApartment.ApartmentID}
+                apt={selectedApartment}
+                onClose={() => setSelectedApartment(null)}
+              />
+            </View>
+          </View>
+        </Modal>
+      )}
     </View>
   );
 }
@@ -171,33 +187,47 @@ const styles = StyleSheet.create({
     borderRadius: 30,
   },
   callout: {
-  width: 200,
-  padding: 10,
-  backgroundColor: "#fff",
-  borderRadius: 8,
-},
-calloutTitle: {
-  fontSize: 16,
-  fontWeight: "bold",
-  marginBottom: 5,
-  textAlign: "right",
-  color: "#333",
-},
-calloutDescription: {
-  fontSize: 14,
-  color: "#666",
-  marginBottom: 10,
-  textAlign: "right",
-},
-calloutButton: {
-  backgroundColor: "#5C67F2",
-  paddingVertical: 8,
-  borderRadius: 5,
-},
-calloutButtonText: {
-  color: "#fff",
-  textAlign: "center",
-  fontWeight: "bold",
-},
-
+    width: 200,
+    padding: 10,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+  },
+  calloutTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 5,
+    textAlign: "right",
+    color: "#333",
+  },
+  calloutDescription: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 10,
+    textAlign: "right",
+  },
+  calloutButton: {
+    backgroundColor: "#5C67F2",
+    paddingVertical: 8,
+    borderRadius: 5,
+  },
+  calloutButtonText: {
+    color: "#fff",
+    textAlign: "center",
+    fontWeight: "bold",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    width: "85%",
+    maxHeight: "80%",
+    height: "80%",
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 20,
+    elevation: 5,
+  },
 });

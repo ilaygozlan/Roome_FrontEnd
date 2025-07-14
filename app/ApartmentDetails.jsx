@@ -258,10 +258,16 @@ const getApartmentLabels = () => {
   if (!apt.LabelsJson) return [];
 
   try {
+    console.log("LabelsJson:", apt.LabelsJson);
 
-    const parsed = JSON.parse(apt.LabelsJson);
+    let fixedJson = apt.LabelsJson.trim();
 
-    const labelsArr = Array.isArray(parsed) ? parsed : [parsed];
+  
+    if (!fixedJson.startsWith("[")) {
+      fixedJson = `[${fixedJson}]`;
+    }
+
+    const labelsArr = JSON.parse(fixedJson);
 
     return labelsArr
       .map((item) => item.value?.toLowerCase())
@@ -271,6 +277,7 @@ const getApartmentLabels = () => {
     return [];
   }
 };
+
 
 
   const renderApartmentLabels = () => {
