@@ -99,23 +99,13 @@ export default function Map() {
 
         if (lat && lng) {
           return (
-            <Marker key={index} coordinate={{ latitude: lat, longitude: lng }}>
-              <Callout tooltip={false}>
-                <View style={styles.callout}>
-                  <Text style={styles.calloutTitle}>
-                    {apt.Price?.toLocaleString("he-IL")} ₪
-                  </Text>
-                  <Text style={styles.calloutDescription}>
-                    {apt.Description || "אין תיאור"} 
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.calloutButton}
-                    onPress={() => router.push(`/apartment/${apt.ApartmentID}`)} // לסדר את זה
-                  >
-                    <Text style={styles.calloutButtonText}>מעבר לדירה</Text>
-                  </TouchableOpacity>
-                </View>
-              </Callout>
+            <Marker
+              key={index}
+              coordinate={{ latitude: lat, longitude: lng }}
+              title={apt.Price?.toLocaleString("he-IL") + " ₪"}
+              description={apt.Description || "אין תיאור"}
+              
+            >
             </Marker>
           );
         }
@@ -124,11 +114,7 @@ export default function Map() {
   };
 
   if (loading || !region) {
-    return (
-    
-     <HouseLoading  text="מעלה דירות על המפה" />
-      
-    );
+    return <HouseLoading text="מעלה דירות על המפה" />;
   }
 
   return (
@@ -171,33 +157,32 @@ const styles = StyleSheet.create({
     borderRadius: 30,
   },
   callout: {
-  width: 200,
-  padding: 10,
-  backgroundColor: "#fff",
-  borderRadius: 8,
-},
-calloutTitle: {
-  fontSize: 16,
-  fontWeight: "bold",
-  marginBottom: 5,
-  textAlign: "right",
-  color: "#333",
-},
-calloutDescription: {
-  fontSize: 14,
-  color: "#666",
-  marginBottom: 10,
-  textAlign: "right",
-},
-calloutButton: {
-  backgroundColor: "#5C67F2",
-  paddingVertical: 8,
-  borderRadius: 5,
-},
-calloutButtonText: {
-  color: "#fff",
-  textAlign: "center",
-  fontWeight: "bold",
-},
-
+    width: 200,
+    padding: 10,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+  },
+  calloutTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 5,
+    textAlign: "right",
+    color: "#333",
+  },
+  calloutDescription: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 10,
+    textAlign: "right",
+  },
+  calloutButton: {
+    backgroundColor: "#5C67F2",
+    paddingVertical: 8,
+    borderRadius: 5,
+  },
+  calloutButtonText: {
+    color: "#fff",
+    textAlign: "center",
+    fontWeight: "bold",
+  },
 });
