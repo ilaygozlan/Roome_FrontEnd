@@ -269,7 +269,7 @@ const handleUpdate = async () => {
     setIsUploading(false);
 
     // Notify user and redirect
-    Alert.alert("Success", "Apartment updated successfully", [
+    Alert.alert("הדירה עודכנה בהצלחה", [
       {
         text: "OK",
         onPress: () => router.push("(tabs)/ProfilePage"),
