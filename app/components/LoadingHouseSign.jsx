@@ -8,25 +8,25 @@ const AnimatedRect = Animated.createAnimatedComponent(Rect);
  * @component HouseLoading
  * @description Animated loading indicator component featuring a house shape that fills up.
  * Uses SVG and Animated API to create a smooth filling animation effect.
- * 
+ *
  * Features:
  * - SVG-based house shape
  * - Bottom-to-top fill animation
  * - Continuous loop animation
  * - Custom color scheme
  * - Loading text indicator
- * 
+ *
  * Animation Details:
  * - Duration: 4000ms
  * - Fill Direction: Bottom to top
  * - Animation Type: Linear easing
  * - Colors: Gray background with orange fill
- * 
+ *
  * @example
  * <HouseLoading />
  */
 
-export default function HouseLoading() {
+export default function HouseLoading({ text = "טוען..." }) {
   const fillAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -69,10 +69,7 @@ export default function HouseLoading() {
         </Defs>
 
         {/* gray background of the house */}
-        <Path
-          fill="#ccc"
-          d="M256 0L0 192h64v320h128V320h128v192h128V192h64z"
-        />
+        <Path fill="#ccc" d="M256 0L0 192h64v320h128V320h128v192h128V192h64z" />
 
         {/* the orange filling that fills */}
         <AnimatedRect
@@ -85,7 +82,7 @@ export default function HouseLoading() {
         />
       </Svg>
 
-      <Text style={{ marginTop: 20, fontSize: 16 }}>מעלה את הדירה והתמונות...</Text>
+      <Text style={{ marginTop: 20, fontSize: 16 }}>{text}</Text>
     </View>
   );
 }

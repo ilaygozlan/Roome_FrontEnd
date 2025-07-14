@@ -62,19 +62,19 @@ export default function Layout() {
   const router = useRouter();
   const [isAdmin, setIsAdmin] = useState(null);
 
-   useEffect(() => {
-      const unsubscribe = onAuthStateChanged(auth, async (user) => {
-        if (!user) {
-          router.replace("/Login");
-        } else {
-          // Check if user is admin
-          const isAdminUser = await checkIfAdmin();
-          setIsAdmin(isAdminUser);
-        }
-        setChecking(false);
-      });
-      return () => unsubscribe();
-    }, []);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        router.replace("/Login");
+      } else {
+        // Check if user is admin
+        const isAdminUser = await checkIfAdmin();
+        setIsAdmin(isAdminUser);
+      }
+      setChecking(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   if (checking) {
     return (
@@ -96,26 +96,40 @@ export default function Layout() {
             <Tabs.Screen
               name="index"
               options={{
-                title: "Home",
-                tabBarIcon: ({ color, size }) => (
-                  <AntDesign name="home" size={size} color={color} />
-                ),
+                title: isAdmin ? "Apartments" : "Home",
+                tabBarIcon: ({ color, size }) =>
+                  isAdmin ? (
+                    <Ionicons
+                      name="settings-outline"
+                      size={size}
+                      color={color}
+                    />
+                  ) : (
+                    <AntDesign name="home" size={size} color={color} />
+                  ),
               }}
             />
             <Tabs.Screen
               name="ForYou"
               options={{
-                title: "For You",
+                title: isAdmin ? "Graphs" : "For You",
                 unmountOnBlur: false,
-                tabBarIcon: ({ color, size }) => (
-                  <FontAwesome name="star-o" size={size} color={color} />
-                ),
+                tabBarIcon: ({ color, size }) =>
+                  isAdmin ? (
+                    <Ionicons
+                      name="settings-outline"
+                      size={size}
+                      color={color}
+                    />
+                  ) : (
+                    <FontAwesome name="star-o" size={size} color={color} />
+                  ),
               }}
             />
             <Tabs.Screen
               name="ProfilePage"
               options={{
-                title: isAdmin ? "Admin" : "Profile",
+                title: isAdmin ? "Users" : "Profile",
                 tabBarIcon: ({ color, size }) =>
                   isAdmin ? (
                     <Ionicons

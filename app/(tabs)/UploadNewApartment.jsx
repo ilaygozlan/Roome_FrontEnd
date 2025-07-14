@@ -227,7 +227,7 @@ export default function UploadApartmentForm() {
       userID: loginUserId,
       price: Number(price),
       amountOfRooms: Number(rooms),
-      location: location,
+      location: JSON.stringify(location),
       allowPet: allowPet,
       allowSmoking: allowSmoking,
       gardenBalcony: gardenBalcony,
@@ -357,7 +357,7 @@ export default function UploadApartmentForm() {
                 const fileName = uri.split("/").pop();
                 return `/uploadedFiles/${fileName}`;
               });
-
+              console.log(imageLinks);
               apartmentData.Images = imageLinks.join(",");
               apartmentData.Price = price;
               apartmentData.Description = description;
@@ -389,7 +389,7 @@ export default function UploadApartmentForm() {
   };
 
   if (isUploading) {
-    return <HouseLoading />;
+    return <HouseLoading  text="מעלה את הדירה והתמונות..." />;
   }
 
 return (

@@ -7,16 +7,16 @@ import { auth } from "../firebase";
  * @module ActiveApartmentContext
  * @description Context provider for managing apartment data across the application.
  * Handles apartment data fetching, location parsing, and favorites management.
- * 
+ *
  * Features:
  * - Apartment data management
  * - Location data parsing
  * - Map location data handling
  * - Favorites refresh functionality
  * - User authentication integration
- * 
+ *
  * @requires react-firebase-hooks/auth
- * 
+ *
  * Context Values:
  * @property {Array<Object>} allApartments - List of all apartments with parsed locations
  * @property {Array<Object>} mapLocationAllApt - List of all apartments with raw location data
@@ -55,8 +55,11 @@ export const ActiveApartmentProvider = ({ children }) => {
   useEffect(() => {
     const getUserId = async (email) => {
       try {
-        const res = await fetch(`${API}User/CheckIfExists?email=${encodeURIComponent(email)}`);
-        if (!res.ok) throw new Error(`Server responded with status ${res.status}`);
+        const res = await fetch(
+          `${API}User/CheckIfExists?email=${encodeURIComponent(email)}`
+        );
+        if (!res.ok)
+          throw new Error(`Server responded with status ${res.status}`);
         const data = await res.json();
         setLoginUserId(data.userId);
       } catch (err) {
@@ -67,7 +70,6 @@ export const ActiveApartmentProvider = ({ children }) => {
     if (user?.email) {
       getUserId(user.email);
     }
-
   }, [user]);
 
   /**
@@ -78,7 +80,7 @@ export const ActiveApartmentProvider = ({ children }) => {
     if (loginUserId) {
       console.log("=== Fetching Apartments ===");
       console.log("Requesting apartments for userId:", loginUserId);
-      
+
       fetch(`${API}Apartment/GetAllActiveApartments/${loginUserId}`)
         .then((response) => response.json())
         .then((data) => {
@@ -92,7 +94,7 @@ export const ActiveApartmentProvider = ({ children }) => {
             } catch (e) {
               return {
                 ...apt,
-                Location: apt.Location, 
+                Location: apt.Location,
               };
             }
           });
@@ -104,14 +106,16 @@ export const ActiveApartmentProvider = ({ children }) => {
   }, [loginUserId]);
 
   return (
-    <ActiveApartmentContext.Provider value={{
-      allApartments,
-      mapLocationAllApt,
-      setMapLocationAllApt,
-      setAllApartments,
-      refreshFavorites,
-      triggerFavoritesRefresh: () => setRefreshFavorites((prev) => !prev),
-    }}>
+    <ActiveApartmentContext.Provider
+      value={{
+        allApartments,
+        mapLocationAllApt,
+        setMapLocationAllApt,
+        setAllApartments,
+        refreshFavorites,
+        triggerFavoritesRefresh: () => setRefreshFavorites((prev) => !prev),
+      }}
+    >
       {children}
     </ActiveApartmentContext.Provider>
   );

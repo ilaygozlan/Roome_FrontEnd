@@ -13,6 +13,7 @@ import { userInfoContext } from "../contex/userInfoContext";
 import API from "../../config";
 import { useRouter, useFocusEffect } from "expo-router";
 import SignalRService from "../contex/SignalRService";
+import HouseLoading from "../components/LoadingHouseSign"
 
 const ChatRoomListScreen = () => {
   const { loginUserId } = useContext(userInfoContext);
@@ -92,9 +93,8 @@ const ChatRoomListScreen = () => {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#4A90E2" />
-      </View>
+             <HouseLoading  text="הצאטים שלי "/>
+      
     );
   }
 
@@ -168,43 +168,77 @@ const ChatRoomListScreen = () => {
 export default ChatRoomListScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  container: {
+    flex: 1,
+    backgroundColor: "#f0f0f0", // צבע רקע עדין לצ'אט
+  },
   chatItem: {
     flexDirection: "row",
-    padding: 15,
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderColor: "#eee",
+    borderColor: "#e6e6e6",
+    height: 90, // גובה קבוע לשורה
   },
-  avatar: { width: 50, height: 50, borderRadius: 25, marginRight: 15 },
+  avatar: {
+    width: 55,
+    height: 55,
+    borderRadius: 27.5,
+    marginRight: 14,
+    borderWidth: 1,
+    borderColor: "#ccc",
+  },
   chatInfoContainer: {
     flex: 1,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  chatInfo: { flex: 1 },
-  userName: { fontSize: 16, fontWeight: "bold", color: "#333" },
-  lastMessage: { fontSize: 14, color: "#666", marginTop: 5 },
+  chatInfo: {
+    flex: 1,
+    paddingRight: 8,
+  },
+  userName: {
+    fontSize: 17,
+    fontWeight: "600",
+    color: "#222",
+    marginBottom: 4,
+  },
+  lastMessage: {
+    fontSize: 14,
+    color: "#555",
+  },
   rightSection: {
     alignItems: "flex-end",
     justifyContent: "space-between",
     height: "100%",
+    paddingTop: 4,
+    paddingBottom: 4,
   },
-  time: { fontSize: 12, color: "#aaa", marginBottom: 4 },
+  time: {
+    fontSize: 12,
+    color: "#999",
+  },
   unreadBadge: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: "#25D366", // ירוק כמו וואצאפ
     borderRadius: 12,
+    minWidth: 24,
     paddingHorizontal: 6,
     paddingVertical: 2,
-    marginTop: 6,
-    minWidth: 24,
     alignItems: "center",
     justifyContent: "center",
+    marginTop: 6,
   },
   unreadText: {
-    color: "white",
+    color: "#fff",
     fontSize: 12,
     fontWeight: "bold",
   },
-  centered: { flex: 1, justifyContent: "center", alignItems: "center" },
+  centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });

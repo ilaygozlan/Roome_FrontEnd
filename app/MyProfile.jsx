@@ -25,6 +25,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "./firebase";
 import RoommatePreferencesForm from "./components/RoommatePreferencesForm";
 import RecommendedRoommates from "./components/RecommendedRoommates";
+import HouseLoading from "./components/LoadingHouseSign";
 
 const baseUrl = "https://roomebackend20250414140006.azurewebsites.net";
 const GetImageUrl = (image) => {
@@ -206,7 +207,8 @@ const MyProfile = (props) => {
   // --- Loading/Error ---
   if (loading)
     return (
-      <ActivityIndicator size="large" color="#7C83FD" style={{ flex: 1 }} />
+       <HouseLoading  text="הפרופיל שלי" />
+  
     );
   if (error)
     return (
