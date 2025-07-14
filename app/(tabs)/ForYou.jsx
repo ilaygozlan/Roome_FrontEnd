@@ -37,6 +37,7 @@ export default function ForYou() {
   const [isLoading, setIsLoading] = useState(true);
   const [imageErrors, setImageErrors] = useState({});
   const [isAdmin, setIsAdmin] = useState(false);
+  const [finishedSwiping, setFinishedSwiping] = useState(false);
 
   useEffect(() => {
     const checkAdminAndFetch = async () => {
@@ -148,7 +149,7 @@ export default function ForYou() {
   };
 
   if (isLoading) {
-    return <HouseLoading  text="טוען דירות מומלצות בשבילך" />;
+    return <HouseLoading text="טוען דירות מומלצות בשבילך" />;
   }
 
   if (isAdmin) {
@@ -157,13 +158,14 @@ export default function ForYou() {
 
   return (
     <View style={styles.container}>
-      {swipeableApartments.length > 0 ? (
+      {swipeableApartments.length > 0 && !finishedSwiping ?  (
         <Swiper
           ref={swiperRef}
           cards={swipeableApartments}
           renderCard={renderCard}
           onSwipedLeft={(index) => handleSwipe(index, "left")}
           onSwipedRight={(index) => handleSwipe(index, "right")}
+          onSwipedAll={() => setFinishedSwiping(true)} // ← חדש
           cardVerticalMargin={50}
           stackSize={3}
           stackSeparation={14}
