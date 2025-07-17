@@ -249,7 +249,7 @@ if (receiverId) {
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 20,
+    justifyContent: "center",
     backgroundColor: "#F0F0F0",
   },
   loader: {
@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
   },
   card: {
     alignSelf: "center",
-    width: 350,
+    width: 300,
     backgroundColor: "white",
     borderRadius: 10,
     overflow: "hidden",

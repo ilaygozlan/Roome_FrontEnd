@@ -22,7 +22,7 @@ const CARD_HEIGHT = 500;
 
 const colors = {
   primary: "#E3965A",
-  background: "#ffffff",
+  background: "#f2f2f2",
   white: "#ffffff",
   gray: "#424242",
   lightGray: "#86888A",
@@ -255,7 +255,7 @@ export default function ForYou() {
 
 const styles = StyleSheet.create({
   container: { 
-    //marginTop: 50,
+    marginTop: 50,
     flex: 1,
     backgroundColor: colors.background,
     },

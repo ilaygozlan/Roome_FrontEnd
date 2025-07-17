@@ -447,7 +447,22 @@ const getApartmentLabels = () => {
 
             <ApartmentGallery images={apt.Images} width={containerWidth - 40} />
 
-            <Text style={styles.title}>{apt.Location}</Text>
+<Text style={styles.title}>
+  {(() => {
+    try {
+      const locationStr = apt?.Location?.trim();
+      if (locationStr?.startsWith("{") && locationStr?.endsWith("}")) {
+        const parsed = JSON.parse(locationStr);
+        return parsed?.address || "כתובת לא זמינה";
+      } else {
+        return locationStr || "כתובת לא זמינה";
+      }
+    } catch (err) {
+      console.warn("שגיאה בפענוח כתובת:", err);
+      return "כתובת לא זמינה";
+    }
+  })()}
+</Text>
             <Text style={styles.price}>{apt.Price} ש"ח</Text>
             <Text style={styles.description}>{apt.Description}</Text>
             {renderApartmentLabels()}

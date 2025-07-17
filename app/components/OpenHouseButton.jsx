@@ -134,9 +134,9 @@ const offerToSyncWithCalendar = async (openHouseId) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          openHouseID: openHouseId,
-          userID: userId,
-          confirmed: false,
+          OpenHouseID: openHouseId,
+          UserID: userId,
+          Confirmed: false,
         }),
       });
 
