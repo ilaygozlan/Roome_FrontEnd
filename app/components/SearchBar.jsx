@@ -48,6 +48,26 @@ const colors = {
   background: "#FDEAD7",
 };
 
+const genderOptions = ["אין העדפה", "רק גברים", "רק נשים"];
+
+const roommateFilters = [
+  "מאפשרים חיות מחמד",
+  "חניה",
+  "ביטול ללא קנס",
+  "מיזוג אוויר",
+  "חצר / מרפסת",
+  "מותר לעשן",
+  "מרוהטת",
+];
+const iconOptions = [
+  { id: "wifi", name: "wifi", label: "אינטרנט" },
+  { id: "happy", name: "happy-outline", label: "חברתי" },
+  { id: "anchor", name: "navigate-outline", label: "יציבות" },
+  { id: "headphones", name: "headset-outline", label: "שקט" },
+  { id: "bus", name: "bus-outline", label: "תחבורה" },
+  { id: "tv", name: "tv-outline", label: "טלוויזיה" },
+  { id: "key", name: "key-outline", label: "גישה" },
+];
 export default function SearchBar({
   selectedType,
   setSelectedType,
@@ -56,6 +76,8 @@ export default function SearchBar({
   priceRange,
   setPriceRange,
   SearchApartments,
+  filtersJson,
+  setFiltersJson,
   index,
   setIndex,
   showAllApartments,
@@ -160,11 +182,21 @@ export default function SearchBar({
 
   {showAdvancedFiltersComp && (
   <View style={{ marginTop: 10, width: "100%" }}>
-    <SearchFilters
-      onSearch={(filters) => {
-        console.log("🎯 מסנן מתקדם:", filters);
-        setShowAdvancedFiltersComp(false); 
+     <SearchFilters
+      SearchApartments={(filters) => {
+        setFiltersJson(filters);
+        SearchApartments(filters);
+        setShowAdvancedFiltersComp(false);
       }}
+      initialEntryDate={filtersJson?.entryDate ? new Date(filtersJson.entryDate) : null}
+      initialExitDate={filtersJson?.exitDate ? new Date(filtersJson.exitDate) : null}
+      initialGenderIndex={
+        filtersJson?.gender ? genderOptions.indexOf(filtersJson.gender) : null
+      }
+      initialRoommateOptions={filtersJson?.filters?.map((f) =>
+        roommateFilters.includes(f)
+      )}
+      initialSelectedIcons={filtersJson?.icons || []}
     />
   </View>
 )}

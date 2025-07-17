@@ -87,15 +87,20 @@ const iconOptions = [
   { id: "key", name: "key-outline", label: "גישה" },
 ];
 
-export default function SearchFilters({ onSearch }) {
+export default function SearchFilters( {
+  SearchApartments,
+  initialEntryDate,
+  initialExitDate,
+  initialGenderIndex,
+  initialRoommateOptions,
+  initialSelectedIcons
+}) {
   const [expanded, setExpanded] = useState(true);
-  const [selectedGender, setSelectedGender] = useState(null);
-  const [roommateOptions, setRoommateOptions] = useState(
-    new Array(roommateFilters.length).fill(false)
-  );
-  const [selectedIcons, setSelectedIcons] = useState([]);
-  const [entryDate, setEntryDate] = useState(null);
-  const [exitDate, setExitDate] = useState(null);
+const [entryDate, setEntryDate] = useState(initialEntryDate || null);
+const [exitDate, setExitDate] = useState(initialExitDate || null);
+const [selectedGender, setSelectedGender] = useState(initialGenderIndex ?? null);
+const [roommateOptions, setRoommateOptions] = useState(initialRoommateOptions || new Array(roommateFilters.length).fill(false));
+const [selectedIcons, setSelectedIcons] = useState(initialSelectedIcons || []);
 
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [dateType, setDateType] = useState("entry");
@@ -248,7 +253,7 @@ export default function SearchFilters({ onSearch }) {
           <TouchableOpacity
             style={styles.searchButton}
             onPress={() => {
-              onSearch({
+              SearchApartments({
                 entryDate,
                 exitDate,
                 gender: genderOptions[selectedGender],
