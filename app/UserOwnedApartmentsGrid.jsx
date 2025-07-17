@@ -8,6 +8,7 @@ import {
   Modal,
   TextInput,
   Platform,
+  Alert
 } from "react-native";
 import ApartmentGallery from "./components/ApartmentGallery";
 import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
@@ -361,7 +362,7 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
 
       alert("✅ " + (result.message || "בית פתוח נוצר בהצלחה!"));
       setOpenHouseModalVisible(false);
-
+      console.log(result.id);
       const newOpenHouse = {
         ...requestBody,
         openHouseId: result.id || Math.random(),
