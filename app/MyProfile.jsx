@@ -13,6 +13,7 @@ import {
   I18nManager,
 } from "react-native";
 import { FontAwesome5, Feather } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import API from "../config";
 import { useRouter } from "expo-router";
 import UserOwnedApartmentsGrid from "./UserOwnedApartmentsGrid";
@@ -205,11 +206,7 @@ const MyProfile = (props) => {
   };
 
   // --- Loading/Error ---
-  if (loading)
-    return (
-       <HouseLoading  text="הפרופיל שלי" />
-  
-    );
+  if (loading) return <HouseLoading text="הפרופיל שלי" />;
   if (error)
     return (
       <Text style={{ color: "red", textAlign: "center", marginTop: 40 }}>
@@ -511,25 +508,22 @@ const MyProfile = (props) => {
           value={userProfile.jobStatus}
         />
       </View>
-
       <TouchableOpacity
-        style={styles.settingsRow}
+        style={styles.aiButton}
         onPress={() => setShowPreferencesForm(true)}
       >
-        <FontAwesome5
-          name="sliders-h"
-          size={20}
-          color="#A1A7B3"
-          style={{ marginLeft: 16 }}
+        <MaterialCommunityIcons
+          name="robot"
+          size={22}
+          color="#fff"
+          style={{ marginLeft: 10 }}
         />
-        <Text style={styles.settingsText}>
-          {"\u202A"} למציאת שותפים AI{"\u202C"}
-        </Text>
+        <Text style={styles.aiButtonText}>{"\u202A"} למציאת שותפים AI{"\u202C"}</Text>
         <Feather
           name="chevron-left"
           size={22}
-          color="#A1A7B3"
-          style={{ marginRight: "auto" }}
+          color="#fff"
+          style={{ marginRight: 10 }}
         />
       </TouchableOpacity>
 
@@ -712,27 +706,30 @@ const styles = StyleSheet.create({
     textAlign: "left",
     flex: 1,
   },
-  settingsRow: {
+  aiButton: {
     flexDirection: "row-reverse",
     alignItems: "center",
-    backgroundColor: "#fff",
-    borderRadius: 18,
-    marginTop: 18,
-    marginHorizontal: 18,
-    paddingVertical: 18,
-    paddingHorizontal: 22,
+    justifyContent: "center",
+    backgroundColor: "#E3965A",
+    paddingVertical: 12,
+    borderRadius: 30,
+    marginHorizontal: 50,
+    marginTop: 30,
+    elevation: 5,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
-  settingsText: {
+
+  aiButtonText: {
+    color: "#fff",
     fontSize: 16,
-    color: "#222B45",
-    fontWeight: "500",
-    marginLeft: 12,
+    fontWeight: "bold",
+    marginHorizontal: 10,
+    textAlign: "right",
   },
+
   modalContainer: {
     flex: 1,
     justifyContent: "center",
