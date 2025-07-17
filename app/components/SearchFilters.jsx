@@ -99,12 +99,16 @@ export default function SearchFilters( {
 const [entryDate, setEntryDate] = useState(initialEntryDate || null);
 const [exitDate, setExitDate] = useState(initialExitDate || null);
 const [selectedGender, setSelectedGender] = useState(initialGenderIndex ?? null);
-const [roommateOptions, setRoommateOptions] = useState(initialRoommateOptions || new Array(roommateFilters.length).fill(false));
+const [roommateOptions, setRoommateOptions] = useState(
+  Array.isArray(initialRoommateOptions)
+    ? initialRoommateOptions
+    : new Array(roommateFilters.length).fill(false)
+);
 const [selectedIcons, setSelectedIcons] = useState(initialSelectedIcons || []);
 
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [dateType, setDateType] = useState("entry");
-
+console.log(initialRoommateOptions)
   const toggleOption = (index) => {
     const updated = [...roommateOptions];
     updated[index] = !updated[index];

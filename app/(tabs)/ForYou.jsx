@@ -87,6 +87,21 @@ export default function ForYou() {
     }
   };
 
+  const refreshRecommendations = async () => {
+    setIsLoading(true);
+    setFinishedSwiping(false);
+    setInteractedIds([]);
+
+    try {
+      const res = await fetch(`${API}User/GetRecommendedApartments/${userId}`);
+      const data = res.ok ? await res.json() : [];
+      setApartments(data);
+    } catch {
+      Alert.alert("שגיאה", "לא ניתן לטעון מחדש את ההמלצות");
+    } finally {
+      setIsLoading(false);
+    }
+  };
   const renderCard = (card) => {
     if (!card || !card.ApartmentID) return null;
 
@@ -158,7 +173,7 @@ export default function ForYou() {
 
   return (
     <View style={styles.container}>
-      {swipeableApartments.length > 0 && !finishedSwiping ?  (
+      {swipeableApartments.length > 0 && !finishedSwiping ? (
         <Swiper
           ref={swiperRef}
           cards={swipeableApartments}
@@ -190,6 +205,19 @@ export default function ForYou() {
           <Text style={{ fontSize: 24, marginTop: 20 }}>
             אין דירות להצגה כרגע
           </Text>
+
+          <TouchableOpacity
+            onPress={refreshRecommendations}
+            style={{
+              marginTop: 20,
+              backgroundColor: colors.primary,
+              paddingHorizontal: 20,
+              paddingVertical: 10,
+              borderRadius: 10,
+            }}
+          >
+            <Text style={{ color: "white", fontSize: 16 }}>רענן המלצות</Text>
+          </TouchableOpacity>
         </View>
       )}
     </View>

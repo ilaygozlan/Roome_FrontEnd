@@ -193,9 +193,10 @@ export default function SearchBar({
       initialGenderIndex={
         filtersJson?.gender ? genderOptions.indexOf(filtersJson.gender) : null
       }
-      initialRoommateOptions={filtersJson?.filters?.map((f) =>
-        roommateFilters.includes(f)
-      )}
+  initialRoommateOptions={roommateFilters.map((f) =>
+  filtersJson?.filters?.includes(f) || false
+)}
+
       initialSelectedIcons={filtersJson?.icons || []}
     />
   </View>
