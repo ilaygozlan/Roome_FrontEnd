@@ -324,7 +324,7 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
 
       alert("✅ " + (result.message || "בית פתוח נוצר בהצלחה!"));
       setOpenHouseModalVisible(false);
-
+      console.log(result.id);
       const newOpenHouse = {
         ...requestBody,
         openHouseId: result.id || Math.random(),
