@@ -9,6 +9,10 @@ import {
   TextInput,
   Platform,
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+  Alert
+>>>>>>> parent of 0ede11c (Merge branch 'main' into OfriNew)
 =======
   Alert
 >>>>>>> parent of 0ede11c (Merge branch 'main' into OfriNew)
@@ -290,6 +294,7 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
     setOpenHouseModalVisible(true);
   };
 <<<<<<< HEAD
+<<<<<<< HEAD
 
   const handleDeleteApartment = async (apartmentId) => {
     try {
@@ -315,6 +320,8 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
       alert("❌ שגיאה במחיקת הדירה:\n" + error.message);
     }
   };
+=======
+>>>>>>> parent of 0ede11c (Merge branch 'main' into OfriNew)
 =======
 >>>>>>> parent of 0ede11c (Merge branch 'main' into OfriNew)
 
@@ -436,6 +443,8 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
 
 
 
+
+
   if (ownedApartments.length === 0) {
     return (
       <Text style={{ textAlign: "center", marginTop: 20, color: "#666" }}>
@@ -501,6 +510,10 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
     }
   };
 >>>>>>> parent of 0ede11c (Merge branch 'main' into OfriNew)
+
+
+
+
 
 
 
@@ -1018,6 +1031,7 @@ const styles = StyleSheet.create({
     color: "#333",
   },
 <<<<<<< HEAD
+<<<<<<< HEAD
   iconOnlyButton: {
     backgroundColor: "#fff",
     padding: 6,
@@ -1034,6 +1048,8 @@ const styles = StyleSheet.create({
     flexDirection: "row-reverse",
     alignItems: "center",
   },
+=======
+>>>>>>> parent of 0ede11c (Merge branch 'main' into OfriNew)
 =======
 >>>>>>> parent of 0ede11c (Merge branch 'main' into OfriNew)
 });
