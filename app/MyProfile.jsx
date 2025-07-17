@@ -26,6 +26,7 @@ import { auth } from "./firebase";
 import RoommatePreferencesForm from "./components/RoommatePreferencesForm";
 import RecommendedRoommates from "./components/RecommendedRoommates";
 import HouseLoading from "./components/LoadingHouseSign";
+import { LinearGradient } from "expo-linear-gradient";
 
 const baseUrl = "https://roomebackend20250414140006.azurewebsites.net";
 const GetImageUrl = (image) => {
@@ -205,11 +206,7 @@ const MyProfile = (props) => {
   };
 
   // --- Loading/Error ---
-  if (loading)
-    return (
-       <HouseLoading  text="הפרופיל שלי" />
-  
-    );
+  if (loading) return <HouseLoading text="הפרופיל שלי" />;
   if (error)
     return (
       <Text style={{ color: "red", textAlign: "center", marginTop: 40 }}>
@@ -511,27 +508,51 @@ const MyProfile = (props) => {
           value={userProfile.jobStatus}
         />
       </View>
-
-      <TouchableOpacity
-        style={styles.settingsRow}
-        onPress={() => setShowPreferencesForm(true)}
+      <LinearGradient
+        colors={["#5C67F2", "#9B59B6", "#E67E22"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{
+          borderRadius: 12,
+          marginHorizontal: 20,
+          marginVertical: 10,
+        }}
       >
-        <FontAwesome5
-          name="sliders-h"
-          size={20}
-          color="#A1A7B3"
-          style={{ marginLeft: 16 }}
-        />
-        <Text style={styles.settingsText}>
-          {"\u202A"} למציאת שותפים AI{"\u202C"}
-        </Text>
-        <Feather
-          name="chevron-left"
-          size={22}
-          color="#A1A7B3"
-          style={{ marginRight: "auto" }}
-        />
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.settingsRow,
+            {
+              backgroundColor: "transparent", // כדי שהגרדיאנט ייראה
+              padding: 12,
+              borderRadius: 12,
+              flexDirection: "row-reverse",
+              alignItems: "center",
+            },
+          ]}
+          onPress={() => setShowPreferencesForm(true)}
+        >
+          <FontAwesome5
+            name="robot"
+            size={20}
+            color="#fff"
+            style={{ marginLeft: 16 }}
+          />
+          <Text
+            style={[
+              styles.settingsText,
+              { color: "#fff", fontWeight: "bold", fontSize: 16 },
+            ]}
+          >
+            {"\u202A"} למציאת שותפים AI{"\u202C"}
+          </Text>
+          <Feather
+            name="chevron-left"
+            size={22}
+            color="#fff"
+            style={{ marginRight: "auto" }}
+          />
+        </TouchableOpacity>
+      </LinearGradient>
 
       {/* Open Houses Modal */}
       <MyOpenHouses

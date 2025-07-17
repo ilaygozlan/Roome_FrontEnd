@@ -8,7 +8,11 @@ import {
   Modal,
   TextInput,
   Platform,
+<<<<<<< Updated upstream
   Alert
+=======
+  Alert,
+>>>>>>> Stashed changes
 } from "react-native";
 import ApartmentGallery from "./components/ApartmentGallery";
 import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
