@@ -8,6 +8,7 @@ import {
   Modal,
   TextInput,
   Platform,
+  Alert
 } from "react-native";
 import ApartmentGallery from "./components/ApartmentGallery";
 import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
