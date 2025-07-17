@@ -343,6 +343,44 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
     }
   };
 
+  const handleDeleteOpenHouse = async (openHouseId, apartmentId) => {
+    try {
+      console.log(" Trying to delete OpenHouse with ID:", openHouseId);
+      console.log(" Type of openHouseId:", typeof openHouseId);
+
+      const url = `${API}OpenHouse/DeleteOpenHouse/${openHouseId}/${userId}`;
+      console.log(" DELETE URL:", url);
+
+      const response = await fetch(url, {
+        method: "DELETE",
+      });
+
+      console.log(" Server response status:", response.status);
+
+      if (response.ok) {
+        Alert.alert("הצלחה", "הסיור נמחק בהצלחה");
+        setOpenHousesMap((prevMap) => {
+          const updatedOpenHouses = (prevMap[apartmentId] || []).filter(
+            (item) => item.openHouseId !== openHouseId
+          );
+
+          return {
+            ...prevMap,
+            [apartmentId]: updatedOpenHouses,
+          };
+        });
+
+      } else {
+        const message = await response.text();
+        console.log("Server response error text:", message);
+        Alert.alert("שגיאה", message);
+      }
+    } catch (error) {
+      console.error(" Error deleting open house:", error);
+      Alert.alert("שגיאה", "אירעה שגיאה במחיקת הסיור");
+    }
+  };
+
   const formatDateOnly = (dateObj) => {
     const year = dateObj.getFullYear();
     const month = String(dateObj.getMonth() + 1).padStart(2, "0");
@@ -578,6 +616,13 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
                         color="white"
                         style={{ marginLeft: 6 }}
                       />
+                      <TouchableOpacity onPress={() => handleDeleteOpenHouse(item.openHouseId, apt.ApartmentID)}>
+                        <MaterialCommunityIcons
+                          name="trash-can-outline"
+                          size={22}
+                          color="red"
+                        />
+                      </TouchableOpacity>
                     </View>
                   </View>
                 ))}
