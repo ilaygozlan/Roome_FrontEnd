@@ -21,7 +21,9 @@ import EditApartmentModal from "./components/EditApartmentModal";
 import { useNavigation } from "@react-navigation/native";
 
 const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
-  const { allApartments } = useContext(ActiveApartmentContext);
+  const { allApartments, setAllApartments } = useContext(
+    ActiveApartmentContext
+  );
   const [openHouseModalVisible, setOpenHouseModalVisible] = useState(false);
   const [selectedApartmentId, setSelectedApartmentId] = useState(null);
   const [openHouseDate, setOpenHouseDate] = useState(new Date());
@@ -283,6 +285,7 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
     setSelectedApartmentId(apartmentId);
     setOpenHouseModalVisible(true);
   };
+
   const handleDeleteApartment = async (apartmentId) => {
     try {
       const res = await fetch(`${API}Admin/ToggleActive/${apartmentId}`, {
@@ -297,6 +300,11 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
         (apt) => apt.ApartmentID !== apartmentId
       );
       setOwnedApartments(updatedApartments);
+
+      const updatedAllApartments = allApartments.filter(
+        (apt) => apt.ApartmentID !== apartmentId
+      );
+      setAllApartments(updatedAllApartments);
     } catch (error) {
       console.error("שגיאה במחיקה:", error);
       alert("❌ שגיאה במחיקת הדירה:\n" + error.message);
@@ -997,18 +1005,17 @@ const styles = StyleSheet.create({
     textAlign: "right",
     color: "#333",
   },
- iconOnlyButton: {
-  backgroundColor: "#fff",
-  padding: 6,
-  marginLeft: 6,
-  borderRadius: 6, // מרובע עם פינות מעוגלות קלות
-  elevation: 2, // צל לאנדרואיד
-  shadowColor: "#000", // צל לאייפון
-  shadowOpacity: 0.1,
-  shadowRadius: 2,
-  shadowOffset: { width: 0, height: 1 },
-},
-
+  iconOnlyButton: {
+    backgroundColor: "#fff",
+    padding: 6,
+    marginLeft: 6,
+    borderRadius: 6, // מרובע עם פינות מעוגלות קלות
+    elevation: 2, // צל לאנדרואיד
+    shadowColor: "#000", // צל לאייפון
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 1 },
+  },
 
   inlineIcons: {
     flexDirection: "row-reverse",

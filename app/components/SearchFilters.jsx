@@ -11,7 +11,7 @@ import {
   UIManager,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-/*import DateTimePickerModal from "@react-native-community/datetimepicker";*/
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 if (Platform.OS === "android") {
   UIManager.setLayoutAnimationEnabledExperimental &&
@@ -22,7 +22,7 @@ if (Platform.OS === "android") {
  * @component SearchFilters
  * @description Advanced search filters component for apartment and roommate searching.
  * Provides extensive filtering options including dates, gender preferences, amenities, and more.
- * 
+ *
  * Features:
  * - Expandable/collapsible interface
  * - Date range selection (entry/exit dates)
@@ -30,14 +30,14 @@ if (Platform.OS === "android") {
  * - Amenities checklist
  * - Icon-based feature selection
  * - Responsive layout with animations
- * 
+ *
  * Filter Categories:
  * - Date Range
  * - Gender Preferences
  * - Roommate Preferences
  * - Amenities
  * - Property Features
- * 
+ *
  * @param {Object} props
  * @param {Function} props.onSearch - Callback function that receives the filter selections
  */
@@ -88,7 +88,7 @@ const iconOptions = [
 ];
 
 export default function SearchFilters({ onSearch }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const [selectedGender, setSelectedGender] = useState(null);
   const [roommateOptions, setRoommateOptions] = useState(
     new Array(roommateFilters.length).fill(false)
@@ -116,13 +116,17 @@ export default function SearchFilters({ onSearch }) {
     setDatePickerVisibility(false);
     if (dateType === "entry") {
       if (exitDate && date > exitDate) {
-        alert("תאריך כניסה לא יכול להיות אחרי תאריך יציאה");
-        return;
+        setExitDate(null);
       }
       setEntryDate(date);
+
+      setTimeout(() => {
+        setDateType("exit");
+        setDatePickerVisibility(true);
+      }, 300);
     } else {
-      if (entryDate && date < entryDate) {
-        alert("תאריך יציאה לא יכול להיות לפני תאריך כניסה");
+      if (entryDate && date <= entryDate) {
+        alert("תאריך יציאה חייב להיות אחרי תאריך כניסה");
         return;
       }
       setExitDate(date);
@@ -131,20 +135,8 @@ export default function SearchFilters({ onSearch }) {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.advancedToggle}
-        onPress={() => {
-          LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-          setExpanded((prev) => !prev);
-        }}
-      >
-        <Text style={styles.advancedToggleText}>
-          {expanded ? "סגור סינון מתקדם" : "סינון מתקדם"}
-        </Text>
-      </TouchableOpacity>
-
       {expanded && (
-       <>
+        <ScrollView>
           {/* date */}
           <View style={styles.dateSection}>
             <TouchableOpacity
@@ -156,7 +148,9 @@ export default function SearchFilters({ onSearch }) {
             >
               <Text style={styles.dateLabel}>תאריך כניסה</Text>
               <Text style={styles.dateValue}>
-                {entryDate ? entryDate.toLocaleDateString("he-IL") : "בחר תאריך"}
+                {entryDate
+                  ? entryDate.toLocaleDateString("he-IL")
+                  : "בחר תאריך"}
               </Text>
             </TouchableOpacity>
 
@@ -210,9 +204,7 @@ export default function SearchFilters({ onSearch }) {
                 onPress={() => toggleOption(index)}
               >
                 <Ionicons
-                  name={
-                    roommateOptions[index] ? "checkbox" : "square-outline"
-                  }
+                  name={roommateOptions[index] ? "checkbox" : "square-outline"}
                   size={24}
                   color={colors.primary}
                 />
@@ -268,25 +260,34 @@ export default function SearchFilters({ onSearch }) {
           >
             <Text style={styles.searchButtonText}>חיפוש</Text>
           </TouchableOpacity>
-       </>
+        </ScrollView>
       )}
 
-     {/* <DateTimePickerModal
-        isVisible={isDatePickerVisible}
-        mode="date"
-        onConfirm={handleDateConfirm}
-        onCancel={() => setDatePickerVisibility(false)}
-        locale="he-IL"
-        style={{ zIndex: 9999 }}
-        minimumDate={new Date()}
-      />*/}
+      {
+        <DateTimePickerModal
+          isVisible={isDatePickerVisible}
+          mode="date"
+          onConfirm={handleDateConfirm}
+          onCancel={() => setDatePickerVisibility(false)}
+          locale="he-IL"
+          style={{ zIndex: 9999 }}
+          minimumDate={
+            dateType === "exit" && entryDate
+              ? new Date(entryDate.getTime() + 24 * 60 * 60 * 1000)
+              : new Date()
+          }
+        />
+      }
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 20,
+    marginTop: -5,
+    padding: 10,
+    backgroundColor: "#ffffffff",
+    borderRadius: 10,
   },
   advancedToggle: {
     alignSelf: "center",
@@ -316,7 +317,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   genderButtonSelected: {
-    backgroundColor: colors.textDark,
+    backgroundColor: colors.primary,
   },
   genderText: {
     color: colors.textDark,
