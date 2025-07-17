@@ -20,7 +20,6 @@ import { Keyboard, TouchableWithoutFeedback } from "react-native";
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import GooglePlacesInput from "./GooglePlacesAPI";
 
-
 /**
  * @component SearchBar
  * @description Advanced search component for apartment filtering with expandable interface.
@@ -59,13 +58,14 @@ export default function SearchBar({
   SearchApartments,
   index,
   setIndex,
-  showAllApartments
+  showAllApartments,
 }) {
   const [expanded, setExpanded] = useState(false);
   const [searchInput, setSearchInput] = useState(
     selectedLocation?.address || ""
   );
-
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [showAdvancedFiltersComp, setShowAdvancedFiltersComp] = useState(false);
   const router = useRouter();
   const googlePlacesRef = useRef();
 
@@ -139,7 +139,16 @@ export default function SearchBar({
             </Text>
           </View>
         </TouchableOpacity>
-
+        {showAdvancedFilters && !index &&(<TouchableOpacity
+          style={styles.filterIconContainer}
+          onPress={() => setShowAdvancedFiltersComp((prev) => !prev)}
+        >
+          <FontAwesome5
+          name="sliders-h"
+          size={20}
+          color="#fff"
+        />
+        </TouchableOpacity>)}
         {/* Map icon */}
         <TouchableOpacity
           style={styles.mapIconContainer}
@@ -148,6 +157,18 @@ export default function SearchBar({
           <FontAwesome5 name="map-marked-alt" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
+
+  {showAdvancedFiltersComp && (
+  <View style={{ marginTop: 10, width: "100%" }}>
+    <SearchFilters
+      onSearch={(filters) => {
+        console.log("🎯 מסנן מתקדם:", filters);
+        setShowAdvancedFiltersComp(false); 
+      }}
+    />
+  </View>
+)}
+
 
       {expanded && (
         <View style={styles.expandSection}>
@@ -296,7 +317,7 @@ export default function SearchBar({
             <Text style={styles.priceText}>מינימום: {priceRange[0]} ₪</Text>
             <Text style={styles.priceText}>מקסימום: {priceRange[1]} ₪</Text>
           </View>
-          <SearchFilters onSearch={(filters) => console.log("🔎", filters)} />
+
           {/* search btn */}
           <View style={styles.searchButtonContainer}>
             <TouchableOpacity
@@ -310,6 +331,7 @@ export default function SearchBar({
                 );
                 SearchApartments();
                 setExpanded(false);
+                setShowAdvancedFilters(true);
               }}
             >
               <Text style={styles.searchButtonText}>חיפוש</Text>
@@ -443,6 +465,14 @@ const styles = StyleSheet.create({
     color: "#555",
   },
   mapIconContainer: {
+    backgroundColor: colors.primary,
+    padding: 10,
+    borderRadius: 30,
+    elevation: 4,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  filterIconContainer: {
     backgroundColor: colors.primary,
     padding: 10,
     borderRadius: 30,
