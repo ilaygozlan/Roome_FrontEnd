@@ -401,7 +401,10 @@ const handleUpdateApartment = (updatedApt, labels) => {
       let existingLabels = [];
 
       try {
-        existingLabels = apt.LabelsJson ? JSON.parse(apt.LabelsJson) : [];
+        if (apt.LabelsJson) {
+          const parsed = JSON.parse(apt.LabelsJson);
+          existingLabels = Array.isArray(parsed) ? parsed : [parsed];
+        }
       } catch (e) {
         console.warn("Failed to parse existing LabelsJson", e);
       }
@@ -418,7 +421,7 @@ const handleUpdateApartment = (updatedApt, labels) => {
     return apt;
   });
 
-  setAllApartments(updatedOwnedApartments); // או עדכון אחר במצב שלך
+  setAllApartments(updatedOwnedApartments);
 };
 
 
