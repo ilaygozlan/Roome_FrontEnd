@@ -75,8 +75,6 @@ import GooglePlacesInput from "../components/GooglePlacesAPI";
  * - userInfoContext for user authentication
  */
 
-const baseUrl = "https://roomebackend20250414140006.azurewebsites.net";
-
 export default function UploadApartmentForm() {
   const { allApartments, setAllApartments } = useContext(
     ActiveApartmentContext
@@ -355,9 +353,12 @@ export default function UploadApartmentForm() {
             .then((uploadResult) => {
               console.log("📸 תמונות הועלו:", uploadResult);
 
-              imageLinks = uploadResult.urls;
-              console.log("dd",imageLinks);
-              apartmentData.Images = imageLinks;
+              imageLinks = images.map((uri) => {
+                const fileName = uri.split("/").pop();
+                return `/uploadedFiles/${fileName}`;
+              });
+              console.log(imageLinks);
+              apartmentData.Images = imageLinks.join(",");
               apartmentData.Price = price;
               apartmentData.Description = description;
               apartmentData.Location = JSON.parse(apartmentData.location).address;

@@ -8,6 +8,10 @@ import {
   Modal,
   TextInput,
   Platform,
+<<<<<<< HEAD
+=======
+  Alert
+>>>>>>> parent of 0ede11c (Merge branch 'main' into OfriNew)
 } from "react-native";
 import ApartmentGallery from "./components/ApartmentGallery";
 import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
@@ -19,7 +23,7 @@ import ApartmentLabelsPopup from "./components/ApartmentLabelsPopup";
 import OpenHouseButton from "./components/OpenHouseButton";
 import EditApartmentModal from "./components/EditApartmentModal";
 import { useNavigation } from "@react-navigation/native";
-
+//hey
 const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
   const { allApartments, setAllApartments } = useContext(
     ActiveApartmentContext
@@ -285,6 +289,7 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
     setSelectedApartmentId(apartmentId);
     setOpenHouseModalVisible(true);
   };
+<<<<<<< HEAD
 
   const handleDeleteApartment = async (apartmentId) => {
     try {
@@ -310,6 +315,8 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
       alert("❌ שגיאה במחיקת הדירה:\n" + error.message);
     }
   };
+=======
+>>>>>>> parent of 0ede11c (Merge branch 'main' into OfriNew)
 
   const submitOpenHouse = async () => {
     if (!startTime || !endTime || !peopleCount || !openHouseDate) {
@@ -427,6 +434,8 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
 
 
 
+
+
   if (ownedApartments.length === 0) {
     return (
       <Text style={{ textAlign: "center", marginTop: 20, color: "#666" }}>
@@ -437,6 +446,7 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
   const getApartmentLabels = (apt) => {
     if (!apt.LabelsJson) return [];
 
+<<<<<<< HEAD
   try {
  
     let fixedJson = apt.LabelsJson.trim();
@@ -461,6 +471,36 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
     return [];
   }
 };
+
+
+
+
+=======
+    try {
+
+      let fixedJson = apt.LabelsJson.trim();
+      if (!fixedJson.startsWith("[")) {
+        fixedJson = `[${fixedJson}]`;
+      }
+
+      const labelsArr = JSON.parse(fixedJson);
+
+
+      const labels = labelsArr
+        .flatMap(item =>
+          item.value
+            ? item.value.split(",").map(l => l.trim().toLowerCase())
+            : []
+        );
+
+
+      return labels.filter(label => label && labelToIcon[label]);
+    } catch (e) {
+      console.error("Error parsing LabelsJson:", e, apt.LabelsJson);
+      return [];
+    }
+  };
+>>>>>>> parent of 0ede11c (Merge branch 'main' into OfriNew)
 
 
 
@@ -505,44 +545,16 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
           >
             {isMyProfile && (
               <View style={styles.rightButtonsContainer}>
-                <View style={styles.inlineIcons}>
-                  <TouchableOpacity
-                    style={styles.iconOnlyButton}
-                    onPress={() => handleEdit(apt)}
-                  >
-                    <MaterialCommunityIcons
-                      name="pencil"
-                      size={22}
-                      color="#5C67F2"
-                    />
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.iconOnlyButton}
-                    onPress={() =>
-                      Alert.alert(
-                        "אישור מחיקה",
-                        "האם אתה בטוח שברצונך למחוק את הדירה?",
-                        [
-                          { text: "ביטול", style: "cancel" },
-                          {
-                            text: "מחק",
-                            style: "destructive",
-                            onPress: () =>
-                              handleDeleteApartment(apt.ApartmentID),
-                          },
-                        ]
-                      )
-                    }
-                  >
-                    <MaterialCommunityIcons
-                      name="trash-can-outline"
-                      size={22}
-                      color="#5C67F2"
-                    />
-                  </TouchableOpacity>
-                </View>
-
+                <TouchableOpacity
+                  style={styles.editIconButton}
+                  onPress={() => handleEdit(apt)}
+                >
+                  <MaterialCommunityIcons
+                    name="pencil"
+                    size={20}
+                    color="white"
+                  />
+                </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.aiButton}
                   onPress={() => setVisibleLabelsPopupId(apt.ApartmentID)}
@@ -1005,6 +1017,7 @@ const styles = StyleSheet.create({
     textAlign: "right",
     color: "#333",
   },
+<<<<<<< HEAD
   iconOnlyButton: {
     backgroundColor: "#fff",
     padding: 6,
@@ -1021,6 +1034,8 @@ const styles = StyleSheet.create({
     flexDirection: "row-reverse",
     alignItems: "center",
   },
+=======
+>>>>>>> parent of 0ede11c (Merge branch 'main' into OfriNew)
 });
 
 export default UserOwnedApartmentsGrid;
