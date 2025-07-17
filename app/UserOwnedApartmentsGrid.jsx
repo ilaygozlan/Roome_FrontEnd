@@ -393,38 +393,34 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
     const minutes = String(dateObj.getMinutes()).padStart(2, "0");
     return `${hours}:${minutes}`;
   };
-  const handleUpdateApartment = (updatedApt, labels) => {
-    // First, prepare the labels in the correct format
-    const formattedLabelsJson = labels
-      .map((label) => `{"value":"${label}"}`)
-      .join(",");
+const handleUpdateApartment = (updatedApt, labels) => {
+  const formattedNewLabels = labels.map((label) => ({ value: label }));
 
-    // Now, find the apartment to update and merge the labels JSON properly
-    const updatedOwnedApartments = allApartments.map((apt) => {
-      if (apt.ApartmentID === updatedApt.id) {
-        const existing = apt.LabelsJson?.trim();
-        const combinedLabelsJson =
-          existing && existing.length > 0
-            ? `${existing},${formattedLabelsJson}`
-            : formattedLabelsJson;
+  const updatedOwnedApartments = allApartments.map((apt) => {
+    if (apt.ApartmentID === updatedApt.id) {
+      let existingLabels = [];
 
-        return {
-          ...apt,
-          ...updatedApt,
-          LabelsJson: combinedLabelsJson,
-        };
+      try {
+        existingLabels = apt.LabelsJson ? JSON.parse(apt.LabelsJson) : [];
+      } catch (e) {
+        console.warn("Failed to parse existing LabelsJson", e);
       }
-      return apt;
-    });
 
-    // Filter only apartments owned by this user
-    const filtered = updatedOwnedApartments.filter(
-      (apt) => apt.UserID === Number(userId)
-    );
+      const combinedLabels = [...existingLabels, ...formattedNewLabels];
 
-    // Update state
-    setOwnedApartments(filtered);
-  };
+      return {
+        ...apt,
+        ...updatedApt,
+        LabelsJson: JSON.stringify(combinedLabels),
+      };
+    }
+
+    return apt;
+  });
+
+  setAllApartments(updatedOwnedApartments); // או עדכון אחר במצב שלך
+};
+
 
   if (ownedApartments.length === 0) {
     return (

@@ -20,17 +20,16 @@ import API from "../../config";
 import { useSignalR } from "../contex/SignalRContext";
 
 const ChatRoom = () => {
-
   const navigation = useNavigation();
   const route = useRoute();
-const { recipientId } = route.params || {};
+  const { recipientId } = route.params || {};
   console.log("📱 ChatRoom mounted. recipientId:", recipientId);
 
   const { loginUserId } = useContext(userInfoContext);
   const {
     sendMessage: signalRSendMessage,
     onReceiveMessage,
-    startConnection, 
+    startConnection,
   } = useSignalR();
 
   const [messages, setMessages] = useState([]);
@@ -38,7 +37,7 @@ const { recipientId } = route.params || {};
   const scrollViewRef = useRef();
   const recipient = parseInt(recipientId);
   const colorScheme = useColorScheme();
-
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
 
@@ -47,6 +46,20 @@ const { recipientId } = route.params || {};
       startConnection(loginUserId.toString());
     }
   }, [loginUserId]);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      setInitialLoadDone(true);
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    if (!initialLoadDone) return;
+    const timeout = setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [initialLoadDone]);
 
   useEffect(() => {
     fetch(API + "User/GetUserById/" + recipientId)
@@ -102,7 +115,13 @@ const { recipientId } = route.params || {};
   }, [onReceiveMessage]);
 
   useEffect(() => {
-    scrollViewRef.current?.scrollToEnd({ animated: true });
+    const timeout = setTimeout(() => {
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollToEnd({ animated: true });
+      }
+    }, 300);
+
+    return () => clearTimeout(timeout);
   }, [messages]);
 
   const sendMessage = () => {
@@ -178,10 +197,11 @@ const { recipientId } = route.params || {};
             </View>
           )}
         </View>
-
         <ScrollView
-          contentContainerStyle={styles.messagesContainer}
           ref={scrollViewRef}
+          contentContainerStyle={styles.messagesContainer}
+          keyboardShouldPersistTaps="handled"
+         onContentSizeChange={() => scrollViewRef.current.scrollToEnd({ animated: true })}
         >
           {messages.map((item, index) => {
             const isMe = item.from === loginUserId;
@@ -309,4 +329,3 @@ const createStyles = (isDark) =>
       borderRadius: 25,
     },
   });
-

@@ -50,6 +50,9 @@ const ChatRoomListScreen = () => {
     useCallback(() => {
       setLoading(true);
       loadChatList();
+       return () => {
+    
+    };
     }, [loginUserId])
   );
 
@@ -82,7 +85,7 @@ const ChatRoomListScreen = () => {
             return prevList;
           }
         });
-      }, 40);
+      }, 500);
     });
 
     return () => {

@@ -183,6 +183,10 @@ const ApartmentLabelsPopup = ({
   };
 
   const createApartmentLabel = async () => {
+    if(selectedLabels.length == 0){
+      Alert.alert("לא נמצאו תוויות", "ניתן לבחור תוויות ידנית");
+      return;
+    }
     try {
       console.log(selectedLabels.join(","));
       const response = await fetch(API + "ApartmentLabel", {
@@ -200,7 +204,8 @@ const ApartmentLabelsPopup = ({
       const text = await response.text();
       let result;
       try {
-        result = JSON.parse(text);
+        console.log("ddsaaa:   ",text)
+        result = text;
       } catch (e) {
         result = { message: text };
       }

@@ -48,6 +48,7 @@ const MyProfile = (props) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [updatedProfile, setUpdatedProfile] = useState({});
   const [friends, setFriends] = useState([]);
+  const [friendsNum, setFriendsNum] = useState(0);
   const [showFriendsModal, setShowFriendsModal] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showPhoneError, setShowPhoneError] = useState(false);
@@ -96,8 +97,10 @@ const MyProfile = (props) => {
             const data = await res.json();
             const friendsList = Array.isArray(data) ? data : [];
             setFriends(friendsList);
+            setFriendsNum(friendsList.length)
           } else {
             setFriends([]);
+            setFriendsNum(0);
           }
         })
         .catch(() => setFriends([]));
@@ -261,7 +264,7 @@ const MyProfile = (props) => {
           style={[styles.counterCard, styles.counterCardActive]}
           onPress={() => setShowFriendsModal(true)}
         >
-          <Text style={styles.counterNumber}>{friends.length}</Text>
+          <Text style={styles.counterNumber}>{friendsNum}</Text>
           <Text style={styles.counterLabel}>חברים</Text>
         </TouchableOpacity>
         <View style={styles.counterCard}>

@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Image,
   Alert,
+  TouchableOpacity,
 } from "react-native";
 import { userInfoContext } from "../contex/userInfoContext";
 import API from "../../config";
@@ -171,6 +172,34 @@ export default function ForYou() {
     return <AdminDashboardGraphs />;
   }
 
+  if(swipeableApartments.length <= 0 && finishedSwiping){
+    return(  <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <MaterialCommunityIcons
+            name="home-search"
+            size={64}
+            color={colors.gray}
+          />
+          <Text style={{ fontSize: 24, marginTop: 20 , color:colors.primary }}>
+            אין דירות להצגה כרגע
+          </Text>
+
+          <TouchableOpacity
+            onPress={refreshRecommendations}
+            style={{
+              marginTop: 20,
+              backgroundColor: colors.primary,
+              paddingHorizontal: 20,
+              paddingVertical: 10,
+              borderRadius: 10,
+            }}
+          >
+            <Text style={{ color: "white", fontSize: 16 }}>רענן המלצות</Text>
+          </TouchableOpacity>
+        </View>);
+  }
+
   return (
     <View style={styles.container}>
       {swipeableApartments.length > 0 && !finishedSwiping ? (
@@ -202,7 +231,7 @@ export default function ForYou() {
             size={64}
             color={colors.gray}
           />
-          <Text style={{ fontSize: 24, marginTop: 20 }}>
+          <Text style={{ fontSize: 24, marginTop: 20 , color:colors.primary }}>
             אין דירות להצגה כרגע
           </Text>
 
@@ -225,7 +254,11 @@ export default function ForYou() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { 
+    //marginTop: 50,
+    flex: 1,
+    backgroundColor: colors.background,
+    },
   card: {
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
