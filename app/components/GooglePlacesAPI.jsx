@@ -60,7 +60,7 @@ export default function GooglePlacesInput({ onLocationSelected }) {
         }}
         fetchDetails={true}
         query={{
-          key: 'AIzaSyCy4JnaYp3wvOAUH7-lOA4IFB_tBK9-5BE',
+          key: 'AIzaSyCGucSUapSIUa_ykXy0K8tl6XR-ITXRj3o',
           language: 'he',
           components: 'country:il', 
         }}
