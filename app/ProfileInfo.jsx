@@ -1,17 +1,29 @@
 import { useContext, useState } from "react";
-import { View, TextInput,Alert , Text, StyleSheet, TouchableOpacity, Platform, KeyboardAvoidingView, ScrollView, Image, ActivityIndicator } from "react-native";
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { Picker } from '@react-native-picker/picker';
-import * as ImagePicker from 'expo-image-picker';
-import { auth } from './firebase';
-import { useRouter } from 'expo-router';
-import API from '../config';
+import {
+  View,
+  TextInput,
+  Alert,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Platform,
+  KeyboardAvoidingView,
+  ScrollView,
+  Image,
+  ActivityIndicator,
+} from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { Picker } from "@react-native-picker/picker";
+import * as ImagePicker from "expo-image-picker";
+import { auth } from "./firebase";
+import { useRouter } from "expo-router";
+import API from "../config";
 
 /**
  * @component ProfileInfo
  * @description User profile creation and editing component.
  * Handles initial profile setup and subsequent profile updates with comprehensive form validation.
- * 
+ *
  * Features:
  * - Profile photo upload (camera/gallery)
  * - Personal information input
@@ -21,11 +33,11 @@ import API from '../config';
  * - Form validation
  * - API integration
  * - Loading states
- * 
+ *
  * @requires expo-image-picker
  * @requires @react-native-community/datetimepicker
  * @requires @react-native-picker/picker
- * 
+ *
  * Form Fields:
  * - Full Name
  * - Phone Number
@@ -36,6 +48,16 @@ import API from '../config';
  * - Smoking Status
  * - Profile Picture
  */
+
+
+const baseUrl = "https://roomebackend20250414140006.azurewebsites.net";
+const GetImageUrl = (image) => {
+  if (!image) return "";
+  const trimmed = image.trim();
+  return trimmed.startsWith("https")
+    ? trimmed
+    : `${baseUrl}${trimmed.startsWith("/") ? "" : "/"}${trimmed}`;
+};
 
 export default function ProfileInfo() {
   const [fullName, setFullName] = useState("");
@@ -51,9 +73,14 @@ export default function ProfileInfo() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-
   const handleDateChange = (event, selectedDate) => {
-    setBirthdate(selectedDate);
+    if (event.type === "set" && selectedDate) {
+      setBirthdate(selectedDate);
+    }
+
+    if (Platform.OS === "android") {
+      setShowDatePicker(false);
+    }
   };
 
   /**
@@ -80,24 +107,28 @@ export default function ProfileInfo() {
    * @function takePhoto
    * @returns {Promise<void>}
    */
-  const takePhoto = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      setError('לא ניתנה גישה למצלמה');
-      return;
+const takePhoto = async () => {
+  const { status } = await ImagePicker.requestCameraPermissionsAsync();
+  if (status !== "granted") {
+    setError("לא ניתנה גישה למצלמה");
+    return;
+  }
+
+  const result = await ImagePicker.launchCameraAsync({
+    allowsEditing: true,
+    aspect: [1, 1],
+    quality: 1,
+  });
+
+  if (!result.canceled && result.assets.length > 0) {
+    const imageUri = result.assets[0].uri;
+    const uploadedUrl = await uploadProfileImage(imageUri);
+    if (uploadedUrl) {
+      setProfilePhoto(imageUri);
     }
-  
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-  
-    if (!result.canceled && result.assets.length > 0) {
-      setProfilePhoto(result.assets[0].uri); 
-    }
-  };
-  
+  }
+};
+
 
   /**
    * Date formatting utility
@@ -106,12 +137,11 @@ export default function ProfileInfo() {
    * @returns {string} Formatted date string (YYYY-MM-DD)
    */
   const formatDate = (date) => {
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
     const year = date.getFullYear();
     return `${year}-${month}-${day}`;
   };
-  
 
   /**
    * Gallery image selection handler
@@ -119,31 +149,71 @@ export default function ProfileInfo() {
    * @function pickImage
    * @returns {Promise<void>}
    */
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      setError('Sorry, we need camera roll permissions to make this work!');
-      return;
+const pickImage = async () => {
+  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  if (status !== "granted") {
+    setError("Sorry, we need camera roll permissions to make this work!");
+    return;
+  }
+
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    allowsEditing: true,
+    aspect: [1, 1],
+    quality: 1,
+  });
+
+  if (!result.canceled && result.assets.length > 0) {
+    const imageUri = result.assets[0].uri;
+    const uploadedUrl = await uploadProfileImage(imageUri);
+    if (uploadedUrl) {
+      setProfilePhoto( uploadedUrl);
+    }
+  }
+};
+
+
+const uploadProfileImage = async (uri) => {
+  const fileName = uri.split('/').pop();
+  const match = /\.(\w+)$/.exec(fileName ?? '');
+  const fileType = match ? `image/${match[1]}` : `image`;
+
+  const formData = new FormData();
+  formData.append("files", {
+    uri,
+    name: fileName,
+    type: fileType,
+  });
+
+  try {
+    const response = await fetch(
+      `${API}UploadImageCpntroller/uploadImageProfile`,
+      {
+        method: "POST",
+        headers: {},
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Upload failed with status " + response.status);
     }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
+    const imageUrl = await response.text(); 
+    return GetImageUrl("uploadedFiles/" + JSON.parse(imageUrl));
+  } catch (error) {
+    console.error("❌ Error uploading image:", error);
+    return null;
+  }
+};
 
-    if (!result.canceled) {
-      setProfilePhoto(result.assets[0].uri);
-    }
-  };
 
   /**
    * Profile data submission handler
    * @async
    * @function handleSave
    * @returns {Promise<void>}
-   * 
+   *
    * Validates:
    * - Required fields
    * - Phone number format
@@ -171,35 +241,35 @@ export default function ProfileInfo() {
       }
 
       const userData = {
-        "jobStatus": jobStatus,
-        "id": 0,
-        "email": user.email,
-        "fullName": fullName,
-        "phoneNumber": phoneNumber,
-        "gender": gender,
-        "birthDate": formatDate(birthdate),
-        "profilePicture": "string",
-        "ownPet": ownPet,
-        "smoke": smoke,
-        "isActive": true,
-        "token": ""
-      }
+        jobStatus: jobStatus,
+        id: 0,
+        email: user.email,
+        fullName: fullName,
+        phoneNumber: phoneNumber,
+        gender: gender,
+        birthDate: formatDate(birthdate),
+        profilePicture: profilePhoto,
+        ownPet: ownPet,
+        smoke: smoke,
+        isActive: true,
+        token: "",
+      };
       const response = await fetch(`${API}User/AddNewUser`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(userData),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create user profile');
+        throw new Error("Failed to create user profile");
       }
 
       // Navigate to the main app after successful save
-      router.replace('/(tabs)');
+      router.replace("/(tabs)");
     } catch (err) {
-      console.error('Error saving profile:', err);
+      console.error("Error saving profile:", err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -207,17 +277,20 @@ export default function ProfileInfo() {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
     >
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.title}>Complete Your Profile</Text>
 
-        <TouchableOpacity style={styles.photoContainer} onPress={selectImageSource}>
+        <TouchableOpacity
+          style={styles.photoContainer}
+          onPress={selectImageSource}
+        >
           {profilePhoto ? (
             <Image source={{ uri: profilePhoto }} style={styles.profilePhoto} />
           ) : (
@@ -262,8 +335,8 @@ export default function ProfileInfo() {
           </Picker>
         </View>
 
-        <TouchableOpacity 
-          style={styles.dateButton} 
+        <TouchableOpacity
+          style={styles.dateButton}
           onPress={() => setShowDatePicker(true)}
         >
           <Text style={styles.dateButtonText}>
@@ -282,17 +355,19 @@ export default function ProfileInfo() {
         )}
 
         <View style={styles.toggleContainer}>
-          <TouchableOpacity 
-            style={[styles.toggleButton, ownPet && styles.toggleButtonActive]} 
+          <TouchableOpacity
+            style={[styles.toggleButton, ownPet && styles.toggleButtonActive]}
             onPress={() => setOwnPet(!ownPet)}
           >
-            <Text style={[styles.toggleText, ownPet && styles.toggleTextActive]}>
+            <Text
+              style={[styles.toggleText, ownPet && styles.toggleTextActive]}
+            >
               Own Pet
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.toggleButton, smoke && styles.toggleButtonActive]} 
+          <TouchableOpacity
+            style={[styles.toggleButton, smoke && styles.toggleButtonActive]}
             onPress={() => setSmoke(!smoke)}
           >
             <Text style={[styles.toggleText, smoke && styles.toggleTextActive]}>
@@ -301,8 +376,8 @@ export default function ProfileInfo() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity 
-          style={styles.button} 
+        <TouchableOpacity
+          style={styles.button}
           onPress={handleSave}
           disabled={loading}
         >
@@ -397,28 +472,28 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   toggleContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    justifyContent: "space-around",
     marginBottom: 20,
   },
   toggleButton: {
     padding: 10,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
-    width: '45%',
-    alignItems: 'center',
+    borderColor: "#ddd",
+    width: "45%",
+    alignItems: "center",
   },
   toggleButtonActive: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
+    backgroundColor: "#007AFF",
+    borderColor: "#007AFF",
   },
   toggleText: {
     fontSize: 16,
-    color: '#333',
+    color: "#333",
   },
   toggleTextActive: {
-    color: '#fff',
+    color: "#fff",
   },
   button: {
     backgroundColor: "#007AFF",
@@ -437,4 +512,4 @@ const styles = StyleSheet.create({
     marginTop: 10,
     textAlign: "center",
   },
-}); 
+});

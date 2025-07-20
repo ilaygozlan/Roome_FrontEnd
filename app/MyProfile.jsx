@@ -129,25 +129,71 @@ const MyProfile = (props) => {
   };
 
   // --- Image picker logic ---
-  const handleImagePick = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("שגיאה", "יש לאשר גישה לגלריה");
-      return;
+const handleImagePick = async () => {
+  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  if (status !== "granted") {
+    setError("Sorry, we need camera roll permissions to make this work!");
+    return;
+  }
+
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaType, 
+    allowsEditing: true,
+    aspect: [1, 1],
+    quality: 1,
+  });
+
+  if (!result.canceled && result.assets.length > 0) {
+    const imageUri = result.assets[0].uri;
+
+    const uploadedUrl = await uploadProfileImage(imageUri);
+    if (uploadedUrl) {
+      console.log("✅ Image URL from server:", uploadedUrl);
+      setUpdatedProfile((prev) => ({
+        ...prev,
+        profilePicture: uploadedUrl,
+      }));
     }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-    if (!result.canceled) {
-      setUpdatedProfile({
-        ...updatedProfile,
-        profilePicture: result.assets[0].uri,
-      });
+  }
+};
+
+
+
+const uploadProfileImage = async (uri) => {
+ const fileName = uri.split('/').pop();
+  const match = /\.(\w+)$/.exec(fileName ?? '');
+  const fileType = match ? `image/${match[1]}` : `image`;
+
+   const formData = new FormData();
+  formData.append("files", {
+    uri,
+    name: fileName,
+    type: fileType,
+  });
+
+  console.log(fileName, fileType);
+  try {
+    const response = await fetch(
+      `${API}UploadImageCpntroller/uploadImageProfile`,
+      {
+        method: "POST",
+        headers: {},
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Upload failed with status " + response.status);
     }
-  };
+
+    const imageUrl = await response.text(); 
+    return GetImageUrl("uploadedFiles/" + JSON.parse(imageUrl));
+  } catch (error) {
+    console.error("❌ Error uploading image:", error);
+    return null;
+  }
+};
+
 
   // --- Phone validation ---
   const HandlePhoneNumber = (phoneNumber) => {
@@ -328,10 +374,11 @@ const MyProfile = (props) => {
       {/* Edit Profile Modal */}
       <Modal
         visible={modalVisible}
-        transparent
+        transparent={true}
         animationType="slide"
         onRequestClose={() => setModalVisible(false)}
       >
+        <ScrollView>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <TouchableOpacity
@@ -471,6 +518,7 @@ const MyProfile = (props) => {
             </TouchableOpacity>
           </View>
         </View>
+        </ScrollView>
       </Modal>
 
       {/* Profile Info Card */}

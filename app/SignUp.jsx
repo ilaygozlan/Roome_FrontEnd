@@ -27,12 +27,13 @@
  */
 
 import { useState } from "react";
-import { View, TextInput, Text, StyleSheet, TouchableOpacity, Platform, KeyboardAvoidingView, ScrollView } from "react-native";
+import { View, TextInput, Text, StyleSheet, TouchableOpacity, Platform, KeyboardAvoidingView,Image, ScrollView } from "react-native";
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 import { auth } from "./firebase";
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import { useRouter } from "expo-router";
+import RoomeLogo from "../assets/images/romee.png";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -136,6 +137,10 @@ const [request, response, promptAsync] = Google.useAuthRequest({
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
+                <Image
+          source={RoomeLogo}
+          style={styles.logo}
+        />
         <Text style={styles.title}>Create Account</Text>
         <TextInput
           style={styles.input}
@@ -169,14 +174,6 @@ const [request, response, promptAsync] = Google.useAuthRequest({
           <Text style={styles.dividerText}>OR</Text>
           <View style={styles.divider} />
         </View>
-
-        <TouchableOpacity 
-          style={styles.googleButton} 
-          onPress={handleGoogleSignIn}
-          disabled={!request}
-        >
-          <Text style={styles.googleButtonText}>Sign up with Google</Text>
-        </TouchableOpacity>
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <View style={styles.loginContainer}>
@@ -275,4 +272,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+    logo: {
+  width: 150,
+  height: 150,
+  resizeMode: "contain",
+  alignSelf: "center",
+  marginBottom: 20,
+},
 }); 

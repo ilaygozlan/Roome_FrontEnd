@@ -289,18 +289,17 @@ const submitOpenHouse = async () => {
   const [startHours, startMinutes] = startTime.split(":").map(Number);
   const [endHours, endMinutes] = endTime.split(":").map(Number);
 
-  const startDate = new Date();
-  startDate.setHours(startHours, startMinutes, 0);
+  const startDateTime = new Date();
+  startDateTime.setHours(startHours, startMinutes, 0, 0);
 
-  const endDate = new Date();
-  endDate.setHours(endHours, endMinutes, 0);
+  const endDateTime = new Date();
+  endDateTime.setHours(endHours, endMinutes, 0, 0);
 
-  if (endDate <= startDate) {
+  if (endDateTime <= startDateTime) {
     alert("שעת הסיום חייבת להיות אחרי שעת ההתחלה");
     return;
   }
 
- 
   const today = new Date();
   const selectedDate = new Date(openHouseDate);
   selectedDate.setHours(0, 0, 0, 0);
@@ -310,6 +309,22 @@ const submitOpenHouse = async () => {
     alert("לא ניתן לבחור תאריך של בית פתוח שכבר עבר");
     return;
   }
+
+ 
+  if (selectedDate.getTime() === today.getTime()) {
+    const now = new Date();
+    const nowHours = now.getHours();
+    const nowMinutes = now.getMinutes();
+
+    const nowTime = nowHours * 60 + nowMinutes;
+    const startTimeInMinutes = startHours * 60 + startMinutes;
+
+    if (startTimeInMinutes <= nowTime) {
+      alert("שעת ההתחלה חייבת להיות אחרי השעה הנוכחית של היום");
+      return;
+    }
+  }
+
 
   const requestBody = {
     openHouseId: 0,
@@ -368,6 +383,7 @@ const submitOpenHouse = async () => {
     alert("❌ שגיאה ביצירת בית פתוח:\n" + error.message);
   }
 };
+
 
 
   const handleDeleteOpenHouse = async (openHouseId, apartmentId) => {
@@ -966,7 +982,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#E68A2B",
   },
   openHouseItem: {
-    backgroundColor: "#e68400",
+    backgroundColor: "rgba(165, 171, 249, 1)",
     padding: 10,
     borderRadius: 5,
     marginTop: 10,
@@ -1037,9 +1053,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 6,
     marginLeft: 6,
-    borderRadius: 6, // מרובע עם פינות מעוגלות קלות
-    elevation: 2, // צל לאנדרואיד
-    shadowColor: "#000", // צל לאייפון
+    borderRadius: 6, 
+    elevation: 2, 
+    shadowColor: "#000", 
     shadowOpacity: 0.1,
     shadowRadius: 2,
     shadowOffset: { width: 0, height: 1 },

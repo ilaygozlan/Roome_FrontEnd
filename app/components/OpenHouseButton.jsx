@@ -190,6 +190,7 @@ export default function OpenHouseButton({
 
   const cancelRegistration = async (openHouseId) => {
     try {
+      console.log(openHouseId,userId)
       const res = await fetch(
         API + `OpenHouse/DeleteRegistration/${openHouseId}/${userId}`,
         {
