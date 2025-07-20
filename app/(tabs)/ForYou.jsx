@@ -28,6 +28,19 @@ const colors = {
   lightGray: "#86888A",
 };
 
+const baseUrl = "https://roomebackend20250414140006.azurewebsites.net";
+
+const GetImagesArr = (images) => {
+  const imageArray =
+    images?.split(",").map((img) => {
+      const trimmed = img.trim();
+      return trimmed.startsWith("https")
+        ? trimmed
+        : `${baseUrl}${trimmed.startsWith("/") ? "" : "/"}${trimmed}`;
+    }) || [];
+  return imageArray;
+};
+
 export default function ForYou() {
   const { loginUserId } = useContext(userInfoContext);
   const userId = loginUserId;
@@ -51,7 +64,10 @@ export default function ForYou() {
             `${API}User/GetRecommendedApartments/${userId}`
           );
           const data = res.ok ? await res.json() : [];
-          setApartments(data);
+          const apartmentsWithImages = data.filter(
+            (apartment) => apartment.Images && apartment.Images.trim() !== ""
+          );
+          setApartments(apartmentsWithImages);
         }
       } catch {
         Alert.alert("שגיאה", "לא ניתן לבדוק הרשאות או לטעון המלצות");
@@ -114,11 +130,11 @@ export default function ForYou() {
       locationAddress = card.Location || "מיקום לא ידוע";
     }
 
-    let imageUrl = "https://via.placeholder.com/500x300?text=No+Image";
-    if (card.Images) {
-      const imagesArray = card.Images.split(",").map((s) => s.trim());
-      if (imagesArray.length > 0) imageUrl = imagesArray[0];
-    }
+    const imagesArray = GetImagesArr(card.Images);
+    const imageUrl =
+      imagesArray.length > 0
+        ? imagesArray[0]
+        : "https://via.placeholder.com/500x300?text=No+Image";
 
     return (
       <View style={styles.card}>
@@ -172,32 +188,32 @@ export default function ForYou() {
     return <AdminDashboardGraphs />;
   }
 
-  if(swipeableApartments.length <= 0 && finishedSwiping){
-    return(  <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-        >
-          <MaterialCommunityIcons
-            name="home-search"
-            size={64}
-            color={colors.gray}
-          />
-          <Text style={{ fontSize: 24, marginTop: 20 , color:colors.primary }}>
-            אין דירות להצגה כרגע
-          </Text>
+  if (swipeableApartments.length <= 0 && finishedSwiping) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <MaterialCommunityIcons
+          name="home-search"
+          size={64}
+          color={colors.gray}
+        />
+        <Text style={{ fontSize: 24, marginTop: 20, color: colors.primary }}>
+          אין דירות להצגה כרגע
+        </Text>
 
-          <TouchableOpacity
-            onPress={refreshRecommendations}
-            style={{
-              marginTop: 20,
-              backgroundColor: colors.primary,
-              paddingHorizontal: 20,
-              paddingVertical: 10,
-              borderRadius: 10,
-            }}
-          >
-            <Text style={{ color: "white", fontSize: 16 }}>רענן המלצות</Text>
-          </TouchableOpacity>
-        </View>);
+        <TouchableOpacity
+          onPress={refreshRecommendations}
+          style={{
+            marginTop: 20,
+            backgroundColor: colors.primary,
+            paddingHorizontal: 20,
+            paddingVertical: 10,
+            borderRadius: 10,
+          }}
+        >
+          <Text style={{ color: "white", fontSize: 16 }}>רענן המלצות</Text>
+        </TouchableOpacity>
+      </View>
+    );
   }
 
   return (
@@ -231,7 +247,7 @@ export default function ForYou() {
             size={64}
             color={colors.gray}
           />
-          <Text style={{ fontSize: 24, marginTop: 20 , color:colors.primary }}>
+          <Text style={{ fontSize: 24, marginTop: 20, color: colors.primary }}>
             אין דירות להצגה כרגע
           </Text>
 
@@ -254,11 +270,11 @@ export default function ForYou() {
 }
 
 const styles = StyleSheet.create({
-  container: { 
+  container: {
     marginTop: 50,
     flex: 1,
     backgroundColor: colors.background,
-    },
+  },
   card: {
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
