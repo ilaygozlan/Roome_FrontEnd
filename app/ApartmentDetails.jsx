@@ -254,31 +254,28 @@ export default function ApartmentDetails({ apt, onClose }) {
       return details;
     });
   };
-const getApartmentLabels = () => {
-  if (!apt.LabelsJson) return [];
+  const getApartmentLabels = () => {
+    if (!apt.LabelsJson) return [];
 
-  try {
-    console.log("LabelsJson:", apt.LabelsJson);
+    try {
+      console.log("LabelsJson:", apt.LabelsJson);
 
-    let fixedJson = apt.LabelsJson.trim();
+      let fixedJson = apt.LabelsJson.trim();
 
-  
-    if (!fixedJson.startsWith("[")) {
-      fixedJson = `[${fixedJson}]`;
+      if (!fixedJson.startsWith("[")) {
+        fixedJson = `[${fixedJson}]`;
+      }
+
+      const labelsArr = JSON.parse(fixedJson);
+
+      return labelsArr
+        .map((item) => item.value?.toLowerCase())
+        .filter((value) => value && labelToIcon[value]);
+    } catch (e) {
+      console.error("Error parsing LabelsJson:", e);
+      return [];
     }
-
-    const labelsArr = JSON.parse(fixedJson);
-
-    return labelsArr
-      .map((item) => item.value?.toLowerCase())
-      .filter((value) => value && labelToIcon[value]);
-  } catch (e) {
-    console.error("Error parsing LabelsJson:", e);
-    return [];
-  }
-};
-
-
+  };
 
   const renderApartmentLabels = () => {
     const labels = getApartmentLabels();
@@ -444,25 +441,47 @@ const getApartmentLabels = () => {
               </TouchableOpacity>
               <Text style={styles.headerTitle}></Text>
             </View>
-
+            <TouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: "UserProfile",
+                  params: { userId: apt.Creator_ID },
+                })
+              }
+            >
+              <View style={styles.creatorContainer}>
+                <Image
+                  source={{
+                    uri:
+                      apt.Creator_ProfilePicture ||
+                      "https://example.com/default-profile.png",
+                  }}
+                  style={styles.creatorImage}
+                />
+                <Text style={styles.creatorName}>{apt.Creator_FullName}</Text>
+              </View>
+            </TouchableOpacity>
             <ApartmentGallery images={apt.Images} width={containerWidth - 40} />
 
-<Text style={styles.title}>
-  {(() => {
-    try {
-      const locationStr = apt?.Location?.trim();
-      if (locationStr?.startsWith("{") && locationStr?.endsWith("}")) {
-        const parsed = JSON.parse(locationStr);
-        return parsed?.address || "כתובת לא זמינה";
-      } else {
-        return locationStr || "כתובת לא זמינה";
-      }
-    } catch (err) {
-      console.warn("שגיאה בפענוח כתובת:", err);
-      return "כתובת לא זמינה";
-    }
-  })()}
-</Text>
+            <Text style={styles.title}>
+              {(() => {
+                try {
+                  const locationStr = apt?.Location?.trim();
+                  if (
+                    locationStr?.startsWith("{") &&
+                    locationStr?.endsWith("}")
+                  ) {
+                    const parsed = JSON.parse(locationStr);
+                    return parsed?.address || "כתובת לא זמינה";
+                  } else {
+                    return locationStr || "כתובת לא זמינה";
+                  }
+                } catch (err) {
+                  console.warn("שגיאה בפענוח כתובת:", err);
+                  return "כתובת לא זמינה";
+                }
+              })()}
+            </Text>
             <Text style={styles.price}>{apt.Price} ש"ח</Text>
             <Text style={styles.description}>{apt.Description}</Text>
             {renderApartmentLabels()}
@@ -542,7 +561,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 10,
-    marginBottom: 10,
+    marginBottom: 0,
   },
   backButton: {
     padding: 5,
@@ -669,28 +688,46 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   labelsContainer: {
-  marginTop: 20,
-  marginBottom: 10,
-},
-labelsGrid: {
-  flexDirection: "row-reverse", 
-  flexWrap: "wrap",
-  justifyContent: "flex-start",
-  marginTop: 10,
-},
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  labelsGrid: {
+    flexDirection: "row-reverse",
+    flexWrap: "wrap",
+    justifyContent: "flex-start",
+    marginTop: 10,
+  },
 
-labelItem: {
-  width: "22%",
-  alignItems: "center",
-  marginVertical: 8,
-  flexDirection: "column",
-},
+  labelItem: {
+    width: "22%",
+    alignItems: "center",
+    marginVertical: 8,
+    flexDirection: "column",
+  },
 
-labelText: {
-  fontSize: 12,
-  color: "#444",
-  marginTop: 4,
-  textAlign: "center",
-},
+  labelText: {
+    fontSize: 12,
+    color: "#444",
+    marginTop: 4,
+    textAlign: "center",
+  },
+    creatorContainer: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    margin: 10,
+  },
 
+  creatorImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginLeft: 10,
+    borderWidth: 1,
+    borderColor: "#E3965A",
+  },
+   creatorName: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+  },
 });

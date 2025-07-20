@@ -7,8 +7,11 @@ import {
   ActivityIndicator,
   Image,
   Alert,
+  Modal,
   TouchableOpacity,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+
 import { userInfoContext } from "../contex/userInfoContext";
 import API from "../../config";
 import Swiper from "react-native-deck-swiper";
@@ -16,6 +19,8 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AdminDashboardGraphs from "../AdminDashboardGraphs";
 import { checkIfAdmin } from "../../checkAdmin";
 import HouseLoading from "../components/LoadingHouseSign";
+import ApartmentDetails from "../ApartmentDetails";
+
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const CARD_WIDTH = SCREEN_WIDTH * 0.9;
 const CARD_HEIGHT = 500;
@@ -45,13 +50,32 @@ export default function ForYou() {
   const { loginUserId } = useContext(userInfoContext);
   const userId = loginUserId;
   const swiperRef = useRef(null);
-
+  const navigation = useNavigation();
+  const [showAptDt, setShowAptDt] = useState(false);
   const [apartments, setApartments] = useState([]);
   const [interactedIds, setInteractedIds] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [imageErrors, setImageErrors] = useState({});
   const [isAdmin, setIsAdmin] = useState(false);
   const [finishedSwiping, setFinishedSwiping] = useState(false);
+  const [selectedApt, setSelectedApt] = useState();
+
+const handleSwipeUp = (cardIndex) => {
+ 
+
+  const apartment = swipeableApartments[cardIndex];
+  if (!apartment || !apartment.ApartmentID) {
+    console.log("No apartment found at index or missing ApartmentID");
+    return;
+  }
+
+  setInteractedIds((prev) => [...prev, apartment.ApartmentID]);
+
+ 
+  setShowAptDt(true);
+  setSelectedApt(apartment);
+};
+
 
   useEffect(() => {
     const checkAdminAndFetch = async () => {
@@ -217,55 +241,79 @@ export default function ForYou() {
   }
 
   return (
-    <View style={styles.container}>
-      {swipeableApartments.length > 0 && !finishedSwiping ? (
-        <Swiper
-          ref={swiperRef}
-          cards={swipeableApartments}
-          renderCard={renderCard}
-          onSwipedLeft={(index) => handleSwipe(index, "left")}
-          onSwipedRight={(index) => handleSwipe(index, "right")}
-          onSwipedAll={() => setFinishedSwiping(true)} 
-          cardVerticalMargin={50}
-          stackSize={3}
-          stackSeparation={14}
-          disableTopSwipe
-          disableBottomSwipe
-          infinite={false}
-          verticalSwipe={false}
-          cardStyle={styles.card}
-          containerStyle={{ flex: 1 }}
-          backgroundColor={colors.background}
-          swipeAnimationDuration={350}
-        />
-      ) : (
-        <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-        >
-          <MaterialCommunityIcons
-            name="home-search"
-            size={64}
-            color={colors.gray}
+    <>
+      <View style={styles.container}>
+        {swipeableApartments.length > 0 && !finishedSwiping ? (
+          <Swiper
+            ref={swiperRef}
+            cards={swipeableApartments}
+            renderCard={renderCard}
+            onSwipedLeft={(index) => handleSwipe(index, "left")}
+            onSwipedRight={(index) => handleSwipe(index, "right")}
+            onSwipedTop={(index) => handleSwipeUp(index)}
+            onSwipedAll={() => setFinishedSwiping(true)}
+            cardVerticalMargin={50}
+            stackSize={3}
+            stackSeparation={14}
+            disableBottomSwipe
+            infinite={false}
+            verticalSwipe={true}
+            cardStyle={styles.card}
+            containerStyle={{ flex: 1 }}
+            backgroundColor={colors.background}
+            swipeAnimationDuration={350}
           />
-          <Text style={{ fontSize: 24, marginTop: 20, color: colors.primary }}>
-            אין דירות להצגה כרגע
-          </Text>
-
-          <TouchableOpacity
-            onPress={refreshRecommendations}
-            style={{
-              marginTop: 20,
-              backgroundColor: colors.primary,
-              paddingHorizontal: 20,
-              paddingVertical: 10,
-              borderRadius: 10,
-            }}
+        ) : (
+          <View
+            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
           >
-            <Text style={{ color: "white", fontSize: 16 }}>רענן המלצות</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </View>
+            <MaterialCommunityIcons
+              name="home-search"
+              size={64}
+              color={colors.gray}
+            />
+            <Text
+              style={{ fontSize: 24, marginTop: 20, color: colors.primary }}
+            >
+              אין דירות להצגה כרגע
+            </Text>
+
+            <TouchableOpacity
+              onPress={refreshRecommendations}
+              style={{
+                marginTop: 20,
+                backgroundColor: colors.primary,
+                paddingHorizontal: 20,
+                paddingVertical: 10,
+                borderRadius: 10,
+              }}
+            >
+              <Text style={{ color: "white", fontSize: 16 }}>רענן המלצות</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+
+      <Modal
+        visible={showAptDt}
+        animationType="slide"
+        onRequestClose={() => {
+          setShowAptDt(false);
+          setSelectedApt(null);
+        }}
+      >
+        {showAptDt && (
+          <ApartmentDetails
+            key={selectedApt.ApartmentID}
+            apt={selectedApt}
+            onClose={() => {
+             setShowAptDt(false);
+          setSelectedApt(null);
+            }}
+          />
+        )}
+      </Modal>
+    </>
   );
 }
 
@@ -273,7 +321,7 @@ const styles = StyleSheet.create({
   container: {
     marginTop: 50,
     flex: 1,
-    height:"100%",
+    height: "100%",
     backgroundColor: colors.background,
   },
   card: {
