@@ -11,6 +11,7 @@ import {
   ScrollView,
   ActivityIndicator,
   I18nManager,
+  RefreshControl 
 } from "react-native";
 import { FontAwesome5, Feather } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -58,6 +59,36 @@ const MyProfile = (props) => {
   const [openHouses, setOpenHouses] = useState([]);
   const [showPreferencesForm, setShowPreferencesForm] = useState(false);
   const [roommateMatches, setRoommateMatches] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+  
+const onRefresh = async () => {
+  setRefreshing(true);
+
+  try {
+  
+    await fetch(API + "User/GetUserById/" + loginUserId)
+      .then((res) => res.json())
+      .then((data) => {
+        setUserProfile(data);
+        setUpdatedProfile(data);
+      });
+
+    await fetch(API + "User/GetUserFriends/" + loginUserId)
+      .then((res) => res.json())
+      .then((data) => {
+        const friendsList = Array.isArray(data) ? data : [];
+        setFriends(friendsList);
+        setFriendsNum(friendsList.length);
+      });
+
+    await fetchOpenHouses();
+  } catch (error) {
+    console.error("Error refreshing data:", error);
+  }
+
+  setRefreshing(false);
+};
+
 
   useEffect(() => {
     if (!loginUserId) return;
@@ -276,6 +307,11 @@ const uploadProfileImage = async (uri) => {
   };
 
   return (
+    <ScrollView
+  refreshControl={
+    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+  }
+>
     <View style={{ flex: 1, backgroundColor: "#F6F7FB" }}>
       {/* Header */}
       <View style={styles.headerContainer}>
@@ -602,6 +638,7 @@ const uploadProfileImage = async (uri) => {
         </Modal>
       )}
     </View>
+    </ScrollView>
   );
 };
 

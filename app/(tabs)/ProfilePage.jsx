@@ -65,9 +65,7 @@ if (isLoading || !loginUserId) {
 
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         {isAdmin ? <AdminScreen /> : <MyProfile myId={loginUserId} />}
-      </ScrollView>
     </View>
   );
 };
