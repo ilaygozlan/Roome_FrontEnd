@@ -274,74 +274,101 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
     }
   };
 
-  const submitOpenHouse = async () => {
-    if (!startTime || !endTime || !peopleCount || !openHouseDate) {
-      alert("אנא מלא את כל שדות הבית הפתוח לפני השליחה");
-      return;
-    }
+const submitOpenHouse = async () => {
+  if (!startTime || !endTime || !peopleCount || !openHouseDate) {
+    alert("אנא מלא את כל שדות הבית הפתוח לפני השליחה");
+    return;
+  }
 
-    if (isNaN(peopleCount) || Number(peopleCount) <= 0) {
-      alert("אנא הזן מספר משתתפים חוקי");
-      return;
-    }
+  if (isNaN(peopleCount) || Number(peopleCount) <= 0) {
+    alert("אנא הזן מספר משתתפים חוקי");
+    return;
+  }
 
-    const requestBody = {
-      openHouseId: 0,
-      apartmentId: selectedApartmentId,
-      date: formatDateOnly(openHouseDate),
-      amountOfPeoples: Number(peopleCount),
-      totalRegistrations: 0,
-      startTime: startTime,
-      endTime: endTime,
-      isRegistered: true,
-      userConfirmed: true,
-    };
+  
+  const [startHours, startMinutes] = startTime.split(":").map(Number);
+  const [endHours, endMinutes] = endTime.split(":").map(Number);
+
+  const startDate = new Date();
+  startDate.setHours(startHours, startMinutes, 0);
+
+  const endDate = new Date();
+  endDate.setHours(endHours, endMinutes, 0);
+
+  if (endDate <= startDate) {
+    alert("שעת הסיום חייבת להיות אחרי שעת ההתחלה");
+    return;
+  }
+
+ 
+  const today = new Date();
+  const selectedDate = new Date(openHouseDate);
+  selectedDate.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+
+  if (selectedDate < today) {
+    alert("לא ניתן לבחור תאריך של בית פתוח שכבר עבר");
+    return;
+  }
+
+  const requestBody = {
+    openHouseId: 0,
+    apartmentId: selectedApartmentId,
+    date: formatDateOnly(openHouseDate),
+    amountOfPeoples: Number(peopleCount),
+    totalRegistrations: 0,
+    startTime: startTime,
+    endTime: endTime,
+    isRegistered: true,
+    userConfirmed: true,
+  };
+
+  try {
+    const response = await fetch(
+      API + `OpenHouse/CreateNewOpenHouse/${userId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      }
+    );
+
+    const text = await response.text();
+    let result;
 
     try {
-      const response = await fetch(
-        API + `OpenHouse/CreateNewOpenHouse/${userId}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestBody),
-        }
-      );
-
-      const text = await response.text();
-      let result;
-
-      try {
-        result = JSON.parse(text);
-      } catch {
-        result = { message: text };
-      }
-
-      if (!response.ok) {
-        throw new Error(result.message || "שגיאה מהשרת");
-      }
-
-      alert("✅ " + (result.message || "בית פתוח נוצר בהצלחה!"));
-      setOpenHouseModalVisible(false);
-
-      const newOpenHouse = {
-        ...requestBody,
-        openHouseId: result.id || Math.random(),
-      };
-
-      setOpenHousesMap((prev) => {
-        const current = prev[selectedApartmentId] || [];
-        return {
-          ...prev,
-          [selectedApartmentId]: [...current, newOpenHouse],
-        };
-      });
-    } catch (error) {
-      console.error("שגיאה:", error);
-      alert("❌ שגיאה ביצירת בית פתוח:\n" + error.message);
+      result = JSON.parse(text);
+    } catch {
+      result = { message: text };
     }
-  };
+
+    if (!response.ok) {
+      throw new Error(result.message || "שגיאה מהשרת");
+    }
+
+    alert("✅ " + (result.message || "בית פתוח נוצר בהצלחה!"));
+    setOpenHouseModalVisible(false);
+
+    const newOpenHouse = {
+      ...requestBody,
+      openHouseId: result.id || Math.random(),
+    };
+
+    setOpenHousesMap((prev) => {
+      const current = prev[selectedApartmentId] || [];
+      return {
+        ...prev,
+        [selectedApartmentId]: [...current, newOpenHouse],
+      };
+    });
+  } catch (error) {
+    console.error("שגיאה:", error);
+    alert("❌ שגיאה ביצירת בית פתוח:\n" + error.message);
+  }
+};
+
 
   const handleDeleteOpenHouse = async (openHouseId, apartmentId) => {
     try {
