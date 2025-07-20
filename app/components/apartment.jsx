@@ -102,6 +102,16 @@ useEffect(() => {
   };
 
   const renderApartments = () => {
+
+  if (previewSearchApt.length === 0) {
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 30 }}>
+      <Text style={{ fontSize: 18, color: '#333' }}>לא נמצאו דירות...</Text>
+    </View>
+  );
+}
+
+
     return previewSearchApt.map((apt) => (
       <View
         key={apt.ApartmentID}
