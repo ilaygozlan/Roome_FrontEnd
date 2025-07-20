@@ -22,11 +22,10 @@ const ChatRoomListScreen = () => {
   const router = useRouter();
 
   const loadChatList = () => {
-    console.log("📥 Loading chat list for user:", loginUserId);
     fetch(`${API}Chat/GetChatList/${loginUserId}`)
       .then((res) => res.json())
       .then(async (data) => {
-        console.log("✅ Chat list fetched from server", data);
+        console.log("✅ Chat list fetched from server");
         const fullData = await Promise.all(
           data.map(async (chat) => {
             const res = await fetch(

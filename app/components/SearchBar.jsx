@@ -161,16 +161,14 @@ export default function SearchBar({
             </Text>
           </View>
         </TouchableOpacity>
-        {showAdvancedFilters && !index &&(<TouchableOpacity
-          style={styles.filterIconContainer}
-          onPress={() => setShowAdvancedFiltersComp((prev) => !prev)}
-        >
-          <FontAwesome5
-          name="sliders-h"
-          size={20}
-          color="#fff"
-        />
-        </TouchableOpacity>)}
+        {showAdvancedFilters && !index && (
+          <TouchableOpacity
+            style={styles.filterIconContainer}
+            onPress={() => setShowAdvancedFiltersComp((prev) => !prev)}
+          >
+            <FontAwesome5 name="sliders-h" size={20} color="#fff" />
+          </TouchableOpacity>
+        )}
         {/* Map icon */}
         <TouchableOpacity
           style={styles.mapIconContainer}
@@ -180,30 +178,32 @@ export default function SearchBar({
         </TouchableOpacity>
       </View>
 
-  {showAdvancedFiltersComp && (
-  <View style={{ marginTop: 10, width: "100%" , height: "85%"}}>
-    
-     <SearchFilters
-      SearchApartments={(filters) => {
-        setFiltersJson(filters);
-        SearchApartments(filters);
-        setShowAdvancedFiltersComp(false);
-      }}
-      initialEntryDate={filtersJson?.entryDate ? new Date(filtersJson.entryDate) : null}
-      initialExitDate={filtersJson?.exitDate ? new Date(filtersJson.exitDate) : null}
-      initialGenderIndex={
-        filtersJson?.gender ? genderOptions.indexOf(filtersJson.gender) : null
-      }
-  initialRoommateOptions={roommateFilters.map((f) =>
-  filtersJson?.filters?.includes(f) || false
-)}
-
-      initialSelectedIcons={filtersJson?.icons || []}
-    />
- 
-  </View>
-)}
-
+      {showAdvancedFiltersComp && (
+        <View style={{ marginTop: 10, width: "100%", height: "85%" }}>
+          <SearchFilters
+            SearchApartments={(filters) => {
+              setFiltersJson(filters);
+              SearchApartments(filters);
+              setShowAdvancedFiltersComp(false);
+            }}
+            initialEntryDate={
+              filtersJson?.entryDate ? new Date(filtersJson.entryDate) : null
+            }
+            initialExitDate={
+              filtersJson?.exitDate ? new Date(filtersJson.exitDate) : null
+            }
+            initialGenderIndex={
+              filtersJson?.gender
+                ? genderOptions.indexOf(filtersJson.gender)
+                : null
+            }
+            initialRoommateOptions={roommateFilters.map(
+              (f) => filtersJson?.filters?.includes(f) || false
+            )}
+            initialSelectedIcons={filtersJson?.icons || []}
+          />
+        </View>
+      )}
 
       {expanded && (
         <View style={styles.expandSection}>
@@ -211,6 +211,7 @@ export default function SearchBar({
           <View style={{ zIndex: 2, width: "100%", margin: 0 }}>
             <Text style={[styles.label, { marginTop: 0 }]}>בחר מיקום:</Text>
             <GooglePlacesAutocomplete
+             onFail={error => console.error("Autocomplete ERROR:", error)}
               placeholder={selectedLocation?.address || "הקלד מיקום..."}
               onPress={(data, details = null) => {
                 if (details) {
@@ -235,7 +236,7 @@ export default function SearchBar({
               }}
               fetchDetails={true}
               query={{
-                key: "AIzaSyCy4JnaYp3wvOAUH7-lOA4IFB_tBK9-5BE",
+                key: "AIzaSyCGucSUapSIUa_ykXy0K8tl6XR-ITXRj3o",
                 language: "he",
                 components: "country:il",
               }}

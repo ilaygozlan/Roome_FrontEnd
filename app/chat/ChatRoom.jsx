@@ -23,7 +23,6 @@ const ChatRoom = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { recipientId } = route.params || {};
-  console.log("📱 ChatRoom mounted. recipientId:", recipientId);
 
   const { loginUserId } = useContext(userInfoContext);
   const {
