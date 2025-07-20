@@ -181,7 +181,8 @@ export default function SearchBar({
       </View>
 
   {showAdvancedFiltersComp && (
-  <View style={{ marginTop: 10, width: "100%" }}>
+  <View style={{ marginTop: 10, width: "100%" , height: "85%"}}>
+    
      <SearchFilters
       SearchApartments={(filters) => {
         setFiltersJson(filters);
@@ -199,6 +200,7 @@ export default function SearchBar({
 
       initialSelectedIcons={filtersJson?.icons || []}
     />
+ 
   </View>
 )}
 
