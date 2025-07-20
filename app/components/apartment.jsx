@@ -26,7 +26,7 @@ export default function Apartment(props) {
     ActiveApartmentContext
   );
   const { loginUserId } = useContext(userInfoContext);
-  const [previewSearchApt, setPreviewSearchApt] = useState(allApartments);
+  const [previewSearchApt, setPreviewSearchApt] = useState([]);
   const [showApartmentDetails, setShowApartmentDetails] = useState(false);
   const [selectedApartment, setSelectedApartment] = useState(null);
   const router = useRouter();
@@ -41,6 +41,22 @@ export default function Apartment(props) {
   filters: [],
   icons: [],
 });;
+
+useEffect(() => {
+  const sortedApts = [...allApartments].sort((a, b) => {
+    const aHasImages = Array.isArray(a.Images) && a.Images.length > 0;
+    const bHasImages = Array.isArray(b.Images) && b.Images.length > 0;
+
+    // First: sort by whether they have images (true first), then by LikeCount
+    if (aHasImages && !bHasImages) return -1;
+    if (!aHasImages && bHasImages) return 1;
+
+    // If both have or both don't have images, sort by LikeCount descending
+    return (b.LikeCount || 0) - (a.LikeCount || 0);
+  });
+
+  setPreviewSearchApt(sortedApts);
+}, [allApartments]);
 
   // Share via WhatsApp
   const handleShareApartment = async (apt) => {
@@ -167,22 +183,18 @@ export default function Apartment(props) {
     ));
   };
 
-  useEffect(() => {
-    setPreviewSearchApt(allApartments);
-  }, [allApartments]);
-
 
 const SearchApartments = (filters) => {
   const newAptArr = allApartments.filter((apt) => {
-    // 1. סוג הדירה
+ 
     const matchesType =
       selectedType === null || apt.ApartmentType === selectedType;
 
-    // 2. טווח מחירים
+    
     const matchesPrice =
       apt.Price >= priceRange[0] && apt.Price <= priceRange[1];
 
-    // 3. מיקום
+ 
     let matchesLocation = true;
     let aptLocationObj = {};
 
@@ -240,11 +252,11 @@ const SearchApartments = (filters) => {
       }
     }
 
-    // 4. סינון מתקדם
+   
     let matchesFilters = true;
 
     if (filters) {
-      // 4.1 תאריכים
+     
       if (filters.entryDate && filters.exitDate) {
         const entry = new Date(filters.entryDate);
         const exit = new Date(filters.exitDate);
@@ -258,7 +270,7 @@ const SearchApartments = (filters) => {
         if (!isAvailable) return false;
       }
 
-      // 4.2 מגדר
+     
       const gender = filters.gender;
       if (gender && gender !== "אין העדפה") {
         const genderCode = gender === "רק גברים" ? "Male" : "Female";
@@ -271,7 +283,7 @@ const SearchApartments = (filters) => {
         }
       }
 
-      // 4.3 צ'קבוקסים כלליים
+  
       const generalFilters = filters.filters || [];
       for (let f of generalFilters) {
         if (f === "מאפשרים חיות מחמד" && apt.AllowPet === false) return false;
@@ -290,7 +302,7 @@ const SearchApartments = (filters) => {
         }
       }
 
-      // 4.4 אייקונים
+  
       const icons = filters.icons || [];
       if (icons.length > 0) {
         try {
