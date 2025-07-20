@@ -369,7 +369,6 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
             [apartmentId]: updatedOpenHouses,
           };
         });
-
       } else {
         const message = await response.text();
         console.log("Server response error text:", message);
@@ -393,37 +392,43 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
     const minutes = String(dateObj.getMinutes()).padStart(2, "0");
     return `${hours}:${minutes}`;
   };
-const handleUpdateApartment = (updatedApt, labels) => {
-  const formattedNewLabels = labels.map((label) => ({ value: label }));
+  const handleUpdateApartment = (updatedApt, labels) => {
+    const formattedNewLabels = labels.map((label) => ({ value: label }));
+    console.log(updatedApt);
+    const updatedOwnedApartments = allApartments.map((apt) => {
+      if (apt.ApartmentID === updatedApt.id) {
+        let existingLabels = [];
 
-  const updatedOwnedApartments = allApartments.map((apt) => {
-    if (apt.ApartmentID === updatedApt.id) {
-      let existingLabels = [];
-
-      try {
-        if (apt.LabelsJson) {
-          const parsed = JSON.parse(apt.LabelsJson);
-          existingLabels = Array.isArray(parsed) ? parsed : [parsed];
+        try {
+          if (apt.LabelsJson) {
+            let json = apt.LabelsJson;
+            if (
+              typeof json === "string" &&
+              json.trim().startsWith("{") &&
+              !json.trim().startsWith("[")
+            ) {
+              json = `[${json}]`;
+            }
+            const parsed = JSON.parse(json);
+            existingLabels = Array.isArray(parsed) ? parsed : [parsed];
+          }
+        } catch (e) {
+          console.warn("Failed to parse existing LabelsJson", e);
         }
-      } catch (e) {
-        console.warn("Failed to parse existing LabelsJson", e);
+
+        const combinedLabels = [...existingLabels, ...formattedNewLabels];
+
+        return {
+          ...apt,
+          LabelsJson: JSON.stringify(combinedLabels),
+        };
       }
 
-      const combinedLabels = [...existingLabels, ...formattedNewLabels];
+      return apt;
+    });
 
-      return {
-        ...apt,
-        ...updatedApt,
-        LabelsJson: JSON.stringify(combinedLabels),
-      };
-    }
-
-    return apt;
-  });
-
-  setAllApartments(updatedOwnedApartments);
-};
-
+    setAllApartments(updatedOwnedApartments);
+  };
 
   if (ownedApartments.length === 0) {
     return (
@@ -615,7 +620,14 @@ const handleUpdateApartment = (updatedApt, labels) => {
                         color="white"
                         style={{ marginLeft: 6 }}
                       />
-                      <TouchableOpacity onPress={() => handleDeleteOpenHouse(item.openHouseId, apt.ApartmentID)}>
+                      <TouchableOpacity
+                        onPress={() =>
+                          handleDeleteOpenHouse(
+                            item.openHouseId,
+                            apt.ApartmentID
+                          )
+                        }
+                      >
                         <MaterialCommunityIcons
                           name="trash-can-outline"
                           size={22}
@@ -633,6 +645,7 @@ const handleUpdateApartment = (updatedApt, labels) => {
                 onClose={() => setVisibleLabelsPopupId(null)}
                 onUpdateApartment={handleUpdateApartment}
                 setLabelsP={setLabels}
+                apt={apt}
               />
             )}
           </View>

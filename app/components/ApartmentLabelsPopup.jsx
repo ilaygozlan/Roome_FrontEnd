@@ -148,12 +148,37 @@ const ApartmentLabelsPopup = ({
   onClose,
   onUpdateApartment,
   setLabelsP,
+  apt
 }) => {
   const [labels, setLabels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedLabels, setSelectedLabels] = useState([]);
 
-  useEffect(() => {
+    const getApartmentLabels = (apt) => {
+    if (!apt.LabelsJson) return [];
+
+    try {
+      let fixedJson = apt.LabelsJson.trim();
+      if (!fixedJson.startsWith("[")) {
+        fixedJson = `[${fixedJson}]`;
+      }
+
+      const labelsArr = JSON.parse(fixedJson);
+
+      const labels = labelsArr.flatMap((item) =>
+        item.value
+          ? item.value.split(",").map((l) => l.trim().toLowerCase())
+          : []
+      );
+
+      return labels.filter((label) => label && labelToIcon[label]);
+    } catch (e) {
+      console.error("Error parsing LabelsJson:", e, apt.LabelsJson);
+      return [];
+    }
+  };
+
+    useEffect(() => {
     fetchLabels();
   }, []);
 
@@ -206,6 +231,7 @@ const ApartmentLabelsPopup = ({
       try {
         console.log("ddsaaa:   ",text)
         result = text;
+        console.log(selectedLabels)
       } catch (e) {
         result = { message: text };
       }
