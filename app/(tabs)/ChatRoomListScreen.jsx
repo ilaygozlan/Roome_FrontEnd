@@ -32,6 +32,7 @@ const ChatRoomListScreen = () => {
             const res = await fetch(
               `${API}User/GetUserById/${chat.otherUserId}`
             );
+            console.log(chat.otherUserId)
             const userData = await res.json();
             return { ...chat, userData };
           })

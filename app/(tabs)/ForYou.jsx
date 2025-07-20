@@ -225,7 +225,7 @@ export default function ForYou() {
           renderCard={renderCard}
           onSwipedLeft={(index) => handleSwipe(index, "left")}
           onSwipedRight={(index) => handleSwipe(index, "right")}
-          onSwipedAll={() => setFinishedSwiping(true)} // ← חדש
+          onSwipedAll={() => setFinishedSwiping(true)} 
           cardVerticalMargin={50}
           stackSize={3}
           stackSeparation={14}
@@ -273,6 +273,7 @@ const styles = StyleSheet.create({
   container: {
     marginTop: 50,
     flex: 1,
+    height:"100%",
     backgroundColor: colors.background,
   },
   card: {
