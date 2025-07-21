@@ -106,6 +106,7 @@ export default function UploadApartmentForm() {
   const [showExitPicker, setShowExitPicker] = useState(false);
   const [propertyTypeID, setPropertyTypeID] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [userProfile,setUserProfile] = useState(null);
 
   const categories = [
     { id: 0, name: "השכרה", icon: "home" },
@@ -213,7 +214,22 @@ export default function UploadApartmentForm() {
     setExitDate(new Date(Date.now() + 86400000).toISOString().split("T")[0]);
   };
 
+    useEffect(() => {
+    fetch(API + "User/GetUserById/" + loginUserId)
+      .then((res) => {
+        if (!res.ok) throw new Error("שגיאה בטעינת פרופיל");
+        return res.json();
+      })
+      .then((data) => {
+        setUserProfile(data);
+      })
+      .catch((err) => {
+
+      });
+  }, [loginUserId]);
+
   const handleSubmit = () => {
+
     let imageLinks = [];
 
     if (!location || !price || !rooms || apartmentType === null) {
@@ -362,6 +378,11 @@ export default function UploadApartmentForm() {
                 apartmentData.location
               ).address;
               apartmentData.ApartmentType = apartmentType;
+              apartmentData.IsLikedByUser = false;
+              apartmentData.Creator_ID = loginUserId;
+              apartmentData.Creator_FullName = userProfile.fullName;
+              apartmentData.Creator_ProfilePicture = userProfile.profilePicture;
+              apartmentData.Creator_Token = "";
               const updatedAllApartments = [...allApartments, apartmentData];
               setAllApartments(updatedAllApartments);
               console.log(apartmentData.Images, apartmentData);

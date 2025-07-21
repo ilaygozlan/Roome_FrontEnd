@@ -152,6 +152,10 @@ export default function OpenHouseButton({
     }
   };
   const registerForOpenHouse = async (openHouse) => {
+    if(userOwnerId == userId) {
+      Alert.alert("שגיאה", "לא ניתן להרשם לבית פתוח שלך");
+      return;
+    }
     try {
       console.log(openHouse)
       // 1. Register the user for the open house
