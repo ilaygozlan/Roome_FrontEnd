@@ -314,7 +314,7 @@ export default function UploadApartmentForm() {
               if (fileInfo.exists) {
                 fileUri = fileInfo.uri;
               } else {
-                console.error("❌ לא ניתן לגשת לקובץ:", uri);
+                console.error(" לא ניתן לגשת לקובץ:", uri);
                 return;
               }
             }
@@ -343,7 +343,7 @@ export default function UploadApartmentForm() {
             .then((res) => {
               if (!res.ok) {
                 const errorText = res.text();
-                console.error("❌ תגובת השרת:", res.status, errorText);
+                console.error("תגובת השרת:", res.status, errorText);
                 setIsUploading(false);
                 throw new Error("העלאת תמונות נכשלה");
               }
@@ -370,7 +370,7 @@ export default function UploadApartmentForm() {
               Alert.alert("הצלחה", "הדירה והתמונות פורסמו בהצלחה!");
             })
             .catch((error) => {
-              console.error("❌ שגיאה בהעלאת תמונות:", error);
+              console.error("שגיאה בהעלאת תמונות:", error);
               setIsUploading(false);
               Alert.alert("שגיאה", "הדירה פורסמה, אך העלאת התמונות נכשלה");
             });
@@ -619,7 +619,7 @@ export default function UploadApartmentForm() {
                         }
                       >
                         <Text>
-                          אפשרות להארכה: {extensionPossible ? "✔" : "❌"}
+                          אפשרות להארכה: {extensionPossible ? "✔" : " "}
                         </Text>
                       </TouchableOpacity>
                     </>
@@ -644,7 +644,7 @@ export default function UploadApartmentForm() {
                         }
                       >
                         <Text>
-                          ביטול ללא קנס: {canCancelWithoutPenalty ? "✔" : "❌"}
+                          ביטול ללא קנס: {canCancelWithoutPenalty ? "✔" : " "}
                         </Text>
                       </TouchableOpacity>
                       <TouchableOpacity
@@ -652,7 +652,7 @@ export default function UploadApartmentForm() {
                           toggleIcon(isWholeProperty, setIsWholeProperty)
                         }
                       >
-                        <Text>כל הדירה: {isWholeProperty ? "✔" : "❌"}</Text>
+                        <Text>כל הדירה: {isWholeProperty ? "✔" : " "}</Text>
                       </TouchableOpacity>
                     </>
                   )}
@@ -766,7 +766,7 @@ const styles = StyleSheet.create({
   propertyTypeList: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "flex-end", // יישור לימין
+    justifyContent: "flex-end",
     rowGap: 10,
     columnGap: 10,
     marginBottom: 20,
@@ -780,7 +780,7 @@ const styles = StyleSheet.create({
     margin: 5,
     backgroundColor: "#f4f4f4",
     alignItems: "center",
-    flexDirection: "row-reverse", // טקסט מימין
+    flexDirection: "row-reverse", 
   },
   selectedPropertyType: {
     borderColor: "#E3965A",

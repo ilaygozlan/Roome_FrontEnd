@@ -202,7 +202,7 @@ const uploadProfileImage = async (uri) => {
     const imageUrl = await response.text(); 
     return GetImageUrl("uploadedFiles/" + JSON.parse(imageUrl));
   } catch (error) {
-    console.error("❌ Error uploading image:", error);
+    console.error("  Error uploading image:", error);
     return null;
   }
 };

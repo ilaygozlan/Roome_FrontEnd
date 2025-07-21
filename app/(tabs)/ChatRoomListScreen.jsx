@@ -25,7 +25,7 @@ const ChatRoomListScreen = () => {
     fetch(`${API}Chat/GetChatList/${loginUserId}`)
       .then((res) => res.json())
       .then(async (data) => {
-        console.log("✅ Chat list fetched from server");
+        console.log("Chat list fetched from server");
         const fullData = await Promise.all(
           data.map(async (chat) => {
             const res = await fetch(
@@ -38,10 +38,10 @@ const ChatRoomListScreen = () => {
         );
         setChatList(fullData);
         setLoading(false);
-        console.log("🧾 Final chat list with user data", fullData);
+        console.log(" Final chat list with user data", fullData);
       })
       .catch((err) => {
-        console.error("❌ Error loading chat list:", err);
+        console.error("  Error loading chat list:", err);
         setLoading(false);
       });
   };
@@ -80,7 +80,7 @@ const ChatRoomListScreen = () => {
             );
             return [updatedChat, ...others];
           } else {
-            console.log("🆕 New chat detected, reloading list");
+            console.log("New chat detected, reloading list");
             loadChatList();
             return prevList;
           }
@@ -108,7 +108,7 @@ const ChatRoomListScreen = () => {
           key={index}
           style={styles.chatItem}
           onPress={async () => {
-            console.log("➡️ Navigating to ChatRoom with user:", chat.otherUserId);
+            console.log(" Navigating to ChatRoom with user:", chat.otherUserId);
             try {
               await fetch(
                 `${API}Chat/MarkAsRead/${chat.otherUserId}/${loginUserId}`,
@@ -130,7 +130,7 @@ const ChatRoomListScreen = () => {
                 params: { recipientId: chat.otherUserId },
               });
             } catch (err) {
-              console.error("❌ Failed to mark messages as read:", err);
+              console.error("  Failed to mark messages as read:", err);
             }
           }}
         >
@@ -173,7 +173,7 @@ export default ChatRoomListScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f0f0f0", // צבע רקע עדין לצ'אט
+    backgroundColor: "#f0f0f0", 
   },
   chatItem: {
     flexDirection: "row",
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderBottomWidth: 1,
     borderColor: "#e6e6e6",
-    height: 90, // גובה קבוע לשורה
+    height: 90, 
   },
   avatar: {
     width: 55,
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
     color: "#999",
   },
   unreadBadge: {
-    backgroundColor: "#25D366", // ירוק כמו וואצאפ
+    backgroundColor: "#25D366", 
     borderRadius: 12,
     minWidth: 24,
     paddingHorizontal: 6,

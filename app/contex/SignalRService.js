@@ -32,24 +32,24 @@ class SignalRService {
     // Handle reconnecting
     this.connection.onreconnecting((error) => {
       this.connected = false;
-      console.warn("🔌 SignalR reconnecting...", error);
+      console.warn(" SignalR reconnecting...", error);
     });
 
     // Handle successful reconnect
     this.connection.onreconnected(() => {
       this.connected = true;
-      console.log("✅ SignalR reconnected.");
+      console.log("  SignalR reconnected.");
     });
 
     // Handle disconnection
     this.connection.onclose((error) => {
       this.connected = false;
-      console.warn("⚠️ SignalR disconnected.", error);
+      console.warn("SignalR disconnected.", error);
     });
 
     // Listen for incoming messages
     this.connection.on("ReceiveMessage", (senderId, message) => {
-      console.log("📩 Received message:", senderId, message);
+      console.log(" Received message:", senderId, message);
       if (this.messageHandler) {
         this.messageHandler(senderId, message);
       }
@@ -57,7 +57,7 @@ class SignalRService {
 
     // Optional: handle force disconnect from server (duplicate connection handling)
     this.connection.on("ForceDisconnect", () => {
-      console.warn("⛔ Forcefully disconnected by server due to duplicate connection.");
+      console.warn("Forcefully disconnected by server due to duplicate connection.");
       this.stopConnection();
     });
 
@@ -66,10 +66,10 @@ class SignalRService {
       .start()
       .then(() => {
         this.connected = true;
-        console.log("✅ SignalR connected successfully.");
+        console.log("  SignalR connected successfully.");
       })
       .catch((error) => {
-        console.error("❌ SignalR connection failed:", error);
+        console.error("  SignalR connection failed:", error);
       });
   }
 
@@ -94,7 +94,7 @@ class SignalRService {
 
   sendMessage(recipientId, message) {
     if (!this.isSignalRReady()) {
-      console.warn("⛔ SignalR is not connected. Cannot send message.");
+      console.warn("SignalR is not connected. Cannot send message.");
       return;
     }
     this.connection

@@ -89,7 +89,7 @@ export default function AdminUsersList() {
                     await sendNotificationAdmin(userPushToken, title, body);
                   }
                 } else {
-                  console.warn("❌ לא הצלחתי להביא את הטוקן של המשתמש");
+                  console.warn("  לא הצלחתי להביא את הטוקן של המשתמש");
                 }
               } else {
                 Alert.alert("שגיאה", "לא ניתן לעדכן את המשתמש.");

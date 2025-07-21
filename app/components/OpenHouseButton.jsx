@@ -13,6 +13,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import API from "../../config";
 import { sendPushNotification } from "./pushNatification";
 import { Linking } from "react-native";
+import * as Calendar from "expo-calendar";
 
 /**
  * @component OpenHouseButton
@@ -84,9 +85,8 @@ export default function OpenHouseButton({
    * @param {number} openHouseId - ID of the open house session
    * @returns {Promise<void>}
    */
-  const offerToSyncWithCalendar = async (openHouseId) => {
-    console.log("🟡 שואלת את המשתמש אם להוסיף ליומן...");
-    Alert.alert("הוספה ליומן Google", "האם תרצה להוסיף את הסיור ליומן שלך?", [
+  const offerToSyncWithCalendar = async (openHouse) => {
+    Alert.alert("נרשמת בהצלחה לבית פתוח ", "האם תרצה להוסיף את הסיור ליומן שלך?", [
       {
         text: "לא תודה",
         style: "cancel",
@@ -95,60 +95,81 @@ export default function OpenHouseButton({
       {
         text: "כן, הוסף ליומן",
         onPress: async () => {
-          console.log("✅ המשתמש בחר להוסיף ליומן");
-          try {
-            const res = await fetch(
-              API +
-                `OpenHouse/RegisterAndSyncToCalendar?userId=${userId}&openHouseId=${openHouseId}`,
-              { method: "POST" }
-            );
-
-            const text = await res.text();
-            const result = text ? JSON.parse(text) : {};
-
-            console.log("📨 התקבלה תגובה מהשרת:", result);
-
-            if (res.ok && result.calendarEventLink) {
-              console.log("📅 קישור לאירוע ביומן:", result.calendarEventLink);
-              Linking.openURL(result.calendarEventLink);
-            } else {
-              console.warn(
-                "⚠️ לא נשלח קישור ליומן:",
-                result.message || "אין קישור"
-              );
-              Alert.alert(
-                "הוספה ליומן נכשלה",
-                result.message || "נסה שוב מאוחר יותר"
-              );
-            }
-          } catch (error) {
-            console.error("❌ שגיאה בזמן התחברות ליומן:", error);
-            Alert.alert("שגיאה", "לא ניתן להתחבר ליומן Google כרגע.");
-          }
-        },
-      },
-    ]);
+          addToCalendar(openHouse);
+          console.log("  המשתמש בחר להוסיף ליומן");}
+          
+        }])
   };
+  const addToCalendar = async (openHouse) => {
 
-  const registerForOpenHouse = async (openHouseId) => {
     try {
+      // Request calendar permissions
+      const { status } = await Calendar.requestCalendarPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("הרשאה נדרשת", "יש לאשר גישה ליומן כדי להוסיף את האירוע");
+        return;
+      }
+
+      // Get default calendar
+      const calendars = await Calendar.getCalendarsAsync(
+        Calendar.EntityTypes.EVENT
+      );
+      const defaultCalendar =
+        calendars.find((cal) => cal.isPrimary) || calendars[0];
+
+      if (!defaultCalendar) {
+        Alert.alert("שגיאה", "לא נמצא יומן ברירת מחדל");
+        return;
+      }
+
+      // Create event details
+      const startDate = new Date(`${(openHouse.date).split("T")[0]}T${openHouse.startTime}:00`);
+      const endDate = new Date(`${(openHouse.date).split("T")[0]}T${openHouse.endTime}:00`);
+
+      const eventDetails = {
+        title: `בית פתוח - ${JSON.parse(openHouse.location).address}`,
+        startDate: startDate,
+        endDate: endDate,
+        timeZone: "Asia/Jerusalem",
+        location: JSON.parse(openHouse.location).address,
+        notes: `בית פתוח שנרשמת אליו. מספר משתתפים: ${openHouse.totalRegistrations}/${openHouse.amountOfPeoples}`,
+        alarms: [{ relativeOffset: -60 }], // 1 hour before
+      };
+
+      // Create the event
+      const eventId = await Calendar.createEventAsync(
+        defaultCalendar.id,
+        eventDetails
+      );
+
+      if (eventId) {
+        Alert.alert("הצלחה", "האירוע נוסף ליומן בהצלחה!");
+      }
+    } catch (err) {
+      console.error("Error adding to calendar:", err);
+      Alert.alert("שגיאה", "שגיאה בהוספת האירוע ליומן");
+    } finally {
+    }
+  };
+  const registerForOpenHouse = async (openHouse) => {
+    try {
+      console.log(openHouse)
       // 1. Register the user for the open house
       const res = await fetch(API + `OpenHouse/RegisterForOpenHouse`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          openHouseID: openHouseId,
+          openHouseID: openHouse.openHouseId,
           userID: userId,
           confirmed: 0,
         }),
       });
 
       if (res.ok) {
-        Alert.alert("ההרשמה הצליחה", "נרשמת בהצלחה לבית הפתוח!");
 
         console.log(" נרשמת בהצלחה לסיור, מנסה לשלוח התראה לבעל הדירה");
         console.log(userOwnerId);
-        offerToSyncWithCalendar(openHouseId);
+        offerToSyncWithCalendar(openHouse);
 
         // 2. Retrieve the push token for the property owner using the ownerId
         const tokenResponse = await fetch(
@@ -176,15 +197,15 @@ export default function OpenHouseButton({
         fetchOpenHouses();
       } else if (res.status === 409) {
         Alert.alert(
-          "Already Registered",
-          "You are already registered or there is an issue."
+          "כבר נרשמת לבית הפתוח",
+          " כבר נרשמת לבית הפתוח או דיד בעיה אחרת"
         );
       } else {
-        Alert.alert("Error", "Failed to register for the open house.");
+        Alert.alert("שגיאה", "שגיאה בהרשמה לבית פתוח");
       }
     } catch (error) {
       console.error("Registration error:", error);
-      Alert.alert("Network Error", "Could not connect to the server.");
+      Alert.alert("שגיאת רשת", "שגיאה בהתחברות לשרת");
     }
   };
 
@@ -256,7 +277,7 @@ export default function OpenHouseButton({
                     ) : (
                       <TouchableOpacity
                         style={styles.registerButton}
-                        onPress={() => registerForOpenHouse(item.openHouseId)}
+                        onPress={() => registerForOpenHouse(item)}
                       >
                         <Text style={styles.registerText}>להרשמה</Text>
                       </TouchableOpacity>

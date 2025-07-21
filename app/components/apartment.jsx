@@ -68,7 +68,7 @@ useEffect(() => {
       if (supported) {
         await Linking.openURL(whatsappUrl);
       } else {
-        alert("WhatsApp is not installed or not supported on this device.");
+        alert("וואטספ לא נתמך באפליקציה.");
       }
     } catch (error) {
       console.error("Error sharing via WhatsApp:", error);

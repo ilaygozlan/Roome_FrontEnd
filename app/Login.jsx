@@ -229,7 +229,7 @@ export default function LoginScreen() {
 
     try {
       await sendPasswordResetEmail(auth, email);
-      alert("Password reset email sent successfully!");
+      alert("נשלח קישור לאיפוס סיסמה למייל שלך");
       setForgotPassword(false);
     } catch (error) {
       console.error("Password reset error:", error);

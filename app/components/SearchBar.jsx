@@ -265,49 +265,7 @@ export default function SearchBar({
             />
           </View>
 
-          {/* most common locations*/}
-          {/*
-           <Text style={[styles.label, { marginTop: 0 }]}>בחר מיקום:</Text>
 
-            <FlatList
-              data={locations}
-              horizontal
-              inverted // makes the list scroll from right to left
-              keyExtractor={(item, index) => index.toString()}
-              contentContainerStyle={styles.commonLocations}
-              showsHorizontalScrollIndicator={false}
-              renderItem={({ item }) => {
-                const isSelected = selectedLocation === item;
-
-                return (
-                  <TouchableOpacity
-                    style={[
-                      styles.locationOption,
-                      isSelected && {
-                        backgroundColor: colors.background,
-                        borderColor: colors.primary,
-                      },
-                    ]}
-                    onPress={() => {
-                      setSelectedLocation(isSelected ? "" : item);
-                    }}
-                  >
-                    <Text
-                      style={[
-                        styles.locationOptionText,
-                        isSelected && {
-                          color: colors.primary,
-                          fontWeight: "bold",
-                        },
-                      ]}
-                    >
-                      {item}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              }}
-            />
-            */}
           {/* apartment categories */}
           <Text style={[styles.label, { marginTop: 65 }]}>בחר קטגוריה:</Text>
           <View style={styles.categories}>

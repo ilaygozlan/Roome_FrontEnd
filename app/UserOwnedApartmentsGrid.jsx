@@ -270,7 +270,7 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
       setAllApartments(updatedAllApartments);
     } catch (error) {
       console.error("שגיאה במחיקה:", error);
-      alert("❌ שגיאה במחיקת הדירה:\n" + error.message);
+      alert("שגיאה במחיקת הדירה:\n" + error.message);
     }
   };
 
@@ -363,7 +363,7 @@ const submitOpenHouse = async () => {
       throw new Error(result.message || "שגיאה מהשרת");
     }
 
-    alert("✅ " + (result.message || "בית פתוח נוצר בהצלחה!"));
+    Alert.alert(" הצלחה ", ( "בית פתוח נוצר בהצלחה!"));
     setOpenHouseModalVisible(false);
 
     const newOpenHouse = {
@@ -380,7 +380,7 @@ const submitOpenHouse = async () => {
     });
   } catch (error) {
     console.error("שגיאה:", error);
-    alert("❌ שגיאה ביצירת בית פתוח:\n" + error.message);
+    alert("שגיאה ביצירת בית פתוח:\n" + error.message);
   }
 };
 
@@ -401,7 +401,7 @@ const submitOpenHouse = async () => {
       console.log(" Server response status:", response.status);
 
       if (response.ok) {
-        Alert.alert("הצלחה", "הסיור נמחק בהצלחה");
+        Alert.alert("איזה יופי!", "הסיור נמחק בהצלחה");
         setOpenHousesMap((prevMap) => {
           const updatedOpenHouses = (prevMap[apartmentId] || []).filter(
             (item) => item.openHouseId !== openHouseId

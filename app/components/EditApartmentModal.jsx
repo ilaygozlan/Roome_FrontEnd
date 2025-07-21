@@ -143,7 +143,7 @@ const removeImage = (uriToRemove) => {
 const handleUpdate = async () => {
   // Basic validation
   if (!location || !price || !rooms) {
-    Alert.alert("Error", "Please fill in all required fields");
+    Alert.alert("שגיאה", "בבקשה מלא את כל השדות");
     return;
   }
 
@@ -282,7 +282,7 @@ const handleUpdate = async () => {
 
   } catch (err) {
     setIsUploading(false);
-    Alert.alert("Error", err.message);
+    Alert.alert("שגיאה", err.message);
   }
 };
 

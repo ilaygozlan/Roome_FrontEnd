@@ -80,10 +80,10 @@ export default function LikeButton(props) {
 
       if (!response.ok) throw new Error("Failed to like apartment");
       setApartmentLikedByUser(props.apartmentId);
-      console.log("✅ Liked successfully");
+      console.log("  Liked successfully");
     } catch (error) {
-      console.error("❌ Error liking apartment:", error);
-      Alert.alert("Error", "Failed to like apartment");
+      console.error("  Error liking apartment:", error);
+      Alert.alert("שגיאה", "לא ניתן לעשות לייק לדירה");
     }
   };
 
@@ -99,10 +99,10 @@ export default function LikeButton(props) {
 
       if (!response.ok) throw new Error("Failed to unlike apartment");
       setApartmentUnLikedByUser(props.apartmentId);
-      console.log("✅ Unliked successfully");
+      console.log("  Unliked successfully");
     } catch (error) {
-      console.error("❌ Error unliking apartment:", error);
-      Alert.alert("Error", "Failed to unlike apartment");
+      console.error("  Error unliking apartment:", error);
+      Alert.alert("שגיאה", "שגיאה בהסרת לייק לדירה");
     }
   };
 

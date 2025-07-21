@@ -91,7 +91,7 @@ export default function FavoriteApartmentsScreen({ onClose }) {
       // Update global apartments state
       setApartmentUnLikedByUser(apartmentId);
     } catch (error) {
-      Alert.alert("Error", "Failed to remove like. Please try again.");
+      Alert.alert("שגיאה", "ארעה שגיאה בהסרת לייק, נסה שוב");
       console.error(error);
     }
   };

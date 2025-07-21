@@ -36,9 +36,9 @@ export const SignalRProvider = ({ children }) => {
       await newConnection.start();
       setConnection(newConnection);
       setIsConnected(true);
-      console.log("✅ SignalR connected");
+      console.log("  SignalR connected");
     } catch (err) {
-      console.error("❌ SignalR connection error:", err);
+      console.error("  SignalR connection error:", err);
     }
   };
 
@@ -65,5 +65,5 @@ export const SignalRProvider = ({ children }) => {
 
 export const useSignalR = () => useContext(SignalRContext);
 
-// ✅ DEFAULT EXPORT FIX
+//   DEFAULT EXPORT FIX
 export default SignalRProvider;

@@ -67,7 +67,7 @@ export async function sendNotificationAdmin(expoPushToken, title, body) {
     const responseData = await response.json();
     console.log('📢 Admin Notification Response:', responseData);
   } catch (error) {
-    console.error('❌ Error sending admin notification:', error);
+    console.error('  Error sending admin notification:', error);
   }
 }
 
@@ -92,9 +92,9 @@ export async function sendPushNotification(expoPushToken) {
     });
 
     const responseData = await response.json();
-    console.log('🔔 Push Notification Response:', responseData);
+    console.log('Push Notification Response:', responseData);
   } catch (error) {
-    console.error('❌ Error sending push notification:', error);
+    console.error('  Error sending push notification:', error);
   }
 }
 

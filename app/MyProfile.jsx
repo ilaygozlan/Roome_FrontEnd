@@ -179,7 +179,7 @@ const handleImagePick = async () => {
 
     const uploadedUrl = await uploadProfileImage(imageUri);
     if (uploadedUrl) {
-      console.log("✅ Image URL from server:", uploadedUrl);
+      console.log("  Image URL from server:", uploadedUrl);
       setUpdatedProfile((prev) => ({
         ...prev,
         profilePicture: uploadedUrl,
@@ -220,7 +220,7 @@ const uploadProfileImage = async (uri) => {
     const imageUrl = await response.text(); 
     return GetImageUrl("uploadedFiles/" + JSON.parse(imageUrl));
   } catch (error) {
-    console.error("❌ Error uploading image:", error);
+    console.error("  Error uploading image:", error);
     return null;
   }
 };
@@ -261,15 +261,11 @@ const uploadProfileImage = async (uri) => {
       }
 
       const formattedData = data.map((item) => {
-        const apt = allApartments.find(
-          (a) => a.ApartmentID === item.ApartmentID
-        );
-        const location = apt ? apt.Location : "לא צויין מיקום";
 
         return {
           id: item.ID,
           apartmentId: item.ApartmentID,
-          location: location,
+          location: JSON.parse(item.location).address,
           date: item.Date ? item.Date.split("T")[0] : "",
           startTime: item.StartTime?.substring(0, 5) || "",
           endTime: item.EndTime?.substring(0, 5) || "",

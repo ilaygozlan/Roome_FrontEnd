@@ -17,7 +17,7 @@ export default function useNotificationNavigation(
           response.notification.request.content.data?.recipientId;
 
         console.log(
-          "🔔 Notification clicked! recipientId:",
+          " Notification clicked! recipientId:",
           recipientId,
           "isAuthenticated:",
           isAuthenticated
@@ -29,7 +29,7 @@ export default function useNotificationNavigation(
           recipientId === "null" ||
           recipientId === ""
         ) {
-          console.warn("❌ recipientId missing or invalid, not navigating.");
+          console.warn("  recipientId missing or invalid, not navigating.");
           return;
         }
 
@@ -52,7 +52,7 @@ export default function useNotificationNavigation(
     if (isAuthenticated && pendingNotificationRef?.current) {
       const savedRecipientId = pendingNotificationRef.current;
       console.log(
-        "🚀 Authenticated after notification. Navigating to saved ChatRoom:",
+        " Authenticated after notification. Navigating to saved ChatRoom:",
         savedRecipientId
       );
       pendingNotificationRef.current = null;
