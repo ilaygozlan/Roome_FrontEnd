@@ -23,10 +23,5 @@
   },
   "submit": {
     "production": {}
-  },
-  "update": {
-    "preview": {
-      "channel": "preview"
-    }
   }
 }
