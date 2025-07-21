@@ -12,7 +12,7 @@ import {
   Image,
   ActivityIndicator,
 } from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import CustomDateTimePicker from "./components/CustomDateTimePicker";
 import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from "expo-image-picker";
 import { auth } from "./firebase";
@@ -345,7 +345,7 @@ const uploadProfileImage = async (uri) => {
         </TouchableOpacity>
 
         {showDatePicker && (
-          <DateTimePicker
+          <CustomDateTimePicker
             value={birthdate}
             mode="date"
             display="default"

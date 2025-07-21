@@ -15,7 +15,7 @@ import {
 
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import CustomDateTimePicker from "./CustomDateTimePicker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import API from "../../config";
 import GooglePlacesInput from "../components/GooglePlacesAPI";
@@ -452,7 +452,7 @@ return (
                 <Text>{entryDate}</Text>
               </TouchableOpacity>
               {showEntryPicker && (
-                <DateTimePicker
+                <CustomDateTimePicker
                   value={new Date(entryDate)}
                   mode="date"
                   minimumDate={new Date()}
@@ -471,7 +471,7 @@ return (
                 <Text>{exitDate}</Text>
               </TouchableOpacity>
               {showExitPicker && (
-                <DateTimePicker
+                <CustomDateTimePicker
                   value={new Date(exitDate)}
                   mode="date"
                   minimumDate={new Date(entryDate)}

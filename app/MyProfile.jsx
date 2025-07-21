@@ -18,7 +18,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import API from "../config";
 import { useRouter } from "expo-router";
 import UserOwnedApartmentsGrid from "./UserOwnedApartmentsGrid";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import CustomDateTimePicker from "./components/CustomDateTimePicker";
 import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from "expo-image-picker";
 import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
@@ -493,7 +493,7 @@ const uploadProfileImage = async (uri) => {
               </Text>
             </TouchableOpacity>
             {showDatePicker && (
-              <DateTimePicker
+              <CustomDateTimePicker
                 value={new Date(updatedProfile.birthDate)}
                 mode="date"
                 display="default"

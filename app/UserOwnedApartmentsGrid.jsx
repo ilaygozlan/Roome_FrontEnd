@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import ApartmentGallery from "./components/ApartmentGallery";
 import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import CustomDateTimePicker from "./components/CustomDateTimePicker";
 import API from "../config";
 import { FontAwesome5, MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -235,10 +235,12 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
       );
       if (!res.ok) {
         setOpenHousesMap((prev) => ({ ...prev, [apartmentId]: [] }));
+      
         return;
       }
       const data = await res.json();
       setOpenHousesMap((prev) => ({ ...prev, [apartmentId]: data }));
+      
     } catch (err) {
       console.error(`שגיאה אמיתית בטעינת בית פתוח לדירה ${apartmentId}:`, err);
     }
@@ -653,9 +655,9 @@ const submitOpenHouse = async () => {
                       }}
                     >
                       <Text style={styles.openHouseButtonText}>
-                        {new Date(item.date).toLocaleDateString("he-IL")} |{" "}
-                        {item.startTime} - {item.endTime} | נרשמו:{" "}
-                        {item.amountOfPeoples} / {item.totalRegistrations}
+                        {new Date(item.Date).toLocaleDateString("he-IL")} |{" "}
+                        {item.StartTime} - {item.EndTime} | נרשמו:{" "}
+                        {item.AmountOfPeople} / {item.TotalRegistrations}
                       </Text>
                       <MaterialCommunityIcons
                         name="calendar-outline"
@@ -753,7 +755,7 @@ const submitOpenHouse = async () => {
                 </Text>
               </TouchableOpacity>
               {showDatePicker && (
-                <DateTimePicker
+                <CustomDateTimePicker
                   value={openHouseDate}
                   mode="date"
                   display="default"
@@ -785,7 +787,7 @@ const submitOpenHouse = async () => {
                 <Text style={{ color: "#333" }}>{startTime || "בחר שעה"}</Text>
               </TouchableOpacity>
               {showStartPicker && (
-                <DateTimePicker
+                <CustomDateTimePicker
                   value={startDateObj}
                   mode="time"
                   display={Platform.OS === "ios" ? "spinner" : "default"}
@@ -822,7 +824,7 @@ const submitOpenHouse = async () => {
                 <Text style={{ color: "#333" }}>{endTime || "בחר שעה"}</Text>
               </TouchableOpacity>
               {showEndPicker && (
-                <DateTimePicker
+                <CustomDateTimePicker
                   value={endDateObj}
                   mode="time"
                   display={Platform.OS === "ios" ? "spinner" : "default"}
@@ -990,6 +992,7 @@ const styles = StyleSheet.create({
   openHouseButtonText: {
     color: "#fff",
     textAlign: "center",
+    fontSize: 12,
     fontWeight: "bold",
   },
   aiButton: {

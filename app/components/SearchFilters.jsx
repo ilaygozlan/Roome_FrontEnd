@@ -11,7 +11,7 @@ import {
   UIManager,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
+import CustomDateTimePicker from "./CustomDateTimePicker";
 
 if (Platform.OS === "android") {
   UIManager.setLayoutAnimationEnabledExperimental &&
@@ -177,6 +177,30 @@ console.log(initialRoommateOptions)
             </TouchableOpacity>
           </View>
 
+ {isDatePickerVisible && (
+        <CustomDateTimePicker
+          mode="date"
+          value={dateType === "entry" ? entryDate || new Date() : exitDate || new Date()}
+          minimumDate={dateType === "exit" && entryDate ? new Date(entryDate.getTime() + 24 * 60 * 60 * 1000) : new Date()}
+          onChange={(event, selectedDate) => {
+            setDatePickerVisibility(false);
+            if (event.type === 'set' && selectedDate) {
+              if (dateType === "entry") {
+                setEntryDate(selectedDate);
+                if (exitDate && selectedDate >= exitDate) {
+                  setExitDate(null);
+                }
+              } else {
+                if (entryDate && selectedDate <= entryDate) {
+                  alert("תאריך יציאה חייב להיות אחרי תאריך כניסה");
+                  return;
+                }
+                setExitDate(selectedDate);
+              }
+            }
+          }}
+        />
+      )}
           {/* gender */}
           <View style={styles.genderRow}>
             {genderOptions.map((gender, index) => (
@@ -272,21 +296,6 @@ console.log(initialRoommateOptions)
         </ScrollView>
       )}
 
-      {
-        <DateTimePickerModal
-          isVisible={isDatePickerVisible}
-          mode="date"
-          onConfirm={handleDateConfirm}
-          onCancel={() => setDatePickerVisibility(false)}
-          locale="he-IL"
-          style={{ zIndex: 9999 }}
-          minimumDate={
-            dateType === "exit" && entryDate
-              ? new Date(entryDate.getTime() + 24 * 60 * 60 * 1000)
-              : new Date()
-          }
-        />
-      }
     </View>
   );
 }

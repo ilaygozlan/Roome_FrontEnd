@@ -13,7 +13,7 @@ import {
   FlatList,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import CustomDateTimePicker from "../components/CustomDateTimePicker";
 import { Ionicons, MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import { AntDesign } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -562,7 +562,7 @@ export default function UploadApartmentForm() {
                     <Text>תאריך כניסה: {entryDate}</Text>
                   </TouchableOpacity>
                   {showEntryPicker && (
-                    <DateTimePicker
+                    <CustomDateTimePicker
                       value={new Date(entryDate)}
                       mode="date"
                       minimumDate={new Date()}
@@ -578,7 +578,7 @@ export default function UploadApartmentForm() {
                     <Text>תאריך יציאה: {exitDate}</Text>
                   </TouchableOpacity>
                   {showExitPicker && (
-                    <DateTimePicker
+                    <CustomDateTimePicker
                       value={new Date(exitDate)}
                       mode="date"
                       minimumDate={
