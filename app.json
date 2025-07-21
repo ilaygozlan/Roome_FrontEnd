@@ -15,10 +15,7 @@
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "NSAppTransportSecurity": {
-          "NSAllowsArbitraryLoads": true,
-          "NSAppTransportSecurity": {
-            "NSAllowsArbitraryLoads": true
-          }
+          "NSAllowsArbitraryLoads": true
         },
         "ITSAppUsesNonExemptEncryption": false
       }
