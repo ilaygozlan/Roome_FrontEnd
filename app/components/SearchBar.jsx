@@ -17,8 +17,7 @@ import { AntDesign, Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import SearchFilters from "./SearchFilters";
 import { useRouter } from "expo-router";
 import { Keyboard, TouchableWithoutFeedback } from "react-native";
-import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
-import GooglePlacesInput from "./GooglePlacesAPI";
+import { GooglePlacesAutocomplete } from "./GooglePlacesAPI";
 
 /**
  * @component SearchBar
@@ -211,30 +210,39 @@ export default function SearchBar({
           <View style={{ zIndex: 2, width: "100%", margin: 0 }}>
             <Text style={[styles.label, { marginTop: 0 }]}>בחר מיקום:</Text>
             <GooglePlacesAutocomplete
-             onFail={error => console.error("Autocomplete ERROR:", error)}
-              placeholder={selectedLocation?.address || "הקלד מיקום..."}
-              onPress={(data, details = null) => {
-                if (details) {
-                  const location = details.formatted_address;
-                  const lat = details.geometry.location.lat;
-                  const lng = details.geometry.location.lng;
-
-                  console.log("📍 Address:", location);
-                  console.log("🌍 Latitude:", lat);
-                  console.log("🌍 Longitude:", lng);
-                  console.log("🌍 type:", details.types);
-
-                  const fullAddress = {
-                    address: location,
-                    latitude: lat,
-                    longitude: lng,
-                    types: details.types,
-                  };
-
-                  setSelectedLocation(fullAddress);
-                }
+              onFail={(error) => {
+                console.error("Autocomplete ERROR:", error);
+                Alert.alert("שגיאה", "אירעה שגיאה בעת חיפוש הכתובת");
               }}
+              textInputProps={{
+                onFocus: () => {},
+                onBlur: () => {},
+                autoCorrect: false,
+              }}
+              placeholder={selectedLocation?.address || "הקלד מיקום..."}
               fetchDetails={true}
+              onPress={(data, details = null) => {
+               
+                if (!details || !details.geometry?.location) {
+                  console.warn("No location details available");
+                  Alert.alert("שגיאה", "פרטי מיקום לא זמינים כרגע");
+                  return;
+                }
+
+                const location = details.formatted_address || "";
+                const lat = details.geometry.location.lat;
+                const lng = details.geometry.location.lng;
+
+                const fullAddress = {
+                  address: location,
+                  latitude: lat,
+                  longitude: lng,
+                  types: details.types || [],
+                };
+                console.log(fullAddress)
+                setSelectedLocation(fullAddress);
+              }}
+              isRowScrollable={false}
               query={{
                 key: "AIzaSyCGucSUapSIUa_ykXy0K8tl6XR-ITXRj3o",
                 language: "he",
@@ -257,14 +265,13 @@ export default function SearchBar({
                   position: "absolute",
                   top: 50,
                   zIndex: 1000,
-                  elevation: 5, // for Android
+                  elevation: 5,
                   backgroundColor: "white",
                   width: "100%",
                 },
               }}
             />
           </View>
-
 
           {/* apartment categories */}
           <Text style={[styles.label, { marginTop: 65 }]}>בחר קטגוריה:</Text>

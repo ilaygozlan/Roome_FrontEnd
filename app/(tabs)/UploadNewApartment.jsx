@@ -22,7 +22,7 @@ import { ActiveApartmentContext } from "../contex/ActiveApartmentContext";
 import API from "../../config";
 import * as FileSystem from "expo-file-system";
 import HouseLoading from "../components/LoadingHouseSign";
-import GooglePlacesInput from "../components/GooglePlacesAPI";
+import { GooglePlacesAutocomplete } from "../components/GooglePlacesAPI";
 
 /**
  * @module UploadApartmentForm
@@ -105,7 +105,7 @@ export default function UploadApartmentForm() {
   const [showExitPicker, setShowExitPicker] = useState(false);
   const [propertyTypeID, setPropertyTypeID] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [userProfile,setUserProfile] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
 
   const categories = [
     { id: 0, name: "השכרה", icon: "home" },
@@ -213,7 +213,7 @@ export default function UploadApartmentForm() {
     setExitDate(new Date(Date.now() + 86400000).toISOString().split("T")[0]);
   };
 
-    useEffect(() => {
+  useEffect(() => {
     fetch(API + "User/GetUserById/" + loginUserId)
       .then((res) => {
         if (!res.ok) throw new Error("שגיאה בטעינת פרופיל");
@@ -222,13 +222,10 @@ export default function UploadApartmentForm() {
       .then((data) => {
         setUserProfile(data);
       })
-      .catch((err) => {
-
-      });
+      .catch((err) => {});
   }, [loginUserId]);
 
   const handleSubmit = () => {
-
     let imageLinks = [];
 
     if (!location || !price || !rooms || apartmentType === null) {
@@ -367,7 +364,7 @@ export default function UploadApartmentForm() {
             .then((uploadResult) => {
               console.log("📸 תמונות הועלו:", uploadResult);
 
-              imageLinks = uploadResult.split(","); 
+              imageLinks = uploadResult.split(",");
 
               apartmentData.Images = imageLinks.join(",");
               apartmentData.Images = uploadResult;
@@ -488,7 +485,67 @@ export default function UploadApartmentForm() {
 
                   {/* Main form fields */}
                   <View style={{ width: "100%" }}>
-                    <GooglePlacesInput onLocationSelected={setLocation} />
+                    <GooglePlacesAutocomplete
+                      onFail={(error) => {
+                        console.error("Autocomplete ERROR:", error);
+                        Alert.alert("שגיאה", "אירעה שגיאה בעת חיפוש הכתובת");
+                      }}
+                      textInputProps={{
+                        onFocus: () => {},
+                        onBlur: () => {},
+                        autoCorrect: false,
+                      }}
+                      placeholder={ "הקלד מיקום..."}
+                      fetchDetails={true}
+                      onPress={(data, details = null) => {
+                        if (!details || !details.geometry?.location) {
+                          console.warn("No location details available");
+                          Alert.alert("שגיאה", "פרטי מיקום לא זמינים כרגע");
+                          return;
+                        }
+
+                        const location = details.formatted_address || "";
+                        const lat = details.geometry.location.lat;
+                        const lng = details.geometry.location.lng;
+
+                        const fullAddress = {
+                          address: location,
+                          latitude: lat,
+                          longitude: lng,
+                          types: details.types || [],
+                        };
+                        console.log(fullAddress);
+                        setLocation(fullAddress);
+                      }}
+                      isRowScrollable={false}
+                      query={{
+                        key: "AIzaSyCGucSUapSIUa_ykXy0K8tl6XR-ITXRj3o",
+                        language: "he",
+                        components: "country:il",
+                      }}
+                      enablePoweredByContainer={false}
+                      styles={{
+                        textInput: {
+                          height: 48,
+                          borderWidth: 1,
+                          borderColor: "#ccc",
+                          borderRadius: 10,
+                          paddingHorizontal: 10,
+                          fontSize: 16,
+                          marginBottom: 15,
+                          textAlign: "right",
+                          backgroundColor: "white",
+                        },
+                        listView: {
+                          position: "absolute",
+                          top: 50,
+                          zIndex: 1000,
+                          elevation: 5,
+                          backgroundColor: "white",
+                          width: "100%",
+                        },
+                      }}
+                    />
                   </View>
 
                   <TextInput
@@ -800,7 +857,7 @@ const styles = StyleSheet.create({
     margin: 5,
     backgroundColor: "#f4f4f4",
     alignItems: "center",
-    flexDirection: "row-reverse", 
+    flexDirection: "row-reverse",
   },
   selectedPropertyType: {
     borderColor: "#E3965A",
