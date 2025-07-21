@@ -129,7 +129,7 @@ const removeImage = (uriToRemove) => {
   const isServerImage = uriToRemove.includes("/uploadedFiles/");
 
   setImages((prev) =>
-    prev.filter((uri) => {
+    (prev || []).filter((uri) => {
       const currentName = uri.split("/").pop();
       return currentName !== fileName;
     })

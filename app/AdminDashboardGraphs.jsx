@@ -1,18 +1,8 @@
 import React from "react";
 import { View, Text, StyleSheet, ScrollView, Dimensions } from "react-native";
-import { BarChart, PieChart, LineChart } from "react-native-chart-kit";
+/*import { VictoryBar, VictoryPie, VictoryLine, VictoryChart, VictoryTheme, VictoryAxis } from "victory-native";*/
 
 const screenWidth = Dimensions.get("window").width;
-
-const chartConfig = {
-  backgroundGradientFrom: "#fff",
-  backgroundGradientTo: "#fff",
-  decimalPlaces: 0,
-  color: (opacity = 1) => `rgba(136, 132, 216, ${opacity})`,
-  labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-  style: { borderRadius: 16 },
-  propsForDots: { r: "6", strokeWidth: "2", stroke: "#8884d8" }
-};
 
 const mockRegistrations = [
   { month: "Jan", users: 20 },
@@ -24,57 +14,63 @@ const mockRegistrations = [
 ];
 
 const pieData = [
-  { name: "Active Users", population: 300, color: "#0088FE", legendFontColor: "#000", legendFontSize: 14 },
-  { name: "Inactive Users", population: 100, color: "#FF8042", legendFontColor: "#000", legendFontSize: 14 },
+  { x: "Active Users", y: 300 },
+  { x: "Inactive Users", y: 100 },
 ];
 
-const areaData = {
-  labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-  datasets: [
-    {
-      data: [30, 45, 60, 90, 120, 150],
-      color: (opacity = 1) => `rgba(136, 132, 216, ${opacity})`,
-      strokeWidth: 2,
-    },
-  ],
-};
+const areaData = [
+  { x: "Jan", y: 30 },
+  { x: "Feb", y: 45 },
+  { x: "Mar", y: 60 },
+  { x: "Apr", y: 90 },
+  { x: "May", y: 120 },
+  { x: "Jun", y: 150 },
+];
 
 export default function AdminDashboardGraphs() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Monthly Registrations</Text>
-      <BarChart
-        data={{
-          labels: mockRegistrations.map(item => item.month),
-          datasets: [{ data: mockRegistrations.map(item => item.users) }]
-        }}
+     {/* <VictoryChart
         width={screenWidth - 32}
         height={220}
-        chartConfig={chartConfig}
-        style={styles.chart}
-      />
+        theme={VictoryTheme.material}
+        domainPadding={20}
+      >
+        <VictoryAxis tickValues={mockRegistrations.map(item => item.month)} tickFormat={mockRegistrations.map(item => item.month)} />
+        <VictoryAxis dependentAxis />
+        <VictoryBar
+          data={mockRegistrations}
+          x="month"
+          y="users"
+          style={{ data: { fill: "#8884d8", borderRadius: 8 } }}
+        />
+      </VictoryChart>
 
       <Text style={styles.title}>User Status Distribution</Text>
-      <PieChart
+      <VictoryPie
         data={pieData}
+        colorScale={["#0088FE", "#FF8042"]}
         width={screenWidth - 32}
         height={220}
-        chartConfig={chartConfig}
-        accessor="population"
-        backgroundColor="transparent"
-        paddingLeft="15"
-        absolute
+        labels={({ datum }) => `${datum.x}\n${datum.y}`}
+        style={{ labels: { fill: "#000", fontSize: 14 } }}
       />
 
       <Text style={styles.title}>User Interactions Over Time</Text>
-      <LineChart
-        data={areaData}
+      <VictoryChart
         width={screenWidth - 32}
         height={220}
-        chartConfig={chartConfig}
-        bezier
-        style={styles.chart}
-      />
+        theme={VictoryTheme.material}
+      >
+        <VictoryAxis tickValues={areaData.map(item => item.x)} tickFormat={areaData.map(item => item.x)} />
+        <VictoryAxis dependentAxis />
+        <VictoryLine
+          data={areaData}
+          style={{ data: { stroke: "#8884d8", strokeWidth: 2 } }}
+        />
+      </VictoryChart>
+      */} 
     </ScrollView>
   );
 }

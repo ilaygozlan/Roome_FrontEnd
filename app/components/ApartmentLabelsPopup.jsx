@@ -171,7 +171,7 @@ const ApartmentLabelsPopup = ({
           : []
       );
 
-      return labels.filter((label) => label && labelToIcon[label]);
+      return (labels || []).filter((label) => label && labelToIcon[label]);
     } catch (e) {
       console.error("Error parsing LabelsJson:", e, apt.LabelsJson);
       return [];
@@ -201,9 +201,9 @@ const ApartmentLabelsPopup = ({
 
   const allLabels = Object.keys(labelToIcon);
 
-  const toggleLabel = (label) => {
+  const handleLabelToggle = (label) => {
     setSelectedLabels((prev) =>
-      prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label]
+      prev.includes(label) ? (prev || []).filter((l) => l !== label) : [...prev, label]
     );
   };
 
@@ -289,7 +289,7 @@ const ApartmentLabelsPopup = ({
                   <TouchableOpacity
                     key={i}
                     style={styles.iconItem}
-                    onPress={() => toggleLabel(label)}
+                    onPress={() => handleLabelToggle(label)}
                   >
                     <View style={{ opacity: isSelected ? 1 : 0.3 }}>
                       {React.cloneElement(labelToIcon[label], {

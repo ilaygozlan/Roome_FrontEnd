@@ -115,9 +115,9 @@ console.log(initialRoommateOptions)
     setRoommateOptions(updated);
   };
 
-  const toggleIcon = (id) => {
+  const handleToggleIcon = (id) => {
     setSelectedIcons((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+      prev.includes(id) ? (prev || []).filter((i) => i !== id) : [...prev, id]
     );
   };
 
@@ -253,7 +253,7 @@ console.log(initialRoommateOptions)
               return (
                 <TouchableOpacity
                   key={icon.id}
-                  onPress={() => toggleIcon(icon.id)}
+                  onPress={() => handleToggleIcon(icon.id)}
                   style={styles.iconWrapper}
                 >
                   <Ionicons
@@ -285,7 +285,7 @@ console.log(initialRoommateOptions)
                 entryDate,
                 exitDate,
                 gender: genderOptions[selectedGender],
-                filters: roommateFilters.filter((_, i) => roommateOptions[i]),
+                filters: (roommateFilters || []).filter((_, i) => roommateOptions[i]),
                 icons: selectedIcons,
               });
               setExpanded(false);

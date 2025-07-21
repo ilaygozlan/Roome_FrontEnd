@@ -179,14 +179,14 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
     jacuzzi: "ג׳קוזי",
   };
 
-  useEffect(() => {
-    if (!userId) return;
+useEffect(() => {
+  if (!userId || !Array.isArray(allApartments)) return;
+  const filtered = (allApartments || []).filter(
+    (apt) => apt.UserID === Number(userId)
+  );
+  setOwnedApartments(filtered);
+}, [allApartments, userId]);
 
-    const filtered = allApartments.filter(
-      (apt) => apt.UserID === Number(userId)
-    );
-    setOwnedApartments(filtered);
-  }, [allApartments, userId]);
 
   const [openHousesMap, setOpenHousesMap] = useState({});
 
@@ -261,12 +261,12 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
         throw new Error("שגיאה במחיקת הדירה");
       }
 
-      const updatedApartments = ownedApartments.filter(
+      const updatedApartments = (ownedApartments || []).filter(
         (apt) => apt.ApartmentID !== apartmentId
       );
       setOwnedApartments(updatedApartments);
 
-      const updatedAllApartments = allApartments.filter(
+      const updatedAllApartments = (allApartments || []).filter(
         (apt) => apt.ApartmentID !== apartmentId
       );
       setAllApartments(updatedAllApartments);
@@ -440,7 +440,7 @@ const submitOpenHouse = async () => {
   const handleUpdateApartment = (updatedApt, labels) => {
     const formattedNewLabels = labels.map((label) => ({ value: label }));
     console.log(updatedApt);
-    const updatedOwnedApartments = allApartments.map((apt) => {
+    const updatedOwnedApartments = (allApartments || []).map((apt) => {
       if (apt.ApartmentID === updatedApt.id) {
         let existingLabels = [];
 

@@ -139,7 +139,7 @@ export default function SearchFiltersRentalApt({ onFilter }) {
 
           {/* features */}
           <View style={styles.featuresContainer}>
-            {features.map((feature, index) => (
+            {(features || []).filter((_, i) => selectedFeatures[i]).map((feature, index) => (
               <TouchableOpacity
                 key={index}
                 style={styles.featureRow}
@@ -168,7 +168,7 @@ export default function SearchFiltersRentalApt({ onFilter }) {
                     selectedPropertyType !== null
                       ? propertyTypes[selectedPropertyType]
                       : null,
-                  features: features.filter((_, i) => selectedFeatures[i]),
+                  features: (features || []).filter((_, i) => selectedFeatures[i]),
                 });
               setExpanded(false);
             }}

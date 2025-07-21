@@ -195,7 +195,9 @@ useEffect(() => {
 
 
 const SearchApartments = (filters) => {
-  const newAptArr = allApartments.filter((apt) => {
+  console.log(allApartments)
+  if (!Array.isArray(allApartments)) return;
+  const newAptArr = (allApartments || []).filter((apt) => {
  
     const matchesType =
       selectedType === null || apt.ApartmentType === selectedType;
