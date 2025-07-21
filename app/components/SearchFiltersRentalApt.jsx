@@ -7,7 +7,6 @@ import {
   ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-/*import DateTimePickerModal from "@react-native-community/datetimepicker";*/
 
 /**
  * @component SearchFiltersRentalApt
@@ -178,19 +177,6 @@ export default function SearchFiltersRentalApt({ onFilter }) {
           </TouchableOpacity>
         </ScrollView>
       )}
-
-      {/* date picker */}
-      {/*<DateTimePickerModal
-        isVisible={isDatePickerVisible}
-        mode="date"
-        onConfirm={(date) => {
-          setDatePickerVisibility(false);
-          setEntryDate(date);
-        }}
-        onCancel={() => setDatePickerVisibility(false)}
-        locale="he-IL"
-        minimumDate={new Date()} //not allowed to choose a date in the past
-      />*/}
     </View>
   );
 }

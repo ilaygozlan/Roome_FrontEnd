@@ -37,7 +37,6 @@ import GooglePlacesInput from "../components/GooglePlacesAPI";
  * - Property type categorization
  *
  * @requires expo-image-picker
- * @requires @react-native-community/datetimepicker
  * @requires expo-file-system
  *
  * State Management:

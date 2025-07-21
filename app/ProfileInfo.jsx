@@ -35,7 +35,6 @@ import API from "../config";
  * - Loading states
  *
  * @requires expo-image-picker
- * @requires @react-native-community/datetimepicker
  * @requires @react-native-picker/picker
  *
  * Form Fields:
