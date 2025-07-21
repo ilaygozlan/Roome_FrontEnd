@@ -127,11 +127,11 @@ export default function OpenHouseButton({
       const endDate = new Date(`${(openHouse.Date).split("T")[0]}T${openHouse.EndTime}`);
 
       const eventDetails = {
-        title: `בית פתוח - ${openHouse.Location}`,
+        title: `בית פתוח - ${JSON.parse(openHouse.Location).address}`,
         startDate: startDate,
         endDate: endDate,
         timeZone: "Asia/Jerusalem",
-        location: openHouse.Location,
+        location: JSON.parse(openHouse.Location).address,
         notes: `בית פתוח שנרשמת אליו. מספר משתתפים: ${openHouse.TotalRegistrations}/${openHouse.AmountOfPeople}`,
         alarms: [{ relativeOffset: -60 }], // 1 hour before
       };
