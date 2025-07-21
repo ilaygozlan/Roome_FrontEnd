@@ -251,7 +251,7 @@ const uploadProfileImage = async (uri) => {
       if (!response.ok) {
         throw new Error("Failed to fetch open houses");
       }
-
+      console.log(data)
       const data = await response.json();
 
       if (!Array.isArray(data)) {
@@ -265,7 +265,7 @@ const uploadProfileImage = async (uri) => {
         return {
           id: item.ID,
           apartmentId: item.ApartmentID,
-          location: JSON.parse(item.location).address,
+          location: JSON.parse(item.Location).address,
           date: item.Date ? item.Date.split("T")[0] : "",
           startTime: item.StartTime?.substring(0, 5) || "",
           endTime: item.EndTime?.substring(0, 5) || "",

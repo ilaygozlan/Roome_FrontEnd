@@ -123,16 +123,16 @@ export default function OpenHouseButton({
       }
 
       // Create event details
-      const startDate = new Date(`${(openHouse.date).split("T")[0]}T${openHouse.startTime}:00`);
-      const endDate = new Date(`${(openHouse.date).split("T")[0]}T${openHouse.endTime}:00`);
+      const startDate = new Date(`${(openHouse.Date).split("T")[0]}T${openHouse.StartTime}`);
+      const endDate = new Date(`${(openHouse.Date).split("T")[0]}T${openHouse.EndTime}`);
 
       const eventDetails = {
-        title: `בית פתוח - ${JSON.parse(openHouse.location).address}`,
+        title: `בית פתוח - ${openHouse.Location}`,
         startDate: startDate,
         endDate: endDate,
         timeZone: "Asia/Jerusalem",
-        location: JSON.parse(openHouse.location).address,
-        notes: `בית פתוח שנרשמת אליו. מספר משתתפים: ${openHouse.totalRegistrations}/${openHouse.amountOfPeoples}`,
+        location: openHouse.Location,
+        notes: `בית פתוח שנרשמת אליו. מספר משתתפים: ${openHouse.TotalRegistrations}/${openHouse.AmountOfPeople}`,
         alarms: [{ relativeOffset: -60 }], // 1 hour before
       };
 
@@ -159,7 +159,7 @@ export default function OpenHouseButton({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          openHouseID: openHouse.openHouseId,
+          openHouseID: openHouse.OpenHouseID,
           userID: userId,
           confirmed: 0,
         }),
@@ -250,24 +250,24 @@ export default function OpenHouseButton({
                 const isFull = item.confirmedPeoples >= item.amountOfPeoples;
 
                 return (
-                  <View key={item.openHouseId} style={styles.openHouseItem}>
+                  <View key={item.OpenHouseID} style={styles.openHouseItem}>
                     <Text style={styles.openHouseText}>
-                      {new Date(item.date).toLocaleDateString("he-IL")} -{" "}
-                      {item.startTime} - {item.endTime}
+                      {new Date(item.Date).toLocaleDateString("he-IL")} -{" "}
+                      {item.StartTime} - {item.EndTime}
                     </Text>
                     <Text style={styles.openHouseLocation}>{location}</Text>
                     <Text style={styles.openHouseLocation}>
-                      נרשמו: {item.totalRegistrations} / {item.amountOfPeoples}
+                      נרשמו: {item.TotalRegistrations} / {item.AmountOfPeople}
                     </Text>
 
-                    {item.isRegistered ? (
+                    {item.IsRegistered ? (
                       <>
                         <Text style={styles.statusConfirmed}>
                           ✔ רשום לסיור
                         </Text>
                         <TouchableOpacity
                           style={styles.cancelButton}
-                          onPress={() => cancelRegistration(item.openHouseId)}
+                          onPress={() => cancelRegistration(item.OpenHouseID)}
                         >
                           <Text style={styles.cancelText}>בטל רישום</Text>
                         </TouchableOpacity>

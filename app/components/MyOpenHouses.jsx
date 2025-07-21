@@ -25,6 +25,7 @@ const MyOpenHouses = ({ visible, onClose, openHouses }) => {
   const [selectedApartment, setSelectedApartment] = useState(null);
 
   const addToCalendar = async (openHouse) => {
+    console.log(openHouse)
     setAddingToCalendar(openHouse.id);
 
     try {
