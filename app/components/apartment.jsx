@@ -20,7 +20,8 @@ import ApartmentGallery from "./ApartmentGallery";
 import { ActiveApartmentContext } from "../contex/ActiveApartmentContext";
 import ApartmentDetails from "../ApartmentDetails";
 import { userInfoContext } from "../contex/userInfoContext";
-//hey
+
+
 export default function Apartment(props) {
   const { allApartments, setAllApartments } = useContext(
     ActiveApartmentContext
@@ -58,22 +59,17 @@ useEffect(() => {
   setPreviewSearchApt(sortedApts);
 }, [allApartments]);
 
-  // Share via WhatsApp
-  const handleShareApartment = async (apt) => {
-    const message = `דירה שווה שמצאתי באפליקציה:\n\nמיקום: ${apt.Location}\nמחיר: ${apt.Price} ש\"ח\n\n${apt.Description}`;
-    const whatsappUrl = `whatsapp://send?text=${encodeURIComponent(message)}`;
+const handleShareApartment = async (apt) => {
+  const message = `דירה שווה שמצאתי באפליקציה:\n\nמיקום: ${apt.Location}\nמחיר: ${apt.Price} ש"ח\n\n${apt.Description}`;
 
-    try {
-      const supported = await Linking.canOpenURL(whatsappUrl);
-      if (supported) {
-        await Linking.openURL(whatsappUrl);
-      } else {
-        alert("וואטספ לא נתמך באפליקציה.");
-      }
-    } catch (error) {
-      console.error("Error sharing via WhatsApp:", error);
-    }
-  };
+  try {
+    await Share.share({
+      message,
+    });
+  } catch (error) {
+    console.error("Error sharing:", error);
+  }
+};
 
   const getBorderColor = (type) => {
     switch (type) {
