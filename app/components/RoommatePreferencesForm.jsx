@@ -237,7 +237,7 @@ const RoommatePreferencesForm = ({ onClose, onMatchesFound }) => {
         <ActivityIndicator size="large" color="#4A90E2" />
       ) : matchedRoommates.length > 0 ? (
         <ScrollView style={{ flex: 1 }}>
-          <RecommendedRoommates roommates={matchedRoommates} />
+          <RecommendedRoommates roommates={matchedRoommates}  closeForm={onClose}/>
         </ScrollView>
       ) : (
         <ScrollView

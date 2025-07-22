@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 
-const RecommendedRoommates = ({ roommates }) => {
+const RecommendedRoommates = ({ roommates, closeForm }) => {
   const router = useRouter();
 
   if (!roommates || roommates.length === 0) return null;
@@ -22,7 +22,9 @@ const RecommendedRoommates = ({ roommates }) => {
         { text: "ביטול", style: "cancel" },
         {
           text: "כן",
-          onPress: () => router.push(`/chat/${user.id}`),
+          onPress: () => { 
+            closeForm();
+            router.push(`/chat/${user.id}`)},
         },
       ]
     );
@@ -56,7 +58,7 @@ const RecommendedRoommates = ({ roommates }) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 30,
+    marginTop: 100,
     paddingHorizontal: 16,
   },
   title: {
