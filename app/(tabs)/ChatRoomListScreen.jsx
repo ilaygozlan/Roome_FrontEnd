@@ -14,6 +14,7 @@ import API from "../../config";
 import { useRouter, useFocusEffect } from "expo-router";
 import SignalRService from "../contex/SignalRService";
 import HouseLoading from "../components/LoadingHouseSign"
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const ChatRoomListScreen = () => {
   const { loginUserId } = useContext(userInfoContext);
@@ -102,6 +103,7 @@ const ChatRoomListScreen = () => {
   }
 
   return (
+    <SafeAreaView style={{flex:1}}>
     <ScrollView style={styles.container}>
       {chatList.map((chat, index) => (
         <TouchableOpacity
@@ -165,6 +167,7 @@ const ChatRoomListScreen = () => {
         </TouchableOpacity>
       ))}
     </ScrollView>
+    </SafeAreaView>
   );
 };
 

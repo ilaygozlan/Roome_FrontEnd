@@ -28,6 +28,7 @@ import { auth } from "./firebase";
 import RoommatePreferencesForm from "./components/RoommatePreferencesForm";
 import RecommendedRoommates from "./components/RecommendedRoommates";
 import HouseLoading from "./components/LoadingHouseSign";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const baseUrl = "https://roomebackend20250414140006.azurewebsites.net";
 const GetImageUrl = (image) => {
@@ -303,6 +304,7 @@ const uploadProfileImage = async (uri) => {
   };
 
   return (
+    <SafeAreaView style={{ flex: 1 }}>
     <ScrollView
   refreshControl={
     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -409,10 +411,13 @@ const uploadProfileImage = async (uri) => {
         transparent={true}
         animationType="slide"
         onRequestClose={() => setModalVisible(false)}
+        
       >
-        <ScrollView>
-        <View style={styles.modalContainer}>
+       
+        <View style={[styles.modalContainer, {top: 70, height: "85%", marginBottom:100}]}>
+          
           <View style={styles.modalContent}>
+             <ScrollView>
             <TouchableOpacity
               onPress={() => setModalVisible(false)}
               style={styles.closeButton}
@@ -548,9 +553,11 @@ const uploadProfileImage = async (uri) => {
             <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
               <Text style={styles.buttonText}>שמור</Text>
             </TouchableOpacity>
+                </ScrollView>
           </View>
+      
         </View>
-        </ScrollView>
+     
       </Modal>
 
       {/* Profile Info Card */}
@@ -635,6 +642,7 @@ const uploadProfileImage = async (uri) => {
       )}
     </View>
     </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -724,7 +732,8 @@ const styles = StyleSheet.create({
   friendsModalContainer: {
     flex: 1,
     backgroundColor: "#fff",
-    paddingTop: 40,
+    paddingTop: 100,
+    paddingBottom: 50,
     paddingHorizontal: 18,
   },
   friendsModalTitle: {

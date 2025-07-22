@@ -97,6 +97,7 @@ const MyOpenHouses = ({ visible, onClose, openHouses }) => {
 
   return (
     <>
+       {!selectedApartment ? (
       <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
         <View style={styles.container}>
           {/* Header */}
@@ -236,10 +237,12 @@ const MyOpenHouses = ({ visible, onClose, openHouses }) => {
           </ScrollView>
         </View>
       </Modal>
+       ):(
       <Modal
         visible={!!selectedApartment}
         animationType="slide"
         onRequestClose={() => setSelectedApartment(null)}
+         transparent={true}
       >
         {selectedApartment && (
           <ApartmentDetails
@@ -248,6 +251,7 @@ const MyOpenHouses = ({ visible, onClose, openHouses }) => {
           />
         )}
       </Modal>
+    )}
     </>
   );
 };

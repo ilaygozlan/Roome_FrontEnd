@@ -30,7 +30,7 @@ const areaData = [
 export default function AdminDashboardGraphs() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Monthly Registrations</Text>
+      <Text style={styles.title}>The page is beening build...</Text>
      {/* <VictoryChart
         width={screenWidth - 32}
         height={220}

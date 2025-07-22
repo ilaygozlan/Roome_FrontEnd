@@ -19,6 +19,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { userInfoContext } from "./contex/userInfoContext";
 import LogoutButton from "./components/LogoutButton";
 import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const UserProfile = (props) => {
   const { loginUserId } = useContext(userInfoContext);
@@ -152,6 +153,7 @@ const UserProfile = (props) => {
     );
 
   return (
+    <SafeAreaView style={{ flex: 1 }}>
     <ScrollView
       style={{ flex: 1, backgroundColor: "#F6F7FB" }}
       contentContainerStyle={{ paddingBottom: 40 }}
@@ -404,6 +406,7 @@ const UserProfile = (props) => {
         </View>
       )}
     </ScrollView>
+    </SafeAreaView>
   );
 };
 
