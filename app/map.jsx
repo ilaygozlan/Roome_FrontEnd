@@ -61,7 +61,7 @@ export default function Map() {
    * - Current position detection
    * - Initial map region setup
    */
-  useEffect(() => {
+ /* useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
@@ -79,7 +79,33 @@ export default function Map() {
 
       setLoading(false);
     })();
-  }, []);
+  }, []);*/
+
+  useEffect(() => {
+  (async () => {
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      alert("כדי להשתמש במפה, יש לאשר גישה למיקום");
+      return;
+    }
+
+    const servicesEnabled = await Location.hasServicesEnabledAsync();
+    if (!servicesEnabled) {
+      alert("שירותי המיקום כבויים. הפעל אותם בהגדרות המכשיר");
+      return;
+    }
+
+    let location = await Location.getCurrentPositionAsync({});
+    setRegion({
+      latitude: location.coords.latitude,
+      longitude: location.coords.longitude,
+      latitudeDelta: 0.05,
+      longitudeDelta: 0.05,
+    });
+
+    setLoading(false);
+  })();
+}, []);
 
   /**
    * Renders apartment markers on the map
