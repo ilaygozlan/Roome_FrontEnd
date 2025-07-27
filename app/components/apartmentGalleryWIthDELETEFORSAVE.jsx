@@ -84,9 +84,7 @@ const confirmDeleteImage = (originalPath) => {
         } catch (error) {
           console.error("Error deleting image:", error);
         } finally {
-          setImageArray((prev) =>
-            prev.filter((img) => img.original !== originalPath)
-          );
+          setImageArray((prev) => (prev || []).filter((img) => img.original !== originalPath));
         }
       },
     },

@@ -17,8 +17,7 @@ import { AntDesign, Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import SearchFilters from "./SearchFilters";
 import { useRouter } from "expo-router";
 import { Keyboard, TouchableWithoutFeedback } from "react-native";
-import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
-import GooglePlacesInput from "./GooglePlacesAPI";
+import { GooglePlacesAutocomplete } from "./GooglePlacesAPI";
 
 /**
  * @component SearchBar
@@ -48,6 +47,26 @@ const colors = {
   background: "#FDEAD7",
 };
 
+const genderOptions = ["אין העדפה", "רק גברים", "רק נשים"];
+
+const roommateFilters = [
+  "מאפשרים חיות מחמד",
+  "חניה",
+  "ביטול ללא קנס",
+  "מיזוג אוויר",
+  "חצר / מרפסת",
+  "מותר לעשן",
+  "מרוהטת",
+];
+const iconOptions = [
+  { id: "wifi", name: "wifi", label: "אינטרנט" },
+  { id: "happy", name: "happy-outline", label: "חברתי" },
+  { id: "anchor", name: "navigate-outline", label: "יציבות" },
+  { id: "headphones", name: "headset-outline", label: "שקט" },
+  { id: "bus", name: "bus-outline", label: "תחבורה" },
+  { id: "tv", name: "tv-outline", label: "טלוויזיה" },
+  { id: "key", name: "key-outline", label: "גישה" },
+];
 export default function SearchBar({
   selectedType,
   setSelectedType,
@@ -56,6 +75,8 @@ export default function SearchBar({
   priceRange,
   setPriceRange,
   SearchApartments,
+  filtersJson,
+  setFiltersJson,
   index,
   setIndex,
   showAllApartments,
@@ -139,16 +160,14 @@ export default function SearchBar({
             </Text>
           </View>
         </TouchableOpacity>
-        {showAdvancedFilters && !index &&(<TouchableOpacity
-          style={styles.filterIconContainer}
-          onPress={() => setShowAdvancedFiltersComp((prev) => !prev)}
-        >
-          <FontAwesome5
-          name="sliders-h"
-          size={20}
-          color="#fff"
-        />
-        </TouchableOpacity>)}
+        {showAdvancedFilters && !index && (
+          <TouchableOpacity
+            style={styles.filterIconContainer}
+            onPress={() => setShowAdvancedFiltersComp((prev) => !prev)}
+          >
+            <FontAwesome5 name="sliders-h" size={20} color="#fff" />
+          </TouchableOpacity>
+        )}
         {/* Map icon */}
         <TouchableOpacity
           style={styles.mapIconContainer}
@@ -158,17 +177,32 @@ export default function SearchBar({
         </TouchableOpacity>
       </View>
 
-  {showAdvancedFiltersComp && (
-  <View style={{ marginTop: 10, width: "100%" }}>
-    <SearchFilters
-      onSearch={(filters) => {
-        console.log("🎯 מסנן מתקדם:", filters);
-        setShowAdvancedFiltersComp(false); 
-      }}
-    />
-  </View>
-)}
-
+      {showAdvancedFiltersComp && (
+        <View style={{ marginTop: 10, width: "100%", height: "85%" }}>
+          <SearchFilters
+            SearchApartments={(filters) => {
+              setFiltersJson(filters);
+              SearchApartments(filters);
+              setShowAdvancedFiltersComp(false);
+            }}
+            initialEntryDate={
+              filtersJson?.entryDate ? new Date(filtersJson.entryDate) : null
+            }
+            initialExitDate={
+              filtersJson?.exitDate ? new Date(filtersJson.exitDate) : null
+            }
+            initialGenderIndex={
+              filtersJson?.gender
+                ? genderOptions.indexOf(filtersJson.gender)
+                : null
+            }
+            initialRoommateOptions={roommateFilters.map(
+              (f) => filtersJson?.filters?.includes(f) || false
+            )}
+            initialSelectedIcons={filtersJson?.icons || []}
+          />
+        </View>
+      )}
 
       {expanded && (
         <View style={styles.expandSection}>
@@ -176,31 +210,41 @@ export default function SearchBar({
           <View style={{ zIndex: 2, width: "100%", margin: 0 }}>
             <Text style={[styles.label, { marginTop: 0 }]}>בחר מיקום:</Text>
             <GooglePlacesAutocomplete
-              placeholder={selectedLocation?.address || "הקלד מיקום..."}
-              onPress={(data, details = null) => {
-                if (details) {
-                  const location = details.formatted_address;
-                  const lat = details.geometry.location.lat;
-                  const lng = details.geometry.location.lng;
-
-                  console.log("📍 Address:", location);
-                  console.log("🌍 Latitude:", lat);
-                  console.log("🌍 Longitude:", lng);
-                  console.log("🌍 type:", details.types);
-
-                  const fullAddress = {
-                    address: location,
-                    latitude: lat,
-                    longitude: lng,
-                    types: details.types,
-                  };
-
-                  setSelectedLocation(fullAddress);
-                }
+              onFail={(error) => {
+                console.error("Autocomplete ERROR:", error);
+                Alert.alert("שגיאה", "אירעה שגיאה בעת חיפוש הכתובת");
               }}
+              textInputProps={{
+                onFocus: () => {},
+                onBlur: () => {},
+                autoCorrect: false,
+              }}
+              placeholder={selectedLocation?.address || "הקלד מיקום..."}
               fetchDetails={true}
+              onPress={(data, details = null) => {
+               
+                if (!details || !details.geometry?.location) {
+                  console.warn("No location details available");
+                  Alert.alert("שגיאה", "פרטי מיקום לא זמינים כרגע");
+                  return;
+                }
+
+                const location = details.formatted_address || "";
+                const lat = details.geometry.location.lat;
+                const lng = details.geometry.location.lng;
+
+                const fullAddress = {
+                  address: location,
+                  latitude: lat,
+                  longitude: lng,
+                  types: details.types || [],
+                };
+                console.log(fullAddress)
+                setSelectedLocation(fullAddress);
+              }}
+              isRowScrollable={false}
               query={{
-                key: "AIzaSyCy4JnaYp3wvOAUH7-lOA4IFB_tBK9-5BE",
+                key: "AIzaSyCGucSUapSIUa_ykXy0K8tl6XR-ITXRj3o",
                 language: "he",
                 components: "country:il",
               }}
@@ -221,7 +265,7 @@ export default function SearchBar({
                   position: "absolute",
                   top: 50,
                   zIndex: 1000,
-                  elevation: 5, // for Android
+                  elevation: 5,
                   backgroundColor: "white",
                   width: "100%",
                 },
@@ -229,49 +273,6 @@ export default function SearchBar({
             />
           </View>
 
-          {/* most common locations*/}
-          {/*
-           <Text style={[styles.label, { marginTop: 0 }]}>בחר מיקום:</Text>
-
-            <FlatList
-              data={locations}
-              horizontal
-              inverted // makes the list scroll from right to left
-              keyExtractor={(item, index) => index.toString()}
-              contentContainerStyle={styles.commonLocations}
-              showsHorizontalScrollIndicator={false}
-              renderItem={({ item }) => {
-                const isSelected = selectedLocation === item;
-
-                return (
-                  <TouchableOpacity
-                    style={[
-                      styles.locationOption,
-                      isSelected && {
-                        backgroundColor: colors.background,
-                        borderColor: colors.primary,
-                      },
-                    ]}
-                    onPress={() => {
-                      setSelectedLocation(isSelected ? "" : item);
-                    }}
-                  >
-                    <Text
-                      style={[
-                        styles.locationOptionText,
-                        isSelected && {
-                          color: colors.primary,
-                          fontWeight: "bold",
-                        },
-                      ]}
-                    >
-                      {item}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              }}
-            />
-            */}
           {/* apartment categories */}
           <Text style={[styles.label, { marginTop: 65 }]}>בחר קטגוריה:</Text>
           <View style={styles.categories}>

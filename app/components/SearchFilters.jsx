@@ -11,7 +11,7 @@ import {
   UIManager,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
+import CustomDateTimePicker from "./CustomDateTimePicker";
 
 if (Platform.OS === "android") {
   UIManager.setLayoutAnimationEnabledExperimental &&
@@ -87,28 +87,37 @@ const iconOptions = [
   { id: "key", name: "key-outline", label: "גישה" },
 ];
 
-export default function SearchFilters({ onSearch }) {
+export default function SearchFilters( {
+  SearchApartments,
+  initialEntryDate,
+  initialExitDate,
+  initialGenderIndex,
+  initialRoommateOptions,
+  initialSelectedIcons
+}) {
   const [expanded, setExpanded] = useState(true);
-  const [selectedGender, setSelectedGender] = useState(null);
-  const [roommateOptions, setRoommateOptions] = useState(
-    new Array(roommateFilters.length).fill(false)
-  );
-  const [selectedIcons, setSelectedIcons] = useState([]);
-  const [entryDate, setEntryDate] = useState(null);
-  const [exitDate, setExitDate] = useState(null);
+const [entryDate, setEntryDate] = useState(initialEntryDate || null);
+const [exitDate, setExitDate] = useState(initialExitDate || null);
+const [selectedGender, setSelectedGender] = useState(initialGenderIndex ?? null);
+const [roommateOptions, setRoommateOptions] = useState(
+  Array.isArray(initialRoommateOptions)
+    ? initialRoommateOptions
+    : new Array(roommateFilters.length).fill(false)
+);
+const [selectedIcons, setSelectedIcons] = useState(initialSelectedIcons || []);
 
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [dateType, setDateType] = useState("entry");
-
+console.log(initialRoommateOptions)
   const toggleOption = (index) => {
     const updated = [...roommateOptions];
     updated[index] = !updated[index];
     setRoommateOptions(updated);
   };
 
-  const toggleIcon = (id) => {
+  const handleToggleIcon = (id) => {
     setSelectedIcons((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+      prev.includes(id) ? (prev || []).filter((i) => i !== id) : [...prev, id]
     );
   };
 
@@ -168,6 +177,30 @@ export default function SearchFilters({ onSearch }) {
             </TouchableOpacity>
           </View>
 
+ {isDatePickerVisible && (
+        <CustomDateTimePicker
+          mode="date"
+          value={dateType === "entry" ? entryDate || new Date() : exitDate || new Date()}
+          minimumDate={dateType === "exit" && entryDate ? new Date(entryDate.getTime() + 24 * 60 * 60 * 1000) : new Date()}
+          onChange={(event, selectedDate) => {
+            setDatePickerVisibility(false);
+            if (event.type === 'set' && selectedDate) {
+              if (dateType === "entry") {
+                setEntryDate(selectedDate);
+                if (exitDate && selectedDate >= exitDate) {
+                  setExitDate(null);
+                }
+              } else {
+                if (entryDate && selectedDate <= entryDate) {
+                  alert("תאריך יציאה חייב להיות אחרי תאריך כניסה");
+                  return;
+                }
+                setExitDate(selectedDate);
+              }
+            }
+          }}
+        />
+      )}
           {/* gender */}
           <View style={styles.genderRow}>
             {genderOptions.map((gender, index) => (
@@ -220,7 +253,7 @@ export default function SearchFilters({ onSearch }) {
               return (
                 <TouchableOpacity
                   key={icon.id}
-                  onPress={() => toggleIcon(icon.id)}
+                  onPress={() => handleToggleIcon(icon.id)}
                   style={styles.iconWrapper}
                 >
                   <Ionicons
@@ -248,11 +281,11 @@ export default function SearchFilters({ onSearch }) {
           <TouchableOpacity
             style={styles.searchButton}
             onPress={() => {
-              onSearch({
+              SearchApartments({
                 entryDate,
                 exitDate,
                 gender: genderOptions[selectedGender],
-                filters: roommateFilters.filter((_, i) => roommateOptions[i]),
+                filters: (roommateFilters || []).filter((_, i) => roommateOptions[i]),
                 icons: selectedIcons,
               });
               setExpanded(false);
@@ -263,21 +296,6 @@ export default function SearchFilters({ onSearch }) {
         </ScrollView>
       )}
 
-      {
-        <DateTimePickerModal
-          isVisible={isDatePickerVisible}
-          mode="date"
-          onConfirm={handleDateConfirm}
-          onCancel={() => setDatePickerVisibility(false)}
-          locale="he-IL"
-          style={{ zIndex: 9999 }}
-          minimumDate={
-            dateType === "exit" && entryDate
-              ? new Date(entryDate.getTime() + 24 * 60 * 60 * 1000)
-              : new Date()
-          }
-        />
-      }
     </View>
   );
 }

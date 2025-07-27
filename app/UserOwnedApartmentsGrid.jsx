@@ -8,11 +8,11 @@ import {
   Modal,
   TextInput,
   Platform,
-  Alert
+  Alert,
 } from "react-native";
 import ApartmentGallery from "./components/ApartmentGallery";
 import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import CustomDateTimePicker from "./components/CustomDateTimePicker";
 import API from "../config";
 import { FontAwesome5, MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -180,9 +180,8 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
   };
 
   useEffect(() => {
-    if (!userId) return;
-
-    const filtered = allApartments.filter(
+    if (!userId || !Array.isArray(allApartments)) return;
+    const filtered = (allApartments || []).filter(
       (apt) => apt.UserID === Number(userId)
     );
     setOwnedApartments(filtered);
@@ -235,6 +234,7 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
       );
       if (!res.ok) {
         setOpenHousesMap((prev) => ({ ...prev, [apartmentId]: [] }));
+
         return;
       }
       const data = await res.json();
@@ -243,44 +243,6 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
       console.error(`שגיאה אמיתית בטעינת בית פתוח לדירה ${apartmentId}:`, err);
     }
   };
-  const handleDeleteOpenHouse = async (openHouseId, apartmentId) => {
-    try {
-      console.log(" Trying to delete OpenHouse with ID:", openHouseId);
-      console.log(" Type of openHouseId:", typeof openHouseId);
-
-      const url = `${API}OpenHouse/DeleteOpenHouse/${openHouseId}/${userId}`;
-      console.log(" DELETE URL:", url);
-
-      const response = await fetch(url, {
-        method: "DELETE",
-      });
-
-      console.log(" Server response status:", response.status);
-
-      if (response.ok) {
-        Alert.alert("הצלחה", "הסיור נמחק בהצלחה");
-        setOpenHousesMap((prevMap) => {
-          const updatedOpenHouses = (prevMap[apartmentId] || []).filter(
-            (item) => item.openHouseId !== openHouseId
-          );
-
-          return {
-            ...prevMap,
-            [apartmentId]: updatedOpenHouses,
-          };
-        });
-
-      } else {
-        const message = await response.text();
-        console.log("Server response error text:", message);
-        Alert.alert("שגיאה", message);
-      }
-    } catch (error) {
-      console.error(" Error deleting open house:", error);
-      Alert.alert("שגיאה", "אירעה שגיאה במחיקת הסיור");
-    }
-  };
-
 
   const handleCreateOpenHouse = (apartmentId) => {
     setSelectedApartmentId(apartmentId);
@@ -297,18 +259,18 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
         throw new Error("שגיאה במחיקת הדירה");
       }
 
-      const updatedApartments = ownedApartments.filter(
+      const updatedApartments = (ownedApartments || []).filter(
         (apt) => apt.ApartmentID !== apartmentId
       );
       setOwnedApartments(updatedApartments);
 
-      const updatedAllApartments = allApartments.filter(
+      const updatedAllApartments = (allApartments || []).filter(
         (apt) => apt.ApartmentID !== apartmentId
       );
       setAllApartments(updatedAllApartments);
     } catch (error) {
       console.error("שגיאה במחיקה:", error);
-      alert("❌ שגיאה במחיקת הדירה:\n" + error.message);
+      alert("שגיאה במחיקת הדירה:\n" + error.message);
     }
   };
 
@@ -321,6 +283,44 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
     if (isNaN(peopleCount) || Number(peopleCount) <= 0) {
       alert("אנא הזן מספר משתתפים חוקי");
       return;
+    }
+
+    const [startHours, startMinutes] = startTime.split(":").map(Number);
+    const [endHours, endMinutes] = endTime.split(":").map(Number);
+
+    const startDateTime = new Date();
+    startDateTime.setHours(startHours, startMinutes, 0, 0);
+
+    const endDateTime = new Date();
+    endDateTime.setHours(endHours, endMinutes, 0, 0);
+
+    if (endDateTime <= startDateTime) {
+      alert("שעת הסיום חייבת להיות אחרי שעת ההתחלה");
+      return;
+    }
+
+    const today = new Date();
+    const selectedDate = new Date(openHouseDate);
+    selectedDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      alert("לא ניתן לבחור תאריך של בית פתוח שכבר עבר");
+      return;
+    }
+
+    if (selectedDate.getTime() === today.getTime()) {
+      const now = new Date();
+      const nowHours = now.getHours();
+      const nowMinutes = now.getMinutes();
+
+      const nowTime = nowHours * 60 + nowMinutes;
+      const startTimeInMinutes = startHours * 60 + startMinutes;
+
+      if (startTimeInMinutes <= nowTime) {
+        alert("שעת ההתחלה חייבת להיות אחרי השעה הנוכחית של היום");
+        return;
+      }
     }
 
     const requestBody = {
@@ -360,9 +360,9 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
         throw new Error(result.message || "שגיאה מהשרת");
       }
 
-      alert("✅ " + (result.message || "בית פתוח נוצר בהצלחה!"));
+      Alert.alert(" הצלחה ", "בית פתוח נוצר בהצלחה!");
       setOpenHouseModalVisible(false);
-      console.log(result.id);
+
       const newOpenHouse = {
         ...requestBody,
         openHouseId: result.id || Math.random(),
@@ -377,7 +377,44 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
       });
     } catch (error) {
       console.error("שגיאה:", error);
-      alert("❌ שגיאה ביצירת בית פתוח:\n" + error.message);
+      alert("שגיאה ביצירת בית פתוח:\n" + error.message);
+    }
+  };
+
+  const handleDeleteOpenHouse = async (openHouseId, apartmentId) => {
+    try {
+      console.log(" Trying to delete OpenHouse with ID:", openHouseId);
+      console.log(" Type of openHouseId:", typeof openHouseId);
+
+      const url = `${API}OpenHouse/DeleteOpenHouse/${openHouseId}/${userId}`;
+      console.log(" DELETE URL:", url);
+
+      const response = await fetch(url, {
+        method: "DELETE",
+      });
+
+      console.log(" Server response status:", response.status);
+
+      if (response.ok) {
+        Alert.alert("איזה יופי!", "הסיור נמחק בהצלחה");
+        setOpenHousesMap((prevMap) => {
+          const updatedOpenHouses = (prevMap[apartmentId] || []).filter(
+            (item) => item.openHouseId !== openHouseId
+          );
+
+          return {
+            ...prevMap,
+            [apartmentId]: updatedOpenHouses,
+          };
+        });
+      } else {
+        const message = await response.text();
+        console.log("Server response error text:", message);
+        Alert.alert("שגיאה", message);
+      }
+    } catch (error) {
+      console.error(" Error deleting open house:", error);
+      Alert.alert("שגיאה", "אירעה שגיאה במחיקת הסיור");
     }
   };
 
@@ -394,39 +431,48 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
     return `${hours}:${minutes}`;
   };
   const handleUpdateApartment = (updatedApt, labels) => {
-    // First, prepare the labels in the correct format
-    const formattedLabelsJson = labels
-      .map((label) => `{"value":"${label}"}`)
-      .join(",");
-
-    // Now, find the apartment to update and merge the labels JSON properly
-    const updatedOwnedApartments = allApartments.map((apt) => {
+    const formattedNewLabels = labels.map((label) => ({ value: label }));
+    console.log(updatedApt);
+    const updatedOwnedApartments = (allApartments || []).map((apt) => {
       if (apt.ApartmentID === updatedApt.id) {
-        const existing = apt.LabelsJson?.trim();
-        const combinedLabelsJson =
-          existing && existing.length > 0
-            ? `${existing},${formattedLabelsJson}`
-            : formattedLabelsJson;
+        let existingLabels = [];
+
+        try {
+          if (apt.LabelsJson) {
+            let json = apt.LabelsJson;
+            if (
+              typeof json === "string" &&
+              json.trim().startsWith("{") &&
+              !json.trim().startsWith("[")
+            ) {
+              json = `[${json}]`;
+            }
+            const parsed = JSON.parse(json);
+            existingLabels = Array.isArray(parsed) ? parsed : [parsed];
+          }
+        } catch (e) {
+          console.warn("Failed to parse existing LabelsJson", e);
+        }
+
+        const combinedLabels = [
+          ...existingLabels,
+          ...formattedNewLabels,
+        ].filter(
+          (label, index, self) =>
+            index === self.findIndex((l) => l.value === label.value)
+        );
 
         return {
           ...apt,
-          ...updatedApt,
-          LabelsJson: combinedLabelsJson,
+          LabelsJson: JSON.stringify(combinedLabels),
         };
       }
+
       return apt;
     });
 
-    // Filter only apartments owned by this user
-    const filtered = updatedOwnedApartments.filter(
-      (apt) => apt.UserID === Number(userId)
-    );
-
-  // Update state
-  setOwnedApartments(filtered);
-};
-
-
+    setAllApartments(updatedOwnedApartments);
+  };
 
   if (ownedApartments.length === 0) {
     return (
@@ -438,34 +484,26 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
   const getApartmentLabels = (apt) => {
     if (!apt.LabelsJson) return [];
 
-  try {
- 
-    let fixedJson = apt.LabelsJson.trim();
-    if (!fixedJson.startsWith("[")) {
-      fixedJson = `[${fixedJson}]`;
-    }
+    try {
+      let fixedJson = apt.LabelsJson.trim();
+      if (!fixedJson.startsWith("[")) {
+        fixedJson = `[${fixedJson}]`;
+      }
 
       const labelsArr = JSON.parse(fixedJson);
 
-  
-    const labels = labelsArr
-      .flatMap(item =>
+      const labels = labelsArr.flatMap((item) =>
         item.value
-          ? item.value.split(",").map(l => l.trim().toLowerCase())
+          ? item.value.split(",").map((l) => l.trim().toLowerCase())
           : []
       );
 
-
-    return labels.filter(label => label && labelToIcon[label]);
-  } catch (e) {
-    console.error("Error parsing LabelsJson:", e, apt.LabelsJson);
-    return [];
-  }
-};
-
-
-
-
+      return labels.filter((label) => label && labelToIcon[label]);
+    } catch (e) {
+      console.error("Error parsing LabelsJson:", e, apt.LabelsJson);
+      return [];
+    }
+  };
 
   const renderApartmentLabels = (apt) => {
     const labels = getApartmentLabels(apt);
@@ -607,7 +645,6 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
 
               {expandedApartmentId === apt.ApartmentID &&
                 (openHousesMap[apt.ApartmentID] || []).map((item, idx) => (
-
                   <View key={idx} style={styles.openHouseItem}>
                     <View
                       style={{
@@ -617,9 +654,9 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
                       }}
                     >
                       <Text style={styles.openHouseButtonText}>
-                        {new Date(item.date).toLocaleDateString("he-IL")} |{" "}
-                        {item.startTime} - {item.endTime} | נרשמו:{" "}
-                        {item.amountOfPeoples} / {item.totalRegistrations}
+                        {new Date(item.Date).toLocaleDateString("he-IL")} |{" "}
+                        {item.StartTime} - {item.EndTime} | נרשמו:{" "}
+                        {item.AmountOfPeople} / {item.TotalRegistrations}
                       </Text>
                       <MaterialCommunityIcons
                         name="calendar-outline"
@@ -627,8 +664,14 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
                         color="white"
                         style={{ marginLeft: 6 }}
                       />
-
-                      <TouchableOpacity onPress={() => handleDeleteOpenHouse(item.openHouseId, apt.ApartmentID)}>
+                      <TouchableOpacity
+                        onPress={() =>
+                          handleDeleteOpenHouse(
+                            item.openHouseId,
+                            apt.ApartmentID
+                          )
+                        }
+                      >
                         <MaterialCommunityIcons
                           name="trash-can-outline"
                           size={22}
@@ -646,6 +689,7 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
                 onClose={() => setVisibleLabelsPopupId(null)}
                 onUpdateApartment={handleUpdateApartment}
                 setLabelsP={setLabels}
+                apt={apt}
               />
             )}
           </View>
@@ -710,7 +754,7 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
                 </Text>
               </TouchableOpacity>
               {showDatePicker && (
-                <DateTimePicker
+                <CustomDateTimePicker
                   value={openHouseDate}
                   mode="date"
                   display="default"
@@ -742,7 +786,7 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
                 <Text style={{ color: "#333" }}>{startTime || "בחר שעה"}</Text>
               </TouchableOpacity>
               {showStartPicker && (
-                <DateTimePicker
+                <CustomDateTimePicker
                   value={startDateObj}
                   mode="time"
                   display={Platform.OS === "ios" ? "spinner" : "default"}
@@ -779,7 +823,7 @@ const UserOwnedApartmentsGrid = ({ userId, isMyProfile, loginUserId }) => {
                 <Text style={{ color: "#333" }}>{endTime || "בחר שעה"}</Text>
               </TouchableOpacity>
               {showEndPicker && (
-                <DateTimePicker
+                <CustomDateTimePicker
                   value={endDateObj}
                   mode="time"
                   display={Platform.OS === "ios" ? "spinner" : "default"}
@@ -939,7 +983,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#E68A2B",
   },
   openHouseItem: {
-    backgroundColor: "#e68400",
+    backgroundColor: "rgba(165, 171, 249, 1)",
     padding: 10,
     borderRadius: 5,
     marginTop: 10,
@@ -947,6 +991,7 @@ const styles = StyleSheet.create({
   openHouseButtonText: {
     color: "#fff",
     textAlign: "center",
+    fontSize: 12,
     fontWeight: "bold",
   },
   aiButton: {
@@ -1010,9 +1055,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 6,
     marginLeft: 6,
-    borderRadius: 6, // מרובע עם פינות מעוגלות קלות
-    elevation: 2, // צל לאנדרואיד
-    shadowColor: "#000", // צל לאייפון
+    borderRadius: 6,
+    elevation: 2,
+    shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 2,
     shadowOffset: { width: 0, height: 1 },

@@ -12,14 +12,15 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import API from "../../config";
 import { sendPushNotification } from "./pushNatification";
-import { Linking } from 'react-native';
+import { Linking } from "react-native";
+import * as Calendar from "expo-calendar";
 
 /**
  * @component OpenHouseButton
  * @description Component for managing open house viewings for apartments.
  * Handles registration, cancellation, and viewing of available open house slots.
  * Includes push notification functionality for property owners.
- * 
+ *
  * Features:
  * - Display available open house times
  * - Registration for open house viewings
@@ -27,7 +28,7 @@ import { Linking } from 'react-native';
  * - Real-time capacity tracking
  * - Push notifications to property owners
  * - Modal interface for viewing and managing registrations
- * 
+ *
  * @param {Object} props
  * @param {number} props.apartmentId - ID of the apartment
  * @param {number} props.userId - ID of the current user
@@ -44,7 +45,7 @@ export default function OpenHouseButton({
   const [modalVisible, setModalVisible] = useState(false);
   const [openHouses, setOpenHouses] = useState([]);
   const [loading, setLoading] = useState(false);
- const [calendarLink, setCalendarLink] = useState(null);
+  const [calendarLink, setCalendarLink] = useState(null);
 
   useEffect(() => {
     if (modalVisible) {
@@ -84,12 +85,8 @@ export default function OpenHouseButton({
    * @param {number} openHouseId - ID of the open house session
    * @returns {Promise<void>}
    */
-const offerToSyncWithCalendar = async (openHouseId) => {
-  console.log("🟡 שואלת את המשתמש אם להוסיף ליומן...");
-  Alert.alert(
-    "הוספה ליומן Google",
-    "האם תרצה להוסיף את הסיור ליומן שלך?",
-    [
+  const offerToSyncWithCalendar = async (openHouse) => {
+    Alert.alert("נרשמת בהצלחה לבית פתוח ", "האם תרצה להוסיף את הסיור ליומן שלך?", [
       {
         text: "לא תודה",
         style: "cancel",
@@ -98,57 +95,85 @@ const offerToSyncWithCalendar = async (openHouseId) => {
       {
         text: "כן, הוסף ליומן",
         onPress: async () => {
-          console.log("✅ המשתמש בחר להוסיף ליומן");
-          try {
-            const res = await fetch(
-              API + `OpenHouse/RegisterAndSyncToCalendar?userId=${userId}&openHouseId=${openHouseId}`,
-              { method: "POST" }
-            );
+          addToCalendar(openHouse);
+          console.log("  המשתמש בחר להוסיף ליומן");}
+          
+        }])
+  };
+  const addToCalendar = async (openHouse) => {
 
-            const text = await res.text();
-            const result = text ? JSON.parse(text) : {};
-
-            console.log("📨 התקבלה תגובה מהשרת:", result);
-
-            if (res.ok && result.calendarEventLink) {
-              console.log("📅 קישור לאירוע ביומן:", result.calendarEventLink);
-              Linking.openURL(result.calendarEventLink);
-            } else {
-              console.warn("⚠️ לא נשלח קישור ליומן:", result.message || "אין קישור");
-              Alert.alert("הוספה ליומן נכשלה", result.message || "נסה שוב מאוחר יותר");
-            }
-          } catch (error) {
-            console.error("❌ שגיאה בזמן התחברות ליומן:", error);
-            Alert.alert("שגיאה", "לא ניתן להתחבר ליומן Google כרגע.");
-          }
-        },
-      },
-    ]
-  );
-};
-
-  const registerForOpenHouse = async (openHouseId) => {
     try {
+      // Request calendar permissions
+      const { status } = await Calendar.requestCalendarPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("הרשאה נדרשת", "יש לאשר גישה ליומן כדי להוסיף את האירוע");
+        return;
+      }
+
+      // Get default calendar
+      const calendars = await Calendar.getCalendarsAsync(
+        Calendar.EntityTypes.EVENT
+      );
+      const defaultCalendar =
+        calendars.find((cal) => cal.isPrimary) || calendars[0];
+
+      if (!defaultCalendar) {
+        Alert.alert("שגיאה", "לא נמצא יומן ברירת מחדל");
+        return;
+      }
+
+      // Create event details
+      const startDate = new Date(`${(openHouse.Date).split("T")[0]}T${openHouse.StartTime}`);
+      const endDate = new Date(`${(openHouse.Date).split("T")[0]}T${openHouse.EndTime}`);
+
+      const eventDetails = {
+        title: `בית פתוח - ${JSON.parse(openHouse.Location).address}`,
+        startDate: startDate,
+        endDate: endDate,
+        timeZone: "Asia/Jerusalem",
+        location: JSON.parse(openHouse.Location).address,
+        notes: `בית פתוח שנרשמת אליו. מספר משתתפים: ${openHouse.TotalRegistrations}/${openHouse.AmountOfPeople}`,
+        alarms: [{ relativeOffset: -60 }], // 1 hour before
+      };
+
+      // Create the event
+      const eventId = await Calendar.createEventAsync(
+        defaultCalendar.id,
+        eventDetails
+      );
+
+      if (eventId) {
+        Alert.alert("הצלחה", "האירוע נוסף ליומן בהצלחה!");
+      }
+    } catch (err) {
+      console.error("Error adding to calendar:", err);
+      Alert.alert("שגיאה", "שגיאה בהוספת האירוע ליומן");
+    } finally {
+    }
+  };
+  const registerForOpenHouse = async (openHouse) => {
+    if(userOwnerId == userId) {
+      Alert.alert("שגיאה", "לא ניתן להרשם לבית פתוח שלך");
+      return;
+    }
+    try {
+      console.log(openHouse)
       // 1. Register the user for the open house
       const res = await fetch(API + `OpenHouse/RegisterForOpenHouse`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          openHouseID: openHouseId,
+          openHouseID: openHouse.OpenHouseID,
           userID: userId,
-          confirmed: false,
+          confirmed: 0,
         }),
       });
 
       if (res.ok) {
-        Alert.alert(
-          "Registration Successful",
-          "You have registered for the open house successfully!"
-        );
-     
+
         console.log(" נרשמת בהצלחה לסיור, מנסה לשלוח התראה לבעל הדירה");
-        console.log(userOwnerId)
-         offerToSyncWithCalendar(openHouseId);
+        console.log(userOwnerId);
+        offerToSyncWithCalendar(openHouse);
 
         // 2. Retrieve the push token for the property owner using the ownerId
         const tokenResponse = await fetch(
@@ -157,12 +182,11 @@ const offerToSyncWithCalendar = async (openHouseId) => {
             method: "GET",
             headers: { "Content-Type": "application/json" },
           }
-
         );
 
         if (tokenResponse.ok) {
           const result = await tokenResponse.json();
-          const ownerPushToken = result.pushToken; 
+          const ownerPushToken = result.pushToken;
 
           console.log("📬 טוקן של בעל הדירה:", ownerPushToken);
 
@@ -177,20 +201,21 @@ const offerToSyncWithCalendar = async (openHouseId) => {
         fetchOpenHouses();
       } else if (res.status === 409) {
         Alert.alert(
-          "Already Registered",
-          "You are already registered or there is an issue."
+          "כבר נרשמת לבית הפתוח",
+          " כבר נרשמת לבית הפתוח או דיד בעיה אחרת"
         );
       } else {
-        Alert.alert("Error", "Failed to register for the open house.");
+        Alert.alert("שגיאה", "שגיאה בהרשמה לבית פתוח");
       }
     } catch (error) {
       console.error("Registration error:", error);
-      Alert.alert("Network Error", "Could not connect to the server.");
+      Alert.alert("שגיאת רשת", "שגיאה בהתחברות לשרת");
     }
   };
 
   const cancelRegistration = async (openHouseId) => {
     try {
+      console.log(openHouseId,userId)
       const res = await fetch(
         API + `OpenHouse/DeleteRegistration/${openHouseId}/${userId}`,
         {
@@ -229,24 +254,24 @@ const offerToSyncWithCalendar = async (openHouseId) => {
                 const isFull = item.confirmedPeoples >= item.amountOfPeoples;
 
                 return (
-                  <View key={item.openHouseId} style={styles.openHouseItem}>
+                  <View key={item.OpenHouseID} style={styles.openHouseItem}>
                     <Text style={styles.openHouseText}>
-                      {new Date(item.date).toLocaleDateString("he-IL")} -{" "}
-                      {item.startTime} - {item.endTime}
+                      {new Date(item.Date).toLocaleDateString("he-IL")} -{" "}
+                      {item.StartTime} - {item.EndTime}
                     </Text>
                     <Text style={styles.openHouseLocation}>{location}</Text>
                     <Text style={styles.openHouseLocation}>
-                      נרשמו: {item.totalRegistrations} / {item.amountOfPeoples}
+                      נרשמו: {item.TotalRegistrations} / {item.AmountOfPeople}
                     </Text>
 
-                    {item.isRegistered ? (
+                    {item.IsRegistered ? (
                       <>
                         <Text style={styles.statusConfirmed}>
                           ✔ רשום לסיור
                         </Text>
                         <TouchableOpacity
                           style={styles.cancelButton}
-                          onPress={() => cancelRegistration(item.openHouseId)}
+                          onPress={() => cancelRegistration(item.OpenHouseID)}
                         >
                           <Text style={styles.cancelText}>בטל רישום</Text>
                         </TouchableOpacity>
@@ -256,7 +281,7 @@ const offerToSyncWithCalendar = async (openHouseId) => {
                     ) : (
                       <TouchableOpacity
                         style={styles.registerButton}
-                        onPress={() => registerForOpenHouse(item.openHouseId)}
+                        onPress={() => registerForOpenHouse(item)}
                       >
                         <Text style={styles.registerText}>להרשמה</Text>
                       </TouchableOpacity>

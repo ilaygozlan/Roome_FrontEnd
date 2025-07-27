@@ -20,13 +20,14 @@ import ApartmentGallery from "./ApartmentGallery";
 import { ActiveApartmentContext } from "../contex/ActiveApartmentContext";
 import ApartmentDetails from "../ApartmentDetails";
 import { userInfoContext } from "../contex/userInfoContext";
-//hey
+
+
 export default function Apartment(props) {
   const { allApartments, setAllApartments } = useContext(
     ActiveApartmentContext
   );
   const { loginUserId } = useContext(userInfoContext);
-  const [previewSearchApt, setPreviewSearchApt] = useState(allApartments);
+  const [previewSearchApt, setPreviewSearchApt] = useState([]);
   const [showApartmentDetails, setShowApartmentDetails] = useState(false);
   const [selectedApartment, setSelectedApartment] = useState(null);
   const router = useRouter();
@@ -34,23 +35,41 @@ export default function Apartment(props) {
   const [selectedType, setSelectedType] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [priceRange, setPriceRange] = useState([100, 10000]);
+  const [filtersJson, setFiltersJson] = useState({
+  entryDate: null,
+  exitDate: null,
+  gender: null,
+  filters: [],
+  icons: [],
+});;
 
-  // Share via WhatsApp
-  const handleShareApartment = async (apt) => {
-    const message = `דירה שווה שמצאתי באפליקציה:\n\nמיקום: ${apt.Location}\nמחיר: ${apt.Price} ש\"ח\n\n${apt.Description}`;
-    const whatsappUrl = `whatsapp://send?text=${encodeURIComponent(message)}`;
+useEffect(() => {
+  const sortedApts = [...allApartments].sort((a, b) => {
+    const aHasImages = Array.isArray(a.Images) && a.Images.length > 0;
+    const bHasImages = Array.isArray(b.Images) && b.Images.length > 0;
 
-    try {
-      const supported = await Linking.canOpenURL(whatsappUrl);
-      if (supported) {
-        await Linking.openURL(whatsappUrl);
-      } else {
-        alert("WhatsApp is not installed or not supported on this device.");
-      }
-    } catch (error) {
-      console.error("Error sharing via WhatsApp:", error);
-    }
-  };
+    // First: sort by whether they have images (true first), then by LikeCount
+    if (aHasImages && !bHasImages) return -1;
+    if (!aHasImages && bHasImages) return 1;
+
+    // If both have or both don't have images, sort by LikeCount descending
+    return (b.LikeCount || 0) - (a.LikeCount || 0);
+  });
+
+  setPreviewSearchApt(sortedApts);
+}, [allApartments]);
+
+const handleShareApartment = async (apt) => {
+  const message = `דירה שווה שמצאתי באפליקציה:\n\nמיקום: ${apt.Location}\nמחיר: ${apt.Price} ש"ח\n\n${apt.Description}`;
+
+  try {
+    await Share.share({
+      message,
+    });
+  } catch (error) {
+    console.error("Error sharing:", error);
+  }
+};
 
   const getBorderColor = (type) => {
     switch (type) {
@@ -79,6 +98,16 @@ export default function Apartment(props) {
   };
 
   const renderApartments = () => {
+
+  if (previewSearchApt.length === 0) {
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 30 }}>
+      <Text style={{ fontSize: 18, color: '#333' }}>לא נמצאו דירות...</Text>
+    </View>
+  );
+}
+
+
     return previewSearchApt.map((apt) => (
       <View
         key={apt.ApartmentID}
@@ -160,90 +189,172 @@ export default function Apartment(props) {
     ));
   };
 
-  useEffect(() => {
-    setPreviewSearchApt(allApartments);
-  }, [allApartments]);
 
-  const SearchApartments = () => {
-    const newAptArr = allApartments.filter((apt) => {
-      const matchesType =
-        selectedType === null || apt.ApartmentType === selectedType;
+const SearchApartments = (filters) => {
 
-      const matchesPrice =
-        apt.Price >= priceRange[0] && apt.Price <= priceRange[1];
+  if (!Array.isArray(allApartments)) return;
+  const newAptArr = (allApartments || []).filter((apt) => {
+ 
+    const matchesType =
+      selectedType === null || apt.ApartmentType === selectedType;
 
-      let matchesLocation = true;
+    
+    const matchesPrice =
+      apt.Price >= priceRange[0] && apt.Price <= priceRange[1];
 
-      let aptLocationObj = {};
+ 
+    let matchesLocation = true;
+    let aptLocationObj = {};
 
-      if (
-        apt.Location &&
-        apt.Location.trim().startsWith("{") &&
-        apt.Location.trim().endsWith("}")
-      ) {
+    if (
+      apt.Location &&
+      apt.Location.trim().startsWith("{") &&
+      apt.Location.trim().endsWith("}")
+    ) {
+      try {
+        aptLocationObj = JSON.parse(apt.Location);
+      } catch (e) {
+        console.warn("Invalid JSON in apt.Location:", apt.Location);
+      }
+    } else if (apt.Location) {
+      aptLocationObj = {
+        address: apt.Location,
+        latitude: null,
+        longitude: null,
+      };
+    }
+
+    if (selectedLocation?.address) {
+      const locationTypes = selectedLocation?.types || [];
+      const city = extractCityFromAddress(selectedLocation.address);
+      const street = extractStreetFromAddress(selectedLocation.address);
+
+      if (locationTypes.includes("country")) {
+        matchesLocation = true;
+      } else if (locationTypes.includes("locality")) {
+        const normalizedCity = normalizeString(city);
+        matchesLocation =
+          aptLocationObj.address &&
+          normalizeString(aptLocationObj.address).includes(normalizedCity);
+      } else if (locationTypes.includes("sublocality")) {
+        const normalizedAddress = normalizeString(selectedLocation.address);
+        const normalizedCity = normalizeString(city);
+        matchesLocation =
+          (aptLocationObj.address &&
+            normalizeString(aptLocationObj.address).includes(normalizedAddress)) ||
+          (aptLocationObj.address &&
+            normalizeString(aptLocationObj.address).includes(normalizedCity));
+      } else if (locationTypes.includes("street_address")) {
+        const normalizedStreet = normalizeString(street);
+        matchesLocation =
+          (aptLocationObj.address &&
+            normalizeString(aptLocationObj.address).includes(normalizedStreet)) ||
+          (aptLocationObj.latitude != null &&
+            aptLocationObj.longitude != null &&
+            getDistance(
+              selectedLocation.latitude,
+              selectedLocation.longitude,
+              aptLocationObj.latitude,
+              aptLocationObj.longitude
+            ) < 0.5);
+      }
+    }
+
+   
+    let matchesFilters = true;
+
+    if (filters) {
+     
+      if (filters.entryDate && filters.exitDate) {
+        const entry = new Date(filters.entryDate);
+        const exit = new Date(filters.exitDate);
+        const aptEntry = apt.EntryDate ? new Date(apt.EntryDate) : null;
+        const aptExit = apt.ExitDate ? new Date(apt.ExitDate) : null;
+
+        const isAvailable =
+          (!aptEntry || aptEntry <= entry) &&
+          (!aptExit || aptExit >= exit);
+
+        if (!isAvailable) return false;
+      }
+
+     
+      const gender = filters.gender;
+      if (gender && gender !== "אין העדפה") {
+        const genderCode = gender === "רק גברים" ? "Male" : "Female";
+        if (apt.ApartmentType === 1 && apt.Roommates) {
+          const roommates = apt.Roommates.split("||");
+          const allMatch = roommates.every((r) =>
+            r.includes(`Gender: ${genderCode}`)
+          );
+          if (!allMatch) return false;
+        }
+      }
+
+  
+      const generalFilters = filters.filters || [];
+      for (let f of generalFilters) {
+        if (f === "מאפשרים חיות מחמד" && apt.AllowPet === false) return false;
+        if (f === "מותר לעשן" && apt.AllowSmoking === false) return false;
+        if (f === "חצר / מרפסת" && apt.GardenBalcony === false) return false;
+        if (f === "חניה" && (!apt.ParkingSpace || apt.ParkingSpace <= 0)) return false;
+        if (f === "ביטול ללא קנס" && apt.Sublet_CanCancelWithoutPenalty !== true)
+          return false;
+        if (f === "מרוהטת") {
+          try {
+            const labels = JSON.parse(apt.LabelsJson || "[]");
+            if (!labels.includes("couch")) return false;
+          } catch (e) {
+            continue;
+          }
+        }
+      }
+
+  
+      const icons = filters.icons || [];
+      if (icons.length > 0) {
         try {
-          aptLocationObj = JSON.parse(apt.Location);
+          const labels = JSON.parse(apt.LabelsJson || "[]");
+          for (let icon of icons) {
+            if (!labels.includes(icon)) return false;
+          }
         } catch (e) {
-          console.warn("Invalid JSON in apt.Location:", apt.Location);
-        }
-      } else if (apt.Location) {
-        // treat plain string as address only
-        aptLocationObj = {
-          address: apt.Location,
-          latitude: null,
-          longitude: null,
-        };
-      }
-
-      if (selectedLocation?.address) {
-        const locationTypes = selectedLocation?.types || [];
-        const city = extractCityFromAddress(selectedLocation.address);
-        const street = extractStreetFromAddress(selectedLocation.address);
-
-        if (locationTypes.includes("country")) {
-          matchesLocation = true;
-        } else if (locationTypes.includes("locality")) {
-          const normalizedCity = normalizeString(city);
-
-          matchesLocation =
-            aptLocationObj.address &&
-            normalizeString(aptLocationObj.address).includes(normalizedCity);
-        } else if (locationTypes.includes("sublocality")) {
-          const normalizedAddress = normalizeString(selectedLocation.address);
-          const normalizedCity = normalizeString(city);
-
-          matchesLocation =
-            (aptLocationObj.address &&
-              normalizeString(aptLocationObj.address).includes(
-                normalizedAddress
-              )) ||
-            (aptLocationObj.address &&
-              normalizeString(aptLocationObj.address).includes(normalizedCity));
-        } else if (locationTypes.includes("street_address")) {
-          const normalizedStreet = normalizeString(street);
-
-          matchesLocation =
-            (aptLocationObj.address &&
-              normalizeString(aptLocationObj.address).includes(
-                normalizedStreet
-              )) ||
-            (aptLocationObj.latitude != null &&
-              aptLocationObj.longitude != null &&
-              getDistance(
-                selectedLocation.latitude,
-                selectedLocation.longitude,
-                aptLocationObj.latitude,
-                aptLocationObj.longitude
-              ) < 0.5);
+          return false;
         }
       }
+    }
 
-      return matchesType && matchesPrice && matchesLocation;
-    });
+    return matchesType && matchesPrice && matchesLocation && matchesFilters;
+  });
 
-    setPreviewSearchApt(newAptArr);
-    setIndex(false);
-  };
+  setPreviewSearchApt(newAptArr);
+  setIndex(false);
+};
+
+
+function normalizeString(str) {
+  return str?.toLowerCase().replace(/\s+/g, "").trim();
+}
+
+function extractCityFromAddress(address) {
+  return address.split(",")[0] || "";
+}
+
+function extractStreetFromAddress(address) {
+  return address.split(",")[1] || "";
+}
+
+function getDistance(lat1, lon1, lat2, lon2) {
+  const toRad = (x) => (x * Math.PI) / 180;
+  const R = 6371; // Earth radius in km
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
 
   function extractCityFromAddress(address) {
     if (!address) return "";
@@ -284,6 +395,8 @@ export default function Apartment(props) {
         priceRange={priceRange}
         setPriceRange={setPriceRange}
         SearchApartments={SearchApartments}
+        filtersJson={filtersJson}
+        setFiltersJson={setFiltersJson}
         index={index}
         setIndex={setIndex}
         showAllApartments={()=>{setPreviewSearchApt(allApartments)}}

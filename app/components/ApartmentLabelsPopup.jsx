@@ -148,12 +148,37 @@ const ApartmentLabelsPopup = ({
   onClose,
   onUpdateApartment,
   setLabelsP,
+  apt
 }) => {
   const [labels, setLabels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedLabels, setSelectedLabels] = useState([]);
 
-  useEffect(() => {
+    const getApartmentLabels = (apt) => {
+    if (!apt.LabelsJson) return [];
+
+    try {
+      let fixedJson = apt.LabelsJson.trim();
+      if (!fixedJson.startsWith("[")) {
+        fixedJson = `[${fixedJson}]`;
+      }
+
+      const labelsArr = JSON.parse(fixedJson);
+
+      const labels = labelsArr.flatMap((item) =>
+        item.value
+          ? item.value.split(",").map((l) => l.trim().toLowerCase())
+          : []
+      );
+
+      return (labels || []).filter((label) => label && labelToIcon[label]);
+    } catch (e) {
+      console.error("Error parsing LabelsJson:", e, apt.LabelsJson);
+      return [];
+    }
+  };
+
+    useEffect(() => {
     fetchLabels();
   }, []);
 
@@ -176,13 +201,17 @@ const ApartmentLabelsPopup = ({
 
   const allLabels = Object.keys(labelToIcon);
 
-  const toggleLabel = (label) => {
+  const handleLabelToggle = (label) => {
     setSelectedLabels((prev) =>
-      prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label]
+      prev.includes(label) ? (prev || []).filter((l) => l !== label) : [...prev, label]
     );
   };
 
   const createApartmentLabel = async () => {
+    if(selectedLabels.length == 0){
+      Alert.alert("לא נמצאו תוויות", "ניתן לבחור תוויות ידנית");
+      return;
+    }
     try {
       console.log(selectedLabels.join(","));
       const response = await fetch(API + "ApartmentLabel", {
@@ -200,7 +229,9 @@ const ApartmentLabelsPopup = ({
       const text = await response.text();
       let result;
       try {
-        result = JSON.parse(text);
+        console.log("ddsaaa:   ",text)
+        result = text;
+        console.log(selectedLabels)
       } catch (e) {
         result = { message: text };
       }
@@ -258,7 +289,7 @@ const ApartmentLabelsPopup = ({
                   <TouchableOpacity
                     key={i}
                     style={styles.iconItem}
-                    onPress={() => toggleLabel(label)}
+                    onPress={() => handleLabelToggle(label)}
                   >
                     <View style={{ opacity: isSelected ? 1 : 0.3 }}>
                       {React.cloneElement(labelToIcon[label], {

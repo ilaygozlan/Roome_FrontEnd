@@ -26,6 +26,7 @@ import { useContext, useEffect, useState } from "react";
 import { userInfoContext } from "../contex/userInfoContext";
 import { checkIfAdmin } from "../../checkAdmin";
 import AdminApartmentsScreen from "../AdminApartmentsScreen";
+import ActiveApartmentProvider from "../contex/ActiveApartmentContext";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -59,7 +60,9 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
+      <ActiveApartmentProvider>
         {isAdmin ? <AdminApartmentsScreen /> : <Apartment />}
+        </ActiveApartmentProvider>
     </SafeAreaView>
   );
 }

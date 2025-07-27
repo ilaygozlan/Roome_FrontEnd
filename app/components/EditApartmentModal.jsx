@@ -15,13 +15,13 @@ import {
 
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import CustomDateTimePicker from "./CustomDateTimePicker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import API from "../../config";
 import GooglePlacesInput from "../components/GooglePlacesAPI";
 import ApartmentGalleryWithDelete from "./ApartmentGalleryWithDelete";
 import { AntDesign } from "@expo/vector-icons";
-import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import { GooglePlacesAutocomplete } from './GooglePlacesAPI';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 //hey
@@ -129,7 +129,7 @@ const removeImage = (uriToRemove) => {
   const isServerImage = uriToRemove.includes("/uploadedFiles/");
 
   setImages((prev) =>
-    prev.filter((uri) => {
+    (prev || []).filter((uri) => {
       const currentName = uri.split("/").pop();
       return currentName !== fileName;
     })
@@ -143,7 +143,7 @@ const removeImage = (uriToRemove) => {
 const handleUpdate = async () => {
   // Basic validation
   if (!location || !price || !rooms) {
-    Alert.alert("Error", "Please fill in all required fields");
+    Alert.alert("שגיאה", "בבקשה מלא את כל השדות");
     return;
   }
 
@@ -282,7 +282,7 @@ const handleUpdate = async () => {
 
   } catch (err) {
     setIsUploading(false);
-    Alert.alert("Error", err.message);
+    Alert.alert("שגיאה", err.message);
   }
 };
 
@@ -346,7 +346,57 @@ return (
    <Text style={styles.label}>כתובת חדשה:</Text>
 
 <View style={{ width: "100%" }}>
-  <GooglePlacesInput onLocationSelected={handleLocationSelected} />
+  <GooglePlacesAutocomplete
+    placeholder="הקלד מיקום..."
+    fetchDetails={true}
+      textInputProps={{
+                onFocus: () => {},
+                onBlur: () => {},
+                autoCorrect: false,
+              }}
+    onPress={(data, details = null) => {
+      if (!details || !details.geometry?.location) {
+        Alert.alert("שגיאה", "פרטי מיקום לא זמינים כרגע");
+        return;
+      }
+      const location = details.formatted_address || "";
+      const lat = details.geometry.location.lat;
+      const lng = details.geometry.location.lng;
+      handleLocationSelected({
+        address: location,
+        latitude: lat,
+        longitude: lng,
+        types: details.types || [],
+      });
+    }}
+    query={{
+      key: "AIzaSyCGucSUapSIUa_ykXy0K8tl6XR-ITXRj3o",
+      language: "he",
+      components: "country:il",
+    }}
+    enablePoweredByContainer={false}
+    styles={{
+      textInput: {
+        height: 48,
+        borderWidth: 1,
+        borderColor: "#ccc",
+        borderRadius: 10,
+        paddingHorizontal: 10,
+        fontSize: 16,
+        marginBottom: 15,
+        textAlign: "right",
+        backgroundColor: "white",
+      },
+      listView: {
+        position: "absolute",
+        top: 50,
+        zIndex: 1000,
+        elevation: 5,
+        backgroundColor: "white",
+        width: "100%",
+      },
+    }}
+  />
 </View>
               <Text style={styles.label}>מחיר:</Text>
               <TextInput
@@ -452,7 +502,7 @@ return (
                 <Text>{entryDate}</Text>
               </TouchableOpacity>
               {showEntryPicker && (
-                <DateTimePicker
+                <CustomDateTimePicker
                   value={new Date(entryDate)}
                   mode="date"
                   minimumDate={new Date()}
@@ -471,7 +521,7 @@ return (
                 <Text>{exitDate}</Text>
               </TouchableOpacity>
               {showExitPicker && (
-                <DateTimePicker
+                <CustomDateTimePicker
                   value={new Date(exitDate)}
                   mode="date"
                   minimumDate={new Date(entryDate)}

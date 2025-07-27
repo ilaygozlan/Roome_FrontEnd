@@ -8,7 +8,7 @@ admin.initializeApp({
 
 async function setAdmin(uid) {
   await admin.auth().setCustomUserClaims(uid, { admin: true });
-  console.log(`✅ User ${uid} is now an admin!`);
+  console.log(`  User ${uid} is now an admin!`);
 }
 
 // Replace with your user's UID

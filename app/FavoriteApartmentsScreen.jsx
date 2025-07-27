@@ -28,7 +28,7 @@ export default function FavoriteApartmentsScreen({ onClose }) {
 
   // Filter apartments liked by user from all apartments
   useEffect(() => {
-    const liked = allApartments.filter((apt) => apt.IsLikedByUser === true);
+    const liked = (allApartments || []).filter((apt) => apt.IsLikedByUser === true);
     setFavoriteApartments(liked);
   }, [allApartments, refreshFavorites]);
 
@@ -85,13 +85,11 @@ export default function FavoriteApartmentsScreen({ onClose }) {
       if (!response.ok) throw new Error("Failed to unlike apartment");
 
       // Remove apartment from local favorites list
-      setFavoriteApartments((prev) =>
-        prev.filter((apt) => apt.ApartmentID !== apartmentId)
-      );
+      setFavoriteApartments((prev) => (prev || []).filter((apt) => apt.ApartmentID !== apartmentId));
       // Update global apartments state
       setApartmentUnLikedByUser(apartmentId);
     } catch (error) {
-      Alert.alert("Error", "Failed to remove like. Please try again.");
+      Alert.alert("שגיאה", "ארעה שגיאה בהסרת לייק, נסה שוב");
       console.error(error);
     }
   };

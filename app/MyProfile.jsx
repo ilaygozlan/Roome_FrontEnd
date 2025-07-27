@@ -11,12 +11,14 @@ import {
   ScrollView,
   ActivityIndicator,
   I18nManager,
+  RefreshControl 
 } from "react-native";
 import { FontAwesome5, Feather } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import API from "../config";
 import { useRouter } from "expo-router";
 import UserOwnedApartmentsGrid from "./UserOwnedApartmentsGrid";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import CustomDateTimePicker from "./components/CustomDateTimePicker";
 import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from "expo-image-picker";
 import { ActiveApartmentContext } from "./contex/ActiveApartmentContext";
@@ -26,7 +28,7 @@ import { auth } from "./firebase";
 import RoommatePreferencesForm from "./components/RoommatePreferencesForm";
 import RecommendedRoommates from "./components/RecommendedRoommates";
 import HouseLoading from "./components/LoadingHouseSign";
-import { LinearGradient } from "expo-linear-gradient";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const baseUrl = "https://roomebackend20250414140006.azurewebsites.net";
 const GetImageUrl = (image) => {
@@ -48,6 +50,7 @@ const MyProfile = (props) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [updatedProfile, setUpdatedProfile] = useState({});
   const [friends, setFriends] = useState([]);
+  const [friendsNum, setFriendsNum] = useState(0);
   const [showFriendsModal, setShowFriendsModal] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showPhoneError, setShowPhoneError] = useState(false);
@@ -57,6 +60,36 @@ const MyProfile = (props) => {
   const [openHouses, setOpenHouses] = useState([]);
   const [showPreferencesForm, setShowPreferencesForm] = useState(false);
   const [roommateMatches, setRoommateMatches] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+  
+const onRefresh = async () => {
+  setRefreshing(true);
+
+  try {
+  
+    await fetch(API + "User/GetUserById/" + loginUserId)
+      .then((res) => res.json())
+      .then((data) => {
+        setUserProfile(data);
+        setUpdatedProfile(data);
+      });
+
+    await fetch(API + "User/GetUserFriends/" + loginUserId)
+      .then((res) => res.json())
+      .then((data) => {
+        const friendsList = Array.isArray(data) ? data : [];
+        setFriends(friendsList);
+        setFriendsNum(friendsList.length);
+      });
+
+    await fetchOpenHouses();
+  } catch (error) {
+    console.error("Error refreshing data:", error);
+  }
+
+  setRefreshing(false);
+};
+
 
   useEffect(() => {
     if (!loginUserId) return;
@@ -96,8 +129,10 @@ const MyProfile = (props) => {
             const data = await res.json();
             const friendsList = Array.isArray(data) ? data : [];
             setFriends(friendsList);
+            setFriendsNum(friendsList.length)
           } else {
             setFriends([]);
+            setFriendsNum(0);
           }
         })
         .catch(() => setFriends([]));
@@ -126,25 +161,71 @@ const MyProfile = (props) => {
   };
 
   // --- Image picker logic ---
-  const handleImagePick = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("שגיאה", "יש לאשר גישה לגלריה");
-      return;
+const handleImagePick = async () => {
+  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  if (status !== "granted") {
+    setError("Sorry, we need camera roll permissions to make this work!");
+    return;
+  }
+
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaType, 
+    allowsEditing: true,
+    aspect: [1, 1],
+    quality: 1,
+  });
+
+  if (!result.canceled && result.assets.length > 0) {
+    const imageUri = result.assets[0].uri;
+
+    const uploadedUrl = await uploadProfileImage(imageUri);
+    if (uploadedUrl) {
+      console.log("  Image URL from server:", uploadedUrl);
+      setUpdatedProfile((prev) => ({
+        ...prev,
+        profilePicture: uploadedUrl,
+      }));
     }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-    if (!result.canceled) {
-      setUpdatedProfile({
-        ...updatedProfile,
-        profilePicture: result.assets[0].uri,
-      });
+  }
+};
+
+
+
+const uploadProfileImage = async (uri) => {
+ const fileName = uri.split('/').pop();
+  const match = /\.(\w+)$/.exec(fileName ?? '');
+  const fileType = match ? `image/${match[1]}` : `image`;
+
+   const formData = new FormData();
+  formData.append("files", {
+    uri,
+    name: fileName,
+    type: fileType,
+  });
+
+  console.log(fileName, fileType);
+  try {
+    const response = await fetch(
+      `${API}UploadImageCpntroller/uploadImageProfile`,
+      {
+        method: "POST",
+        headers: {},
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Upload failed with status " + response.status);
     }
-  };
+
+    const imageUrl = await response.text(); 
+    return GetImageUrl("uploadedFiles/" + JSON.parse(imageUrl));
+  } catch (error) {
+    console.error("  Error uploading image:", error);
+    return null;
+  }
+};
+
 
   // --- Phone validation ---
   const HandlePhoneNumber = (phoneNumber) => {
@@ -171,7 +252,7 @@ const MyProfile = (props) => {
       if (!response.ok) {
         throw new Error("Failed to fetch open houses");
       }
-
+      console.log(data)
       const data = await response.json();
 
       if (!Array.isArray(data)) {
@@ -181,15 +262,11 @@ const MyProfile = (props) => {
       }
 
       const formattedData = data.map((item) => {
-        const apt = allApartments.find(
-          (a) => a.ApartmentID === item.ApartmentID
-        );
-        const location = apt ? apt.Location : "לא צויין מיקום";
 
         return {
           id: item.ID,
           apartmentId: item.ApartmentID,
-          location: location,
+          location: JSON.parse(item.Location).address,
           date: item.Date ? item.Date.split("T")[0] : "",
           startTime: item.StartTime?.substring(0, 5) || "",
           endTime: item.EndTime?.substring(0, 5) || "",
@@ -227,6 +304,12 @@ const MyProfile = (props) => {
   };
 
   return (
+    <SafeAreaView style={{ flex: 1 }}>
+    <ScrollView
+  refreshControl={
+    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+  }
+>
     <View style={{ flex: 1, backgroundColor: "#F6F7FB" }}>
       {/* Header */}
       <View style={styles.headerContainer}>
@@ -261,7 +344,7 @@ const MyProfile = (props) => {
           style={[styles.counterCard, styles.counterCardActive]}
           onPress={() => setShowFriendsModal(true)}
         >
-          <Text style={styles.counterNumber}>{friends.length}</Text>
+          <Text style={styles.counterNumber}>{friendsNum}</Text>
           <Text style={styles.counterLabel}>חברים</Text>
         </TouchableOpacity>
         <View style={styles.counterCard}>
@@ -325,12 +408,16 @@ const MyProfile = (props) => {
       {/* Edit Profile Modal */}
       <Modal
         visible={modalVisible}
-        transparent
+        transparent={true}
         animationType="slide"
         onRequestClose={() => setModalVisible(false)}
+        
       >
-        <View style={styles.modalContainer}>
+       
+        <View style={[styles.modalContainer, {top: 70, height: "85%", marginBottom:100}]}>
+          
           <View style={styles.modalContent}>
+             <ScrollView>
             <TouchableOpacity
               onPress={() => setModalVisible(false)}
               style={styles.closeButton}
@@ -411,7 +498,7 @@ const MyProfile = (props) => {
               </Text>
             </TouchableOpacity>
             {showDatePicker && (
-              <DateTimePicker
+              <CustomDateTimePicker
                 value={new Date(updatedProfile.birthDate)}
                 mode="date"
                 display="default"
@@ -466,8 +553,11 @@ const MyProfile = (props) => {
             <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
               <Text style={styles.buttonText}>שמור</Text>
             </TouchableOpacity>
+                </ScrollView>
           </View>
+      
         </View>
+     
       </Modal>
 
       {/* Profile Info Card */}
@@ -508,51 +598,24 @@ const MyProfile = (props) => {
           value={userProfile.jobStatus}
         />
       </View>
-      <LinearGradient
-        colors={["#5C67F2", "#9B59B6", "#E67E22"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={{
-          borderRadius: 12,
-          marginHorizontal: 20,
-          marginVertical: 10,
-        }}
+      <TouchableOpacity
+        style={styles.aiButton}
+        onPress={() => setShowPreferencesForm(true)}
       >
-        <TouchableOpacity
-          style={[
-            styles.settingsRow,
-            {
-              backgroundColor: "transparent", // כדי שהגרדיאנט ייראה
-              padding: 12,
-              borderRadius: 12,
-              flexDirection: "row-reverse",
-              alignItems: "center",
-            },
-          ]}
-          onPress={() => setShowPreferencesForm(true)}
-        >
-          <FontAwesome5
-            name="robot"
-            size={20}
-            color="#fff"
-            style={{ marginLeft: 16 }}
-          />
-          <Text
-            style={[
-              styles.settingsText,
-              { color: "#fff", fontWeight: "bold", fontSize: 16 },
-            ]}
-          >
-            {"\u202A"} למציאת שותפים AI{"\u202C"}
-          </Text>
-          <Feather
-            name="chevron-left"
-            size={22}
-            color="#fff"
-            style={{ marginRight: "auto" }}
-          />
-        </TouchableOpacity>
-      </LinearGradient>
+        <MaterialCommunityIcons
+          name="robot"
+          size={22}
+          color="#fff"
+          style={{ marginLeft: 10 }}
+        />
+        <Text style={styles.aiButtonText}>{"\u202A"} למציאת שותפים AI{"\u202C"}</Text>
+        <Feather
+          name="chevron-left"
+          size={22}
+          color="#fff"
+          style={{ marginRight: 10 }}
+        />
+      </TouchableOpacity>
 
       {/* Open Houses Modal */}
       <MyOpenHouses
@@ -578,6 +641,8 @@ const MyProfile = (props) => {
         </Modal>
       )}
     </View>
+    </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -667,7 +732,8 @@ const styles = StyleSheet.create({
   friendsModalContainer: {
     flex: 1,
     backgroundColor: "#fff",
-    paddingTop: 40,
+    paddingTop: 100,
+    paddingBottom: 50,
     paddingHorizontal: 18,
   },
   friendsModalTitle: {
@@ -733,27 +799,30 @@ const styles = StyleSheet.create({
     textAlign: "left",
     flex: 1,
   },
-  settingsRow: {
+  aiButton: {
     flexDirection: "row-reverse",
     alignItems: "center",
-    backgroundColor: "#fff",
-    borderRadius: 18,
-    marginTop: 18,
-    marginHorizontal: 18,
-    paddingVertical: 18,
-    paddingHorizontal: 22,
+    justifyContent: "center",
+    backgroundColor: "#E3965A",
+    paddingVertical: 12,
+    borderRadius: 30,
+    marginHorizontal: 50,
+    marginTop: 30,
+    elevation: 5,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
-  settingsText: {
+
+  aiButtonText: {
+    color: "#fff",
     fontSize: 16,
-    color: "#222B45",
-    fontWeight: "500",
-    marginLeft: 12,
+    fontWeight: "bold",
+    marginHorizontal: 10,
+    textAlign: "right",
   },
+
   modalContainer: {
     flex: 1,
     justifyContent: "center",

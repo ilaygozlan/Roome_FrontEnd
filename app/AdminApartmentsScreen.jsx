@@ -36,9 +36,22 @@ export default function AdminApartmentsScreen() {
 }
 
 const styles = StyleSheet.create({
+  card: {
+    alignSelf: "center",
+    width: 350,
+    backgroundColor: "white",
+    borderRadius: 10,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    borderWidth: 3,
+    shadowRadius: 5,
+    elevation: 3,
+    margin: 10,
+  },
   headerContainer: {
     alignItems: "center",
-    paddingTop: 100,
+    paddingTop: 35,
     paddingBottom: 16,
     backgroundColor: "#F6F7FB",
     position: "relative",
@@ -53,7 +66,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "700",
     color: "#222B45",
-    marginTop: 8,
+    marginTop: 1,
     textAlign: "center",
   },
 });

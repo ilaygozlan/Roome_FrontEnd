@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,10 +10,10 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  FlatList 
+  FlatList,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import CustomDateTimePicker from "../components/CustomDateTimePicker";
 import { Ionicons, MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import { AntDesign } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -22,12 +22,12 @@ import { ActiveApartmentContext } from "../contex/ActiveApartmentContext";
 import API from "../../config";
 import * as FileSystem from "expo-file-system";
 import HouseLoading from "../components/LoadingHouseSign";
-import GooglePlacesInput from "../components/GooglePlacesAPI";
+import { GooglePlacesAutocomplete } from "../components/GooglePlacesAPI";
 
 /**
  * @module UploadApartmentForm
  * @description Component for uploading and managing new apartment listings
- * 
+ *
  * Features:
  * - Multiple apartment type support (Rental, Shared, Sublet)
  * - Image upload and management
@@ -35,11 +35,10 @@ import GooglePlacesInput from "../components/GooglePlacesAPI";
  * - Date range selection
  * - Location selection with Google Places API
  * - Property type categorization
- * 
+ *
  * @requires expo-image-picker
- * @requires @react-native-community/datetimepicker
  * @requires expo-file-system
- * 
+ *
  * State Management:
  * @state {string|null} apartmentType - Type of apartment listing (0: Rental, 1: Shared, 2: Sublet)
  * @state {string} location - Property location
@@ -55,13 +54,13 @@ import GooglePlacesInput from "../components/GooglePlacesAPI";
  * @state {Array<string>} images - Array of image URIs
  * @state {string} entryDate - Move-in date
  * @state {string} exitDate - Move-out date
- * 
+ *
  * Property Features:
  * @state {boolean} allowPet - Pet permission flag
  * @state {boolean} allowSmoking - Smoking permission flag
  * @state {boolean} gardenBalcony - Garden/Balcony availability
  * @state {boolean} extensionPossible - Contract extension possibility
- * 
+ *
  * Functions:
  * @function pickImage - Handles image selection from gallery
  * @function takePhoto - Handles capturing new photos
@@ -69,13 +68,11 @@ import GooglePlacesInput from "../components/GooglePlacesAPI";
  * @function handleExitDateChange - Manages exit date updates
  * @function handleSubmit - Processes form submission
  * @function ClearFormFields - Resets all form fields
- * 
+ *
  * Context Usage:
  * - ActiveApartmentContext for apartment list management
  * - userInfoContext for user authentication
  */
-
-const baseUrl = "https://roomebackend20250414140006.azurewebsites.net";
 
 export default function UploadApartmentForm() {
   const { allApartments, setAllApartments } = useContext(
@@ -108,6 +105,7 @@ export default function UploadApartmentForm() {
   const [showExitPicker, setShowExitPicker] = useState(false);
   const [propertyTypeID, setPropertyTypeID] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
 
   const categories = [
     { id: 0, name: "השכרה", icon: "home" },
@@ -215,8 +213,19 @@ export default function UploadApartmentForm() {
     setExitDate(new Date(Date.now() + 86400000).toISOString().split("T")[0]);
   };
 
-  const handleSubmit = () => {
+  useEffect(() => {
+    fetch(API + "User/GetUserById/" + loginUserId)
+      .then((res) => {
+        if (!res.ok) throw new Error("שגיאה בטעינת פרופיל");
+        return res.json();
+      })
+      .then((data) => {
+        setUserProfile(data);
+      })
+      .catch((err) => {});
+  }, [loginUserId]);
 
+  const handleSubmit = () => {
     let imageLinks = [];
 
     if (!location || !price || !rooms || apartmentType === null) {
@@ -317,7 +326,7 @@ export default function UploadApartmentForm() {
               if (fileInfo.exists) {
                 fileUri = fileInfo.uri;
               } else {
-                console.error("❌ לא ניתן לגשת לקובץ:", uri);
+                console.error(" לא ניתן לגשת לקובץ:", uri);
                 return;
               }
             }
@@ -346,22 +355,30 @@ export default function UploadApartmentForm() {
             .then((res) => {
               if (!res.ok) {
                 const errorText = res.text();
-                console.error("❌ תגובת השרת:", res.status, errorText);
+                console.error("תגובת השרת:", res.status, errorText);
                 setIsUploading(false);
                 throw new Error("העלאת תמונות נכשלה");
               }
-              return res.json();
+              return res.text();
             })
             .then((uploadResult) => {
               console.log("📸 תמונות הועלו:", uploadResult);
 
-              imageLinks = uploadResult.urls;
-              console.log("dd",imageLinks);
-              apartmentData.Images = imageLinks;
+              imageLinks = uploadResult.split(",");
+
+              apartmentData.Images = imageLinks.join(",");
+              apartmentData.Images = uploadResult;
               apartmentData.Price = price;
               apartmentData.Description = description;
-              apartmentData.Location = JSON.parse(apartmentData.location).address;
+              apartmentData.Location = JSON.parse(
+                apartmentData.location
+              ).address;
               apartmentData.ApartmentType = apartmentType;
+              apartmentData.IsLikedByUser = false;
+              apartmentData.Creator_ID = loginUserId;
+              apartmentData.Creator_FullName = userProfile.fullName;
+              apartmentData.Creator_ProfilePicture = userProfile.profilePicture;
+              apartmentData.Creator_Token = "";
               const updatedAllApartments = [...allApartments, apartmentData];
               setAllApartments(updatedAllApartments);
               console.log(apartmentData.Images, apartmentData);
@@ -370,7 +387,7 @@ export default function UploadApartmentForm() {
               Alert.alert("הצלחה", "הדירה והתמונות פורסמו בהצלחה!");
             })
             .catch((error) => {
-              console.error("❌ שגיאה בהעלאת תמונות:", error);
+              console.error("שגיאה בהעלאת תמונות:", error);
               setIsUploading(false);
               Alert.alert("שגיאה", "הדירה פורסמה, אך העלאת התמונות נכשלה");
             });
@@ -388,230 +405,355 @@ export default function UploadApartmentForm() {
   };
 
   if (isUploading) {
-    return <HouseLoading  text="מעלה את הדירה והתמונות..." />;
+    return <HouseLoading text="מעלה את הדירה והתמונות..." />;
   }
 
-return (
-  <SafeAreaView style={{ flex: 1 }}>
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
-      style={{ flex: 1 }}
-    >
-      <FlatList
-        ListHeaderComponent={
-          <View style={styles.container}>
-            <Text style={styles.title}>בחר סוג דירה:</Text>
-            <View style={styles.typeRow}>
-              {categories.map((cat) => (
-                <TouchableOpacity
-                  key={cat.id}
-                  onPress={() => setApartmentType(cat.id)}
-                  style={[
-                    styles.typeOption,
-                    apartmentType === cat.id && styles.selectedType,
-                  ]}
-                >
-                  <AntDesign
-                    name={cat.icon}
-                    size={24}
-                    color={apartmentType === cat.id ? "#E3965A" : "#aaa"}
-                    style={{ marginBottom: 4 }}
-                  />
-                  <Text>{cat.name}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
+        style={{ flex: 1 }}
+      >
+        <FlatList
+          ListHeaderComponent={
+            <View style={styles.container}>
+              <Text style={styles.title}>בחר סוג דירה:</Text>
+              <View style={styles.typeRow}>
+                {categories.map((cat) => (
+                  <TouchableOpacity
+                    key={cat.id}
+                    onPress={() => setApartmentType(cat.id)}
+                    style={[
+                      styles.typeOption,
+                      apartmentType === cat.id && styles.selectedType,
+                    ]}
+                  >
+                    <AntDesign
+                      name={cat.icon}
+                      size={24}
+                      color={apartmentType === cat.id ? "#E3965A" : "#aaa"}
+                      style={{ marginBottom: 4 }}
+                    />
+                    <Text>{cat.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
 
-            {apartmentType !== null && (
-              <>
-                {/* Image gallery from library */}
-                <TouchableOpacity onPress={pickImage} style={styles.imageBox}>
-                  {images.length === 0 ? (
-                    <>
-                      <Ionicons name="image-outline" size={60} color="gray" />
-                      <Text>הוסף תמונות מהגלריה</Text>
-                    </>
-                  ) : (
-                    <FlatList
-                      data={images}
-                      horizontal
-                      keyExtractor={(item, index) => index.toString()}
-                      renderItem={({ item }) => (
-                        <View style={{ position: "relative", marginRight: 10 }}>
-                          <Image source={{ uri: item }} style={styles.previewImage} />
-                          <TouchableOpacity
-                            style={styles.removeButton}
-                            onPress={() => removeImage(item)}
+              {apartmentType !== null && (
+                <>
+                  {/* Image gallery from library */}
+                  <TouchableOpacity onPress={pickImage} style={styles.imageBox}>
+                    {images.length === 0 ? (
+                      <>
+                        <Ionicons name="image-outline" size={60} color="gray" />
+                        <Text>הוסף תמונות מהגלריה</Text>
+                      </>
+                    ) : (
+                      <FlatList
+                        data={images}
+                        horizontal
+                        keyExtractor={(item, index) => index.toString()}
+                        renderItem={({ item }) => (
+                          <View
+                            style={{ position: "relative", marginRight: 10 }}
                           >
-                            <Text style={{ color: "white" }}>✕</Text>
-                          </TouchableOpacity>
-                        </View>
-                      )}
+                            <Image
+                              source={{ uri: item }}
+                              style={styles.previewImage}
+                            />
+                            <TouchableOpacity
+                              style={styles.removeButton}
+                              onPress={() => removeImage(item)}
+                            >
+                              <Text style={{ color: "white" }}>✕</Text>
+                            </TouchableOpacity>
+                          </View>
+                        )}
+                      />
+                    )}
+                  </TouchableOpacity>
+
+                  {/* Take photo */}
+                  <TouchableOpacity
+                    onPress={takePhoto}
+                    style={styles.cameraButton}
+                  >
+                    <Ionicons name="camera-outline" size={24} color="#333" />
+                    <Text style={{ marginLeft: 8 }}>צלם תמונה</Text>
+                  </TouchableOpacity>
+
+                  {/* Main form fields */}
+                  <View style={{ width: "100%" }}>
+                    <GooglePlacesAutocomplete
+                      onFail={(error) => {
+                        console.error("Autocomplete ERROR:", error);
+                        Alert.alert("שגיאה", "אירעה שגיאה בעת חיפוש הכתובת");
+                      }}
+                      textInputProps={{
+                        onFocus: () => {},
+                        onBlur: () => {},
+                        autoCorrect: false,
+                      }}
+                      placeholder={ "הקלד מיקום..."}
+                      fetchDetails={true}
+                      onPress={(data, details = null) => {
+                        if (!details || !details.geometry?.location) {
+                          console.warn("No location details available");
+                          Alert.alert("שגיאה", "פרטי מיקום לא זמינים כרגע");
+                          return;
+                        }
+
+                        const location = details.formatted_address || "";
+                        const lat = details.geometry.location.lat;
+                        const lng = details.geometry.location.lng;
+
+                        const fullAddress = {
+                          address: location,
+                          latitude: lat,
+                          longitude: lng,
+                          types: details.types || [],
+                        };
+                        console.log(fullAddress);
+                        setLocation(fullAddress);
+                      }}
+                      isRowScrollable={false}
+                      query={{
+                        key: "AIzaSyCGucSUapSIUa_ykXy0K8tl6XR-ITXRj3o",
+                        language: "he",
+                        components: "country:il",
+                      }}
+                      enablePoweredByContainer={false}
+                      styles={{
+                        textInput: {
+                          height: 48,
+                          borderWidth: 1,
+                          borderColor: "#ccc",
+                          borderRadius: 10,
+                          paddingHorizontal: 10,
+                          fontSize: 16,
+                          marginBottom: 15,
+                          textAlign: "right",
+                          backgroundColor: "white",
+                        },
+                        listView: {
+                          position: "absolute",
+                          top: 50,
+                          zIndex: 1000,
+                          elevation: 5,
+                          backgroundColor: "white",
+                          width: "100%",
+                        },
+                      }}
                     />
-                  )}
-                </TouchableOpacity>
+                  </View>
 
-                {/* Take photo */}
-                <TouchableOpacity onPress={takePhoto} style={styles.cameraButton}>
-                  <Ionicons name="camera-outline" size={24} color="#333" />
-                  <Text style={{ marginLeft: 8 }}>צלם תמונה</Text>
-                </TouchableOpacity>
-
-                {/* Main form fields */}
-                <View style={{ width: "100%" }}>
-                  <GooglePlacesInput onLocationSelected={setLocation} />
-                </View>
-
-                <TextInput
-                  style={styles.input}
-                  placeholder="מחיר"
-                  keyboardType="numeric"
-                  value={price}
-                  onChangeText={setPrice}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="חדרים"
-                  keyboardType="numeric"
-                  value={rooms}
-                  onChangeText={setRooms}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="תיאור"
-                  value={description}
-                  onChangeText={setDescription}
-                  multiline
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="קומה"
-                  keyboardType="numeric"
-                  value={floor}
-                  onChangeText={setFloor}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="חניה"
-                  keyboardType="numeric"
-                  value={parkingSpace}
-                  onChangeText={setParkingSpace}
-                />
-
-                <Text style={{ alignSelf: "flex-start", marginBottom: 5, textAlign: "right", width: "100%" }}>
-                  סוג הנכס:
-                </Text>
-                <View style={styles.propertyTypeList}>
-                  {propertyTypes.map((type) => (
-                    <TouchableOpacity
-                      key={type.id}
-                      onPress={() => setPropertyTypeID(type.id)}
-                      style={[
-                        styles.propertyTypeButton,
-                        propertyTypeID === type.id && styles.selectedPropertyType,
-                      ]}
-                    >
-                      <Text>{type.name}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                {/* Entry Date */}
-                <TouchableOpacity onPress={() => setShowEntryPicker(true)} style={styles.input}>
-                  <Text>תאריך כניסה: {entryDate}</Text>
-                </TouchableOpacity>
-                {showEntryPicker && (
-                  <DateTimePicker
-                    value={new Date(entryDate)}
-                    mode="date"
-                    minimumDate={new Date()}
-                    onChange={handleEntryDateChange}
-                  />
-                )}
-
-                {/* Exit Date */}
-                <TouchableOpacity onPress={() => setShowExitPicker(true)} style={styles.input}>
-                  <Text>תאריך יציאה: {exitDate}</Text>
-                </TouchableOpacity>
-                {showExitPicker && (
-                  <DateTimePicker
-                    value={new Date(exitDate)}
-                    mode="date"
-                    minimumDate={new Date(new Date(entryDate).getTime() + 86400000)}
-                    onChange={handleExitDateChange}
-                  />
-                )}
-
-                {/* Boolean options */}
-                <View style={styles.booleanRow}>
-                  <TouchableOpacity onPress={() => toggleIcon(allowPet, setAllowPet)}>
-                    <MaterialIcons name="pets" size={30} color={allowPet ? "#E3965A" : "#ccc"} />
-                    <Text>חיות</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => toggleIcon(allowSmoking, setAllowSmoking)}>
-                    <MaterialIcons name="smoking-rooms" size={30} color={allowSmoking ? "#E3965A" : "#ccc"} />
-                    <Text>עישון</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => toggleIcon(gardenBalcony, setGardenBalcony)}>
-                    <FontAwesome5 name="tree" size={30} color={gardenBalcony ? "#E3965A" : "#ccc"} />
-                    <Text>מרפסת</Text>
-                  </TouchableOpacity>
-                </View>
-
-                {/* Unique fields per apartment type */}
-                {apartmentType === 0 && (
-                  <>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="משך חוזה (חודשים)"
-                      keyboardType="numeric"
-                      value={contractLength}
-                      onChangeText={setContractLength}
-                    />
-                    <TouchableOpacity onPress={() => toggleIcon(extensionPossible, setExtensionPossible)}>
-                      <Text>אפשרות להארכה: {extensionPossible ? "✔️" : "❌"}</Text>
-                    </TouchableOpacity>
-                  </>
-                )}
-                {apartmentType === 1 && (
                   <TextInput
                     style={styles.input}
-                    placeholder="מספר שותפים"
+                    placeholder="מחיר"
                     keyboardType="numeric"
-                    value={numberOfRoommates}
-                    onChangeText={setNumberOfRoommates}
+                    value={price}
+                    onChangeText={setPrice}
                   />
-                )}
-                {apartmentType === 2 && (
-                  <>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="חדרים"
+                    keyboardType="numeric"
+                    value={rooms}
+                    onChangeText={setRooms}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="תיאור"
+                    value={description}
+                    onChangeText={setDescription}
+                    multiline
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="קומה"
+                    keyboardType="numeric"
+                    value={floor}
+                    onChangeText={setFloor}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="חניה"
+                    keyboardType="numeric"
+                    value={parkingSpace}
+                    onChangeText={setParkingSpace}
+                  />
+
+                  <Text
+                    style={{
+                      alignSelf: "flex-start",
+                      marginBottom: 5,
+                      textAlign: "right",
+                      width: "100%",
+                    }}
+                  >
+                    סוג הנכס:
+                  </Text>
+                  <View style={styles.propertyTypeList}>
+                    {propertyTypes.map((type) => (
+                      <TouchableOpacity
+                        key={type.id}
+                        onPress={() => setPropertyTypeID(type.id)}
+                        style={[
+                          styles.propertyTypeButton,
+                          propertyTypeID === type.id &&
+                            styles.selectedPropertyType,
+                        ]}
+                      >
+                        <Text>{type.name}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  {/* Entry Date */}
+                  <TouchableOpacity
+                    onPress={() => setShowEntryPicker(true)}
+                    style={styles.input}
+                  >
+                    <Text>תאריך כניסה: {entryDate}</Text>
+                  </TouchableOpacity>
+                  {showEntryPicker && (
+                    <CustomDateTimePicker
+                      value={new Date(entryDate)}
+                      mode="date"
+                      minimumDate={new Date()}
+                      onChange={handleEntryDateChange}
+                    />
+                  )}
+
+                  {/* Exit Date */}
+                  <TouchableOpacity
+                    onPress={() => setShowExitPicker(true)}
+                    style={styles.input}
+                  >
+                    <Text>תאריך יציאה: {exitDate}</Text>
+                  </TouchableOpacity>
+                  {showExitPicker && (
+                    <CustomDateTimePicker
+                      value={new Date(exitDate)}
+                      mode="date"
+                      minimumDate={
+                        new Date(new Date(entryDate).getTime() + 86400000)
+                      }
+                      onChange={handleExitDateChange}
+                    />
+                  )}
+
+                  {/* Boolean options */}
+                  <View style={styles.booleanRow}>
                     <TouchableOpacity
-                      onPress={() => toggleIcon(canCancelWithoutPenalty, setCanCancelWithoutPenalty)}
+                      onPress={() => toggleIcon(allowPet, setAllowPet)}
                     >
-                      <Text>ביטול ללא קנס: {canCancelWithoutPenalty ? "✔️" : "❌"}</Text>
+                      <MaterialIcons
+                        name="pets"
+                        size={30}
+                        color={allowPet ? "#E3965A" : "#ccc"}
+                      />
+                      <Text>חיות</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => toggleIcon(isWholeProperty, setIsWholeProperty)}>
-                      <Text>כל הדירה: {isWholeProperty ? "✔️" : "❌"}</Text>
+                    <TouchableOpacity
+                      onPress={() => toggleIcon(allowSmoking, setAllowSmoking)}
+                    >
+                      <MaterialIcons
+                        name="smoking-rooms"
+                        size={30}
+                        color={allowSmoking ? "#E3965A" : "#ccc"}
+                      />
+                      <Text>עישון</Text>
                     </TouchableOpacity>
-                  </>
-                )}
+                    <TouchableOpacity
+                      onPress={() =>
+                        toggleIcon(gardenBalcony, setGardenBalcony)
+                      }
+                    >
+                      <FontAwesome5
+                        name="tree"
+                        size={30}
+                        color={gardenBalcony ? "#E3965A" : "#ccc"}
+                      />
+                      <Text>מרפסת</Text>
+                    </TouchableOpacity>
+                  </View>
 
-                {/* Submit button */}
-                <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-                  <Text style={{ color: "white", fontWeight: "bold" }}>שיתוף הדירה</Text>
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
-        }
-        data={[]} // empty data, we only use the header
-        renderItem={null}
-        keyboardShouldPersistTaps="handled"
-      />
-    </KeyboardAvoidingView>
-  </SafeAreaView>
-);
+                  {/* Unique fields per apartment type */}
+                  {apartmentType === 0 && (
+                    <>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="משך חוזה (חודשים)"
+                        keyboardType="numeric"
+                        value={contractLength}
+                        onChangeText={setContractLength}
+                      />
+                      <TouchableOpacity
+                        onPress={() =>
+                          toggleIcon(extensionPossible, setExtensionPossible)
+                        }
+                      >
+                        <Text>
+                          אפשרות להארכה: {extensionPossible ? "✔" : " "}
+                        </Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
+                  {apartmentType === 1 && (
+                    <TextInput
+                      style={styles.input}
+                      placeholder="מספר שותפים"
+                      keyboardType="numeric"
+                      value={numberOfRoommates}
+                      onChangeText={setNumberOfRoommates}
+                    />
+                  )}
+                  {apartmentType === 2 && (
+                    <>
+                      <TouchableOpacity
+                        onPress={() =>
+                          toggleIcon(
+                            canCancelWithoutPenalty,
+                            setCanCancelWithoutPenalty
+                          )
+                        }
+                      >
+                        <Text>
+                          ביטול ללא קנס: {canCancelWithoutPenalty ? "✔" : " "}
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() =>
+                          toggleIcon(isWholeProperty, setIsWholeProperty)
+                        }
+                      >
+                        <Text>כל הדירה: {isWholeProperty ? "✔" : " "}</Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
 
+                  {/* Submit button */}
+                  <TouchableOpacity
+                    style={styles.submitButton}
+                    onPress={handleSubmit}
+                  >
+                    <Text style={{ color: "white", fontWeight: "bold" }}>
+                      שיתוף הדירה
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
+          }
+          data={[]} // empty data, we only use the header
+          renderItem={null}
+          keyboardShouldPersistTaps="handled"
+        />
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -701,7 +843,7 @@ const styles = StyleSheet.create({
   propertyTypeList: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "flex-end", // יישור לימין
+    justifyContent: "flex-end",
     rowGap: 10,
     columnGap: 10,
     marginBottom: 20,
@@ -715,7 +857,7 @@ const styles = StyleSheet.create({
     margin: 5,
     backgroundColor: "#f4f4f4",
     alignItems: "center",
-    flexDirection: "row-reverse", // טקסט מימין
+    flexDirection: "row-reverse",
   },
   selectedPropertyType: {
     borderColor: "#E3965A",
