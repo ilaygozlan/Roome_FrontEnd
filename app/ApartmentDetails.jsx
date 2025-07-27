@@ -442,11 +442,12 @@ export default function ApartmentDetails({ apt, onClose }) {
               <Text style={styles.headerTitle}></Text>
             </View>
             <TouchableOpacity
-              onPress={() =>
+              onPress={() =>{
                 router.push({
                   pathname: "UserProfile",
                   params: { userId: apt.Creator_ID },
                 })
+                onClose();}
               }
             >
               <View style={styles.creatorContainer}>
