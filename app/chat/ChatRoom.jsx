@@ -165,6 +165,7 @@ const ChatRoom = () => {
         <View style={styles.header}>
           <TouchableOpacity
             onPress={() => {
+              
               if (navigation.canGoBack()) {
                 navigation.goBack();
               } else {
@@ -262,6 +263,7 @@ const createStyles = (isDark) =>
       flexDirection: "row",
       alignItems: "center",
       padding: 15,
+      marginTop: 20,
       borderBottomWidth: 1,
       borderBottomColor: isDark ? "#333" : "#ddd",
       backgroundColor: isDark ? "#1e1e1e" : "#ffffff",
